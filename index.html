@@ -578,23 +578,29 @@ const sfx={
 /* Musique d'ambiance générée (aucun fichier à charger) */
 const MUSIC={timer:null, bus:null, step:0, next:0};
 const mtof = m => 440*Math.pow(2,(m-69)/12);
-const CHORDS=[[45,[57,60,64]],[41,[57,60,65]],[48,[55,60,64]],[43,[55,59,62]]];
+const CHORDS=[[45,[57,60,64]],[45,[57,60,64]],[41,[57,60,65]],[43,[55,59,62]]];
 function musicStart(){
   if (!P.music || MUSIC.timer) return;
   const c=ac(); if (!c) return;
   const bus=c.createGain(), lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2200;
   bus.gain.setValueAtTime(0,c.currentTime); bus.gain.linearRampToValueAtTime(.55,c.currentTime+2);
   bus.connect(lp).connect(c.destination); MUSIC.bus=bus; MUSIC.step=0; MUSIC.next=c.currentTime+.1;
-  const eighth=60/88/2;
+  const eighth=60/140/2;
+  const nlen=Math.floor(c.sampleRate*.05), nbuf=c.createBuffer(1,nlen,c.sampleRate), nd=nbuf.getChannelData(0); for (let i=0;i<nlen;i++) nd[i]=(Math.random()*2-1)*Math.pow(1-i/nlen,6);
+  const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6000; hp.connect(c.destination); MUSIC.hp=hp;
+  const hat=(t,v)=>{ const s=c.createBufferSource(), g=c.createGain(); s.buffer=nbuf; g.gain.value=v*(P.music?1:0); s.connect(g).connect(hp); s.start(t); };
+  const kick=t=>{ const o=c.createOscillator(), g=c.createGain(); o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(45,t+.12); g.gain.setValueAtTime(.16,t); g.gain.exponentialRampToValueAtTime(.001,t+.16); o.connect(g).connect(bus); o.start(t); o.stop(t+.17); };
   const note=(f,t,d,type,v)=>{ const o=c.createOscillator(), g=c.createGain(); o.type=type; o.frequency.value=f;
     g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+Math.min(.04,d/4)); g.gain.exponentialRampToValueAtTime(.0008,t+d);
     o.connect(g).connect(bus); o.start(t); o.stop(t+d+.05); };
   MUSIC.timer=setInterval(()=>{
     while (MUSIC.next < c.currentTime+.25){
       const s=MUSIC.step, t=MUSIC.next, [root,tri]=CHORDS[Math.floor(s/16)%4], pos=s%16;
-      if (pos===0) tri.forEach(m=>note(mtof(m),t,eighth*15,'triangle',.022));
-      if (pos%4===0) note(mtof(root),t,eighth*3.5,'sine',.07);
-      const arp=[0,1,2,1,2,0,1,2][pos%8]; if (pos%2===0 || Math.random()<.35) note(mtof(tri[arp]+12),t,eighth*1.6,'sine',.028);
+      if (pos===0) tri.forEach(m=>note(mtof(m),t,eighth*15,'triangle',.014));
+      if (pos%2===0) kick(t);
+      hat(t, pos%2 ? .05 : .025);
+      note(mtof(root+(pos%2?12:0)),t,eighth*.9,'sawtooth',.035);
+      const arp=[0,1,2,1,2,0,2,1][pos%8]; note(mtof(tri[arp]+12),t,eighth*.8,'square',.012);
       MUSIC.step++; MUSIC.next+=eighth;
     }
   },60);
@@ -602,7 +608,7 @@ function musicStart(){
 function musicStop(){
   if (!MUSIC.timer) return; clearInterval(MUSIC.timer); MUSIC.timer=null;
   const c=AC, bus=MUSIC.bus; if (c && bus){ try { bus.gain.cancelScheduledValues(c.currentTime); bus.gain.setValueAtTime(bus.gain.value,c.currentTime); bus.gain.linearRampToValueAtTime(0,c.currentTime+.6); setTimeout(()=>bus.disconnect(),800); } catch(e){} }
-  MUSIC.bus=null;
+  MUSIC.bus=null; if (MUSIC.hp){ try { MUSIC.hp.disconnect(); } catch(e){} MUSIC.hp=null; }
 }
 const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
 document.addEventListener('pointerdown', () => ac(), {once:true});
@@ -1436,7 +1442,7 @@ function celebrate(){
     ${vsAI&&M.eloDelta!=null?`<p class="sub">Elo ${P.elo.r} (${M.eloDelta>=0?'+':''}${M.eloDelta}) · ${tierOf(P.elo.r)[1]}</p>`:''}
     ${quote?`<p class="quote">« ${esc(quote)} » — ${esc(S[1].name)}</p>`:''}
     <div class="row">${canAct()?`<button class="primary" type="button" data-act="new">Rejouer</button>`:''}<button class="secondary" type="button" data-act="party-analyze">Analyser</button></div>
-    <button class="secondary" type="button" data-act="party-close">Voir le plateau</button>`;
+    <button class="secondary" type="button" data-act="leave-game" style="width:100%">${online()?'Quitter':'Retour au menu'}</button>`;
   box.hidden=false;
   if (iWon) sfx.win(); else sfx.round();
   if (REDUCED || !iWon) return;
