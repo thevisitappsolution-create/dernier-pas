@@ -163,7 +163,7 @@ button{font:inherit;color:inherit}
 .bubble.bot{align-self:flex-end}
 
 /* Plateau */
-.board{position:relative;container-type:inline-size;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:9px;background:var(--bframe);border-radius:12px;box-shadow:inset 0 0 0 1px #ffffff12,0 18px 40px #0006;width:100%;max-width:min(440px, calc(100vh - 360px));max-width:min(440px, calc(100dvh - 360px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)));margin:0 auto;box-sizing:border-box}
+.board{position:relative;container-type:inline-size;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:9px 9px 22px 22px;background:var(--bframe);border-radius:12px;box-shadow:inset 0 0 0 1px #ffffff12,0 18px 40px #0006;width:100%;max-width:min(440px, calc(100vh - 360px));max-width:min(440px, calc(100dvh - 360px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)));margin:0 auto;box-sizing:border-box}
 .board.jolt{animation:jolt .18s}
 @keyframes jolt{50%{transform:translateY(3px) scale(.995)}}
 .cell{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:7px;display:grid;place-items:center;font-size:calc(100cqw / 5 * .36)}
@@ -184,7 +184,31 @@ button{font:inherit;color:inherit}
 .cell.pre{outline:3px solid var(--mc);outline-offset:-3px}
 .cell.hint{outline:3px solid var(--ok);outline-offset:-3px;animation:pulse 1s ease-in-out infinite}
 @keyframes pulse{50%{outline-color:transparent}}
-.layer{position:absolute;inset:9px;pointer-events:none}
+.layer{position:absolute;inset:9px 9px 22px 22px;pointer-events:none}
+.coord{position:absolute;font-family:var(--mono);font-size:.68rem;font-weight:600;color:#c9c2f0;opacity:.85;pointer-events:none;text-shadow:0 0 6px #8f7bff;transform:translate(-50%,-50%)}
+.cell.goal{outline:3px solid #ffe14d;outline-offset:-3px;box-shadow:0 0 18px #ffe14d,inset 0 0 14px #ffe14d88!important;animation:pulse 1.1s ease-in-out infinite}
+.mini{grid-template-columns:16px repeat(5,1fr)!important;max-width:250px!important}
+.mini .lb{aspect-ratio:auto!important;font-family:var(--mono);font-size:.66rem;font-weight:600;color:#c9c2f0;background:none!important;box-shadow:none!important}
+.mini .pl{box-shadow:inset 0 0 0 3px var(--alert),0 0 12px var(--alert)!important}
+.mini .bs{box-shadow:inset 0 0 0 3px var(--ok),0 0 12px var(--ok)!important}
+.sqp{color:var(--alert);font-weight:700}.sqb{color:var(--ok);font-weight:700}
+.tr-explain{background:#15112d;border:1px solid #8f7bff66;border-radius:10px;padding:10px 12px;color:#e6e1ff;font-size:.92rem}
+.lessons{display:flex;flex-direction:column;gap:8px}
+.lesson{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;text-align:left;padding:12px;border-radius:12px;border:1px solid #2ef2ff40;background:#15112d;color:#fff;cursor:pointer}
+.lesson .no{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-weight:600;border:2px solid var(--accent);color:var(--accent);box-shadow:0 0 10px #2ef2ff66}
+.lesson.done .no{background:var(--accent);color:#0a0718}
+.lesson small{display:block;color:var(--muted);font-size:.8rem}
+.lesson[disabled]{opacity:.55;cursor:default;border-color:#8f7bff44}
+.lesson .tag{font-family:var(--mono);font-size:.66rem;color:var(--neon2);border:1px solid var(--neon2);border-radius:999px;padding:1px 7px}
+.pzgrid{display:flex;flex-wrap:wrap;gap:6px}
+.pzgrid button{width:44px;height:44px;border-radius:10px;border:1px solid #2ef2ff55;background:#15112d;color:#fff;font-family:var(--mono);font-weight:600;cursor:pointer}
+.pzgrid button.ok{background:var(--accent);color:#0a0718;box-shadow:0 0 10px #2ef2ff88}
+.ratings{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.9rem}
+.ratings th,.ratings td{padding:8px 6px;border-bottom:1px solid #2c2558;text-align:center}
+.ratings th{color:var(--muted);font-weight:600;font-size:.78rem}
+.ratings td:first-child,.ratings th:first-child{text-align:left}
+.ratings b{font-family:var(--mono);color:#fff}
+.ratings .cur td{background:#2ef2ff14}
 .pawn,.fx{position:absolute;left:0;top:0;width:calc((100% - 20px) / 5);aspect-ratio:1;transform:translate(calc(var(--q) * (100% + 5px)),calc(var(--r) * (100% + 5px)))}
 .pawn{transition:transform .34s cubic-bezier(.3,1.3,.5,1);z-index:2}
 .pawn .body{position:absolute;inset:6%;transition:transform .2s,opacity .3s}
@@ -289,6 +313,7 @@ button{font:inherit;color:inherit}
 @keyframes knock{0%{transform:scale(.3) rotate(var(--rot));opacity:0}25%{transform:scale(1.15) rotate(var(--rot));opacity:1}70%{opacity:1}100%{transform:scale(1) rotate(var(--rot));opacity:0}}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:45;max-width:calc(100% - 32px);padding:10px 16px;border-radius:999px;background:var(--ink);color:#141b18;font-weight:600;font-size:.9rem;box-shadow:0 8px 30px #000a;animation:drop .3s cubic-bezier(.2,1.5,.4,1) both}
 html.lock .toast{top:auto;bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+#sheet:not([hidden]) ~ .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto}
 @keyframes drop{from{transform:translate(-50%,-30px);opacity:0}}
 .overlay{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:20px;background:#141b18e6;backdrop-filter:blur(3px)}
 .overlay canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
@@ -588,6 +613,18 @@ function loadP(){
   return p;
 }
 let P=loadP();
+/* Classements : Ordinateur (entraînement) et Championnat (en ligne), par cadence et taille de plateau */
+const BOARD_SIZE=5;
+const rKey = (mode,t) => `${mode}-${t}-${BOARD_SIZE}x${BOARD_SIZE}`;
+const newR = () => ({r:1000,g:0,w:0,hist:[1000]});
+function getR(mode,t){ P.ratings=P.ratings||{}; const k=rKey(mode,t); if (!P.ratings[k]) P.ratings[k]=newR(); return P.ratings[k]; }
+if (!P.ratings){ P.ratings={}; if (P.elo && P.elo.g) P.ratings[rKey('ia',P.time||5)]=P.elo; }
+function syncElo(){ P.elo=getR('ia',P.time); }
+syncElo();
+function applyChamp(score, oppR){
+  const R=getR('champ',P.time), exp=1/(1+Math.pow(10,(oppR-R.r)/400)), K=R.g<20?40:24, d=Math.round(K*(score-exp));
+  R.r+=d; R.g++; if (score) R.w++; R.hist=[...(R.hist||[]),R.r].slice(-30); saveP(); return d;
+}
 function saveP(){ try { localStorage.setItem(P_KEY, JSON.stringify(P)); } catch(e){} }
 const unlocked = (kind,id) => CONFIG.season0 || CAT[kind][id].p===0 || P.premium || P.owned.includes(kind+':'+id);
 const WEEK=168*3600e3;
@@ -737,6 +774,7 @@ function sides(){
   let s;
   if (vsAI) s=[me, {name:BOTS[vsAI].name, skin:BOTS[vsAI].skin}];
   else if (online()) s=[0,1].map(k => k===net.seat ? me : PEERS[k] ? {name:PEERS[k].nm, skin:PEERS[k].sk} : {name:k===0?'Joueur 1':'Joueur 2', skin:k===0?P0.skin:DEF2});
+  else if (TR) s=[me, {name:TR.oppName||'Adversaire', skin:DEF2}];
   else s=[me, {name:'Invité', skin:DEF2}];
   s=s.map(x=>({...x, hex:COLORS[x.skin.color].hex}));
   if (s[1].hex===s[0].hex){ const alt = s[0].skin.color==='azur' ? 'ivoire' : 'azur'; s[1]={...s[1], skin:{...s[1].skin, color:alt}, hex:COLORS[alt].hex}; }
@@ -774,6 +812,7 @@ function doMove(m){
   G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.hinting=false;
   G.turn=1-t; startTurn(); commit();
   if (vsAI && t===1 && !G.over) botAfterMove();
+  if (TR) trAfterMove(t, m);
 }
 function endRound(w){
   G.over=true; G.winner=w; G.sum=boardSum(); G.ver++;
@@ -783,6 +822,7 @@ function endRound(w){
   if (M.wins[w]===2){
     M.done=true;
     if (vsAI && !M.train) M.eloDelta=applyElo(w===0?1:0);
+    if (online() && (net.seat===0||net.seat===1) && !M.champDone){ const op=PEERS[1-net.seat]; M.champDone=true; M.champDelta=applyChamp(w===net.seat?1:0, op && op.rc ? (op.rc[P.time]||1000) : 1000); }
     setTimeout(celebrate, 1100); return;
   }
   if (M.rounds.length===1){ M.next=1-M.starter; M.why=''; return; }
@@ -807,6 +847,7 @@ function startRound(){
   G=newRound(); startTurn(); playIntro(); commit(); musicStart();
 }
 function leaveGame(){
+  if (TR){ TR=null; }
   musicStop();
   if (vsAI && M && !M.done && !M.train && (M.rounds.length || (G && G.moves>0))) applyElo(0);
   $('#party').hidden=true; stopConfetti(); leaveOnline();
@@ -843,6 +884,7 @@ function schedulePremove(){
 }
 function onCell(i){
   if (!G || G.over || performance.now()<introUntil) return;
+  if (TR && (TR.state!=='play' || G.turn!==0 || (TR.kind==='lesson' && TR.phase!=='ex'))) return;
   const seat=humanSeat(), myTurn=seat===null || G.turn===seat, hitP=[0,1].find(p=>G.pawns[p].includes(i));
   if (!myTurn){
     if (seat!==0 && seat!==1) return;
@@ -1005,7 +1047,8 @@ function onNetData(d){
   if (!net || !d || typeof d!=='object') return;
   const other = net.seat===0 ? 1 : 0;
   if (d.t==='hello'){
-    PEERS[other]={nm:cleanName(d.nm), sk:cleanSkin(d.sk)}; net.opp=true; S=sides();
+    const rc={}; if (d.rc && typeof d.rc==='object') for (const t of [3,5,7]){ const v=+d.rc[t]; if (v>0 && v<4000) rc[t]=Math.round(v); }
+    PEERS[other]={nm:cleanName(d.nm), sk:cleanSkin(d.sk), rc}; net.opp=true; S=sides();
     if (net.seat===0 && !M) startMatch(); else render();
     if (net.seat===0 && M) commit();
     return;
@@ -1024,7 +1067,7 @@ function onNetData(d){
 }
 function wireConn(conn){
   net.conn=conn;
-  conn.on('open', ()=>{ conn.send({t:'hello', nm:P.name, sk:P.skin}); });
+  conn.on('open', ()=>{ conn.send({t:'hello', nm:P.name, sk:P.skin, rc:{3:getR('champ',3).r,5:getR('champ',5).r,7:getR('champ',7).r}}); });
   conn.on('data', onNetData);
   conn.on('close', ()=>{ if (!net) return; net.opp=false; toast('Ton adversaire s\'est déconnecté.'); render(); });
   conn.on('error', ()=>{});
@@ -1122,6 +1165,13 @@ function buildBoard(){
     el.addEventListener('click', ()=>onCell(i)); b.appendChild(el); cellEls[i]=el;
   }
   layer=document.createElement('div'); layer.className='layer'; b.appendChild(layer);
+  for (let d=0; d<5; d++){
+    const g='((100% - 31px - 20px) / 5)';
+    const rk=document.createElement('span'); rk.className='coord'; rk.textContent=flipped ? d+1 : 5-d;
+    rk.style.left='11px'; rk.style.top=`calc(9px + ${d} * (${g} + 5px) + ${g} / 2)`; b.appendChild(rk);
+    const fl=document.createElement('span'); fl.className='coord'; fl.textContent=flipped ? COLS[4-d] : COLS[d];
+    fl.style.top='calc(100% - 11px)'; fl.style.left=`calc(22px + ${d} * (${g} + 5px) + ${g} / 2)`; b.appendChild(fl);
+  }
   pawnEls=[0,1].map(p=>[0,1].map(k=>{ const d=document.createElement('div'); d.className='pawn'; d.style.setProperty('--bd',`${(p*2+k)*1.3}s`); d.innerHTML='<div class="body"></div><div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>'; layer.appendChild(d); return d; }));
   skinPawns();
 }
@@ -1138,7 +1188,7 @@ function strip(side){
   return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div>
     <div style="min-width:0"><div class="nm">${esc(s.name)} ${tag?`<small>(${tag})</small>`:''}</div>
     <div class="meta" style="--pc:${s.hex}"><span class="dots" aria-label="${wins} manche(s) gagnée(s)">${'●'.repeat(wins)}${'○'.repeat(2-wins)}</span><span class="jp${G&&G.J[side]?' on':''}">↷ ${G?G.J[side]:1}</span></div></div>
-    <div class="clock${on?' on':''}${ms<30000&&playing?' low':''}" id="clk${side}">${fmt(ms)}</div>`;
+    <div class="clock${on?' on':''}${ms<30000&&playing&&!(G&&G.noClock)?' low':''}" id="clk${side}">${G&&G.noClock?'∞':fmt(ms)}</div>`;
 }
 function renderGame(){
   const key=JSON.stringify(S.map(s=>[s.skin,s.hex,s.name]));
@@ -1146,11 +1196,12 @@ function renderGame(){
   const playing=G&&!G.over, seat=humanSeat(), myTurn=playing&&(seat===null||G.turn===seat);
   const bot=bottomSide();
   $('#stripTop').innerHTML=strip(1-bot); $('#stripBot').innerHTML=strip(bot);
-  { const a=bot, b=1-bot, pts=[0,1].map(s=>M.rounds.filter(r=>r.w===s).reduce((x,r)=>x+r.sum,0));
+  if (TR){ $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[0].hex}"><span class="nm2"><i></i><span>${esc(S[0].name)}</span></span></div><div class="mid"><b style="font-size:1rem">${esc(TR.kind==='puzzle'?'Puzzle':'Cours')}</b><small>${esc(trTitle())}</small></div><div class="sd r" style="--pc:${S[1].hex}"><span class="nm2"><span>${esc(S[1].name)}</span><i></i></span></div>`; }
+  else { const a=bot, b=1-bot, pts=[0,1].map(s=>M.rounds.filter(r=>r.w===s).reduce((x,r)=>x+r.sum,0));
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
       `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b><small>manches · plateau ${boardSum()}</small></div>`+
       `<div class="sd r" style="--pc:${S[b].hex}"><span class="nm2"><span>${esc(S[b].name)}</span><i></i></span><b class="pts">${pts[b]} pts</b></div>`; }
-  $('#phase').textContent=`Manche ${M.round} · ${BOARDS[G.bid].name}${M.train?' · entraînement':''}${online()?` · ${net.code.toUpperCase()}`:''}`;
+  $('#phase').textContent= TR ? trTitle() : `Manche ${M.round} · ${BOARDS[G.bid].name}${M.train?' · entraînement':''}${online()?` · ${net.code.toUpperCase()}`:''}`;
   // plateau
   const pickMoves = myTurn && G.pick!==null ? movesFor(G.turn).filter(m=>m[0]===G.pick) : [];
   const targets=new Set(pickMoves.filter(m=>!m[2]).map(m=>m[1]));
@@ -1165,6 +1216,7 @@ function renderGame(){
     if (premove && premove.i===i && preSeat!==null) cls+=' pre';
     if (G.hint && G.hint[1]===i && myTurn) cls+=' hint';
     if (G.last && G.last.from===i) cls+=' from';
+    if (TR && TR.goal===i) cls+=' goal';
     const el=cellEls[i]; if (el.className!==cls) el.className=cls;
     const html=v===0?'':`<span class="num">${v}</span>`; if (el.innerHTML!==html) el.innerHTML=html;
     const hp=[0,1].find(p=>G.pawns[p].includes(i));
@@ -1180,13 +1232,14 @@ function renderGame(){
     if (playing && p===G.turn && !movesFor(p).some(m=>m[0]===k)) cls+=' stuck';
     if (mine && G.hint && G.hint[0]===k) cls+=' hint';
     if (preSeat===p && premove && premove.k===k) cls+=' pre';
-    if (G.over) cls+= p===G.winner ? ' win' : ' lose';
+    if (G.over && G.winner!=null) cls+= p===G.winner ? ' win' : ' lose';
     if (asleep(p)) cls+=' sleep';
     if (el.className.replace(' angry','').replace(' laugh','')!==cls) el.className=cls;
   }
   // statut
   const st=$('#gstatus'); let txt='', isMsg=false;
-  if (G.over) txt = M.done ? `<b>${esc(S[M.wins[0]===2?0:1].name)}</b> remporte la partie ${Math.max(...M.wins)}-${Math.min(...M.wins)}` : `<b>${esc(S[G.winner].name)}</b> gagne la manche. ${G.msg?esc(G.msg):''}`;
+  if (TR) txt=trStatus();
+  else if (G.over) txt = M.done ? `<b>${esc(S[M.wins[0]===2?0:1].name)}</b> remporte la partie ${Math.max(...M.wins)}-${Math.min(...M.wins)}` : `<b>${esc(S[G.winner].name)}</b> gagne la manche. ${G.msg?esc(G.msg):''}`;
   else if (G.msg){ txt=esc(G.msg); isMsg=true; }
   else if (vsAI && G.turn===1) txt=`${esc(S[1].name)} réfléchit…`;
   else if (!myTurn && (seat===0||seat===1)) txt = premove&&premove.i!=null ? `Prémove prêt : <b>${sq(G.pawns[seat][premove.k])}→${sq(premove.i)}</b>` : premove ? 'Prémove : touche la case visée.' : 'Tour adverse. Tu peux préparer ton coup.';
@@ -1199,6 +1252,7 @@ function renderGame(){
 }
 function renderActions(){
   if (view!=='game' || !G) return;
+  if (TR) return renderTrActions();
   const seat=humanSeat(), playing=!G.over, myTurn=playing&&(seat===null||G.turn===seat), social=vsAI||online();
   const me=seat===null?G.turn:seat, a=[];
   const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`aria-pressed="${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
@@ -1248,6 +1302,8 @@ function renderPlay(){
   <button class="item" type="button" data-act="tournament">${ic('trophy')}Tournois${P.premium?'':'<span class="lock">Premium</span>'}</button>
   <button class="item" type="button" data-act="friend">${ic('friends')}Jouer avec un ami</button>
   <button class="item" type="button" data-act="ai-sheet">${ic('bot')}Jouer contre l'ordinateur</button>
+  <button class="item" type="button" data-act="lessons">${ic('book')}Cours${(()=>{ const n=LESSONS.filter(L=>(P.lessons||{})[L.id]).length; return n<LESSONS.length?`<span class="lock" style="color:var(--neon3);border-color:var(--neon3)">${n}/${LESSONS.length}</span>`:''; })()}</button>
+  <button class="item" type="button" data-act="puzzles">${ic('bulb')}Puzzles</button>
   <button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button>
   <button class="more" type="button" data-act="more" aria-expanded="${playMore}">Plus ${playMore?'▴':'▾'}</button>
   ${playMore?`<button class="item" type="button" data-act="local">${ic('phone')}À deux sur ce téléphone</button><button class="item" type="button" data-act="rules">${ic('book')}Règles du jeu</button>`:''}`;
@@ -1274,6 +1330,11 @@ function renderProfile(){
   <div class="avatar" style="width:130px;margin:0 auto">${pawnSVG(P.skin)}</div>
   <div class="field"><label for="pname" class="sub">Pseudo</label><input id="pname" maxlength="16" value="${esc(P.name)}" autocomplete="off"></div>
   ${['color','fur','eyes','acc','theme'].map(k=>`<h2 class="h2">${KIND_N[k]}</h2><div class="chips">${Object.keys(CAT[k]).map(id=>card(k,id)).join('')}</div>`).join('')}
+  <h2 class="h2">Classements · plateau 5×5</h2>
+  <table class="ratings"><thead><tr><th>Cadence</th><th>Ordinateur<br>(entraînement)</th><th>Championnat<br>(en ligne)</th></tr></thead><tbody>
+  ${[3,5,7].map(t=>{ const a=getR('ia',t), c=getR('champ',t); return `<tr class="${P.time===t?'cur':''}"><td>${t} min</td><td><b>${a.r}</b> <small class="note">${a.g} m.</small></td><td><b>${c.r}</b> <small class="note">${c.g} m.</small></td></tr>`; }).join('')}
+  </tbody></table>
+  <p class="note">Chaque cadence et chaque taille de plateau a son propre classement. Les points de championnat se gagnent en ligne contre d'autres joueurs.</p>
   <h2 class="h2">Statistiques</h2>
   <div class="stats"><div><b style="color:${t[2]}">${P.elo.r}</b><small>Elo · ${t[1]}</small></div><div><b>${P.elo.g}</b><small>matchs classés</small></div><div><b>${P.premium?'∞':left}</b><small>${P.premium?'analyses':left<3?`analyses · +1 dans ${anRenewH()} h`:'analyses cette semaine'}</small></div></div>
   <h2 class="h2">Réglages</h2>
@@ -1357,6 +1418,9 @@ function sheetHTML(){
       <li><span>8</span><div><b>Prémove.</b> Pendant le tour adverse, prépare ton coup : il part tout seul s'il est encore possible.</div></li></ol>
       <button class="primary" type="button" data-act="sheet-close">C'est parti</button>`;
   if (s.type==='analysis') return analysisHTML();
+  if (s.type==='lessons') return lessonsHTML();
+  if (s.type==='puzzles') return puzzlesHTML();
+  if (s.type==='tr') return trSheetHTML();
   return '';
 }
 function updateChatLog(){
@@ -1372,15 +1436,15 @@ function analysisHTML(){
   const rows=h.map((e,j)=>{ const a=AN.res[j], jd=judge(a); if (cnt[e.turn][jd.k]!==undefined) cnt[e.turn][jd.k]++;
     return `<button type="button" class="mv" data-act="an-sel" data-v="${j}" aria-current="${AN.sel===j}"><span class="n">${j+1}.</span><span>${who(e.turn)} <code>${sq(e.pawns[e.turn][e.move[0]])}${e.move[2]?'↷':'→'}${sq(e.move[1])}</code></span><span class="badge2 ${jd.k}">${jd.t}</span></button>`; }).join('');
   const e=h[AN.sel], a=AN.res[AN.sel], from=e.pawns[e.turn][e.move[0]];
-  const mini=e.cells.map((v,i)=>{ const pw=[0,1].find(p=>e.pawns[p].includes(i)); let c=v===0?'h':'v'+v; if (pw!==undefined) c+=' pw'; if (i===from) c+=' fr'; if (a&&a.bm&&i===a.bm[1]) c+=' bs'; else if (i===e.move[1]) c+=' pl'; return `<div class="${c}" ${pw!==undefined?`style="--pc:${S[pw].hex}"`:''}>${v||''}</div>`; }).join('');
+  const mini=e.cells.map((v,i)=>{ const pw=[0,1].find(p=>e.pawns[p].includes(i)); let c=v===0?'h':'v'+v; if (pw!==undefined) c+=' pw'; if (i===from) c+=' fr'; if (a&&a.bm&&i===a.bm[1]) c+=' bs'; else if (i===e.move[1]) c+=' pl'; return (i%5===0?`<div class="lb">${5-((i/5)|0)}</div>`:'')+`<div class="${c}" ${pw!==undefined?`style="--pc:${S[pw].hex}"`:''}>${v||''}</div>`; }).join('')+'<div class="lb"></div>'+[...COLS].map(l=>`<div class="lb">${l}</div>`).join('');
   const same=a&&a.bm&&a.bm[0]===e.move[0]&&a.bm[1]===e.move[1]&&a.bm[2]===e.move[2];
-  const best=a&&a.bm&&!same ? ` Meilleur : <code>${sq(e.pawns[e.turn][a.bm[0]])}${a.bm[2]?'↷':'→'}${sq(a.bm[1])}</code>.` : same ? ' C\'était le meilleur coup.' : '';
+  const best=a&&a.bm&&!same ? ` Meilleur : <code class="sqb">${sq(e.pawns[e.turn][a.bm[0]])}${a.bm[2]?'↷':'→'}${sq(a.bm[1])}</code> (case verte).` : same ? ' C\'était le meilleur coup.' : '';
   return `${head}<p>${[0,1].map(p=>`${who(p)} : ${cnt[p].blunder} grave${cnt[p].blunder>1?'s':''}, ${cnt[p].mistake} imprécision${cnt[p].mistake>1?'s':''}`).join('<br>')}</p>
     <div class="mini">${mini}</div>
-    <p>Coup ${AN.sel+1} : ${who(e.turn)} joue <code>${sq(from)}${e.move[2]?'↷':'→'}${sq(e.move[1])}</code>.${best} <span class="badge2 ${judge(a).k}">${judge(a).t}</span></p>
+    <p>Coup ${AN.sel+1} : ${who(e.turn)} joue <code class="sqp">${sq(from)}${e.move[2]?'↷':'→'}${sq(e.move[1])}</code>${same?'':' (case rouge)'}.${best} <span class="badge2 ${judge(a).k}">${judge(a).t}</span></p>
     <div class="row"><button class="secondary" type="button" data-act="an-prev" ${AN.sel?'':'disabled'}>◀ Précédent</button><button class="secondary" type="button" data-act="an-next" ${AN.sel<h.length-1?'':'disabled'}>Suivant ▶</button></div>
     <div class="moves">${rows}</div>
-    <p class="note">Rouge : coup joué. Vert : meilleur coup. « Victoire manquée » et « Coup perdant » sont certains, le reste est estimé.</p>`;
+    <p class="note">Les lettres a à e et les chiffres 1 à 5 donnent la case, comme aux échecs. Cadre pointillé : case de départ. Rouge : coup joué. Vert : meilleur coup. « Victoire manquée » et « Coup perdant » sont certains, le reste est estimé.</p>`;
 }
 
 /* ---------- Rendu général ---------- */
@@ -1407,9 +1471,21 @@ document.addEventListener('click', e=>{
   const k=a.dataset.act, v=a.dataset.v;
   switch(k){
     case 'tab': view=v; sheet=null; render(); window.scrollTo(0,0); break;
+    case 'lessons': sheet={type:'lessons'}; render(); break;
+    case 'puzzles': sheet={type:'puzzles'}; render(); break;
+    case 'lesson': startLesson(+v); break;
+    case 'puzzle': startPuzzle(a.dataset.k, +v); break;
+    case 'tr-skip': if (TR){ TR.phase='ready'; render(); } break;
+    case 'tr-replay': if (TR) startLesson(TR.i); break;
+    case 'tr-go': startExercise(); break;
+    case 'tr-restart': sheet=null; trRestart(); break;
+    case 'tr-next': trNext(); break;
+    case 'tr-quit': trQuit(); break;
+    case 'tr-hint': trHint(); break;
+    case 'tr-sol': sheet=null; trSolution(); break;
     case 'more': playMore=!playMore; render(); break;
     case 'time-sheet': sheet={type:'time'}; render(); break;
-    case 'time': P.time=+v; saveP(); sheet=null; render(); break;
+    case 'time': P.time=+v; syncElo(); saveP(); sheet=null; render(); break;
     case 'quick': startAI(P.level,false); break;
     case 'ai-sheet': sheet={type:'ai'}; render(); break;
     case 'coach': sheet={type:'ai',coach:true}; render(); break;
@@ -1475,7 +1551,7 @@ document.addEventListener('submit', e=>{
 let lastTick=performance.now(), lastSleep=false;
 setInterval(()=>{
   const now=performance.now(), dt=now-lastTick; lastTick=now;
-  if (!G || G.over || now<introUntil) return;
+  if (!G || G.over || now<introUntil || G.noClock) return;
   G.clock[G.turn]=Math.max(0,G.clock[G.turn]-dt);
   if (G.clock[G.turn]<=0 && (!online()||G.turn===net.seat)){ G.msg=`Temps écoulé pour ${S[G.turn].name}.`; endRound(1-G.turn); commit(); return; }
   const el=document.getElementById('clk'+G.turn); if (el){ el.textContent=fmt(G.clock[G.turn]); el.classList.toggle('low',G.clock[G.turn]<30000); }
@@ -1517,6 +1593,233 @@ function installCard(){
   return '';
 }
 async function doInstall(){ if (!installEvt) return; installEvt.prompt(); try { await installEvt.userChoice; } catch(e){} installEvt=null; render(); }
+
+
+/* ---------- Cours et puzzles ---------- */
+const PUZ = {"win1":[{"c":"1001000211020100020010011","p":[[9,23],[17,3]],"j":[1,0],"n":1,"sol":[0,8,0],"b":5},{"c":"1120112211101011001011201","p":[[7,21],[22,14]],"j":[0,0],"n":1,"sol":[0,9,0],"b":2},{"c":"0010010011011211100010121","p":[[14,16],[11,5]],"j":[0,0],"n":1,"sol":[0,12,0],"b":8},{"c":"0010111110111110102010011","p":[[13,5],[10,14]],"j":[0,0],"n":1,"sol":[0,11,0],"b":4}],"win2":[{"c":"1001111111002112100200201","p":[[8,14],[16,13]],"j":[1,0],"n":2,"sol":[1,12,1],"b":2},{"c":"0101020201000110100010111","p":[[1,7],[14,16]],"j":[1,0],"n":2,"sol":[1,22,1],"b":9},{"c":"1010111202100110010110110","p":[[19,7],[5,13]],"j":[0,0],"n":2,"sol":[0,14,0],"b":9},{"c":"1111101102002000002100121","p":[[2,18],[7,0]],"j":[0,0],"n":2,"sol":[0,1,0],"b":7},{"c":"1110100010101000202011100","p":[[8,1],[18,21]],"j":[1,0],"n":2,"sol":[1,0,0],"b":4},{"c":"0201112022012100001111021","p":[[6,18],[1,11]],"j":[1,0],"n":2,"sol":[1,13,0],"b":8}],"win3":[{"c":"1111100021001110012011111","p":[[20,13],[17,23]],"j":[0,0],"n":3,"sol":[0,21,0],"b":6},{"c":"1001111211002112101200201","p":[[7,14],[16,18]],"j":[1,0],"n":3,"sol":[0,8,0],"b":2},{"c":"0111101100001012002110121","p":[[24,7],[14,2]],"j":[0,0],"n":3,"sol":[0,19,0],"b":7},{"c":"1101121201000111100010111","p":[[0,6],[4,15]],"j":[1,0],"n":3,"sol":[1,9,1],"b":9},{"c":"1010111121021001211010111","p":[[12,16],[8,0]],"j":[1,0],"n":3,"sol":[0,7,0],"b":5},{"c":"1010101021101111101011101","p":[[21,13],[14,8]],"j":[0,0],"n":3,"sol":[0,16,0],"b":4}],"adv":[{"c":"1021101121212011212111201","p":[[7,11],[9,21]],"j":[0,1],"n":1,"sol":[1,16,0],"b":0,"best":5},{"c":"1021022122112101222111111","p":[[18,6],[3,10]],"j":[1,1],"n":1,"sol":[1,8,0],"b":2,"best":11},{"c":"1020111212102012221110211","p":[[8,22],[17,4]],"j":[0,0],"n":1,"sol":[0,9,0],"b":2,"best":10},{"c":"1011101121112111202011111","p":[[7,23],[18,11]],"j":[1,0],"n":1,"sol":[1,13,1],"b":4,"best":10},{"c":"1011121111112121121110211","p":[[16,12],[11,18]],"j":[1,0],"n":1,"sol":[0,15,0],"b":9,"best":8},{"c":"1111101110112110212111110","p":[[6,23],[14,17]],"j":[1,0],"n":1,"sol":[1,13,0],"b":4,"best":9}]};
+const PUZ_CATS=[
+  {k:'win1', t:'Isoler en 1 coup', d:'Un seul coup suffit à bloquer les deux pions adverses.'},
+  {k:'win2', t:'Gagner en 2 coups', d:'Réduis ses options, puis enferme-le, quelle que soit sa défense.'},
+  {k:'win3', t:'Gagner en 3 coups', d:'Calcule trois coups à l\'avance. L\'ordinateur défend au mieux.'},
+  {k:'adv',  t:'Prendre l\'avantage', d:'Trouve le coup qui te laisse le plus de liberté et en laisse le moins à l\'adversaire.'},
+];
+let TR=null;   // session d'entraînement en cours (cours ou puzzle)
+const cellsFrom = str => [...str].map(Number);
+const allTwo = () => Array(25).fill(2);
+const LESSONS=[
+  {id:'l1', t:'Se déplacer', d:'1, 2 ou 3 cases en ligne droite.',
+   demo:{c:BOARDS[0].cells, p:[[20,24],[4,0]], steps:[
+     {cap:'Un pion avance en ligne droite : haut, bas, gauche ou droite.', mv:[0,0,15]},
+     {cap:'De 1, 2 ou 3 cases d\'un coup.', mv:[0,1,9]},
+     {cap:'Jamais en diagonale, et jamais par-dessus un pion.', mv:[0,0,17]}]},
+   ex:{c:BOARDS[0].cells, p:[[20,24],[4,0]], goal:7, max:2, opp:'pass', text:'Amène un de tes pions sur la case jaune, en 2 coups maximum.',
+     ok:()=>G.pawns[0].includes(7), why:'Deux déplacements en ligne droite suffisent : d\'abord vers le haut, puis sur le côté.'}},
+  {id:'l2', t:'Les cases s\'usent', d:'Le chiffre dit combien de fois on peut encore quitter la case.',
+   demo:{c:(()=>{ const c=BOARDS[0].cells.slice(); c[20]=1; return c; })(), p:[[20,24],[4,0]], steps:[
+     {cap:'Le chiffre indique combien de fois on peut encore quitter la case.'},
+     {cap:'Quand un pion quitte une case 1, elle tombe et laisse un trou.', mv:[0,0,15]},
+     {cap:'Une case 2 devient une case 1.', mv:[0,1,19]},
+     {cap:'Un trou bloque la ligne : on ne peut plus passer par là.'}]},
+   ex:{c:(()=>{ const c=BOARDS[0].cells.slice(); c[20]=1; c[24]=1; return c; })(), p:[[20,24],[4,0]], max:3, opp:'pass', text:'Fais tomber 2 cases en 3 coups maximum.',
+     ok:()=>G.cells.filter(v=>v===0).length>=2, why:'Quitter une case 1 la fait tomber. Enchaîne deux départs depuis des cases 1.'}},
+  {id:'l3', t:'Bloquer pour gagner', d:'Tu gagnes quand l\'adversaire ne peut plus bouger.',
+   demo:{z:PUZ.win1[0], steps:[
+     {cap:'Tu perds la manche quand aucun de tes deux pions ne peut bouger.'},
+     {cap:'Ici, Blanc peut enfermer les deux pions adverses d\'un seul coup.', sol:true},
+     {cap:'Plus aucun déplacement pour l\'adversaire : manche gagnée !'}]},
+   ex:{z:PUZ.win1[1], max:1, opp:'none', text:'Bloque les deux pions adverses en 1 coup.',
+     ok:()=>movesFor(1).length===0, why:'Tes pions et les trous ferment chaque ligne de l\'adversaire : il ne lui reste aucun déplacement.'}},
+  {id:'l4', t:'Le saut ↷', d:'Une fois par manche, passe par-dessus un trou ou un pion.',
+   demo:{c:(()=>{ const c=allTwo(); [17,21,23].forEach(i=>c[i]=0); return c; })(), p:[[22,20],[2,4]], steps:[
+     {cap:'Ce pion est coincé : trous à gauche, à droite et devant.'},
+     {cap:'Le saut le fait passer par-dessus le trou. Une seule fois par manche !', mv:[0,0,12,1]},
+     {cap:'Dans le jeu, les cases marquées ↷ utilisent ton saut automatiquement.'}]},
+   ex:{c:(()=>{ const c=allTwo(); for (let i=10;i<15;i++) c[i]=0; return c; })(), p:[[22,20],[0,4]], goal:7, max:2, opp:'pass', text:'Rejoins la case jaune : il faudra sauter par-dessus la rangée de trous.',
+     ok:()=>G.pawns[0].includes(7), why:'Une rangée de trous coupe le plateau. Seul le saut permet de la traverser.'}},
+  {id:'l5', t:'Gagner en 2 coups', d:'Réduire les options, puis enfermer.',
+   demo:{z:PUZ.win2[0], line:[[0, 1, 12, 1], [1, 0, 15, 0], [0, 0, 3, 0]], steps:[
+     {cap:'Premier coup : couper les sorties de l\'adversaire (ici avec le saut).', line:0},
+     {cap:'L\'adversaire joue sa meilleure défense…', line:1},
+     {cap:'…et le second coup l\'enferme. Il faut toujours calculer sa réponse.', line:2}]},
+   ex:{z:PUZ.win2[1], max:2, opp:'ai', text:'Gagne en 2 coups. L\'ordinateur défend au mieux.',
+     ok:()=>G.over && G.winner===0, why:'Ton premier coup réduisait déjà ses déplacements. Le second fermait la dernière issue.'}},
+];
+const LOCKED_LESSONS=['Contrôler le centre','Couper le plateau en deux','Parité des cases','Garder son saut pour la fin','Lire les plateaux en rotation','Parties des meilleurs joueurs'];
+
+function trBase(cells, pawns, J, bid, oppName){
+  leaveOnline(); vsAI=null; training=false; premove=null;
+  M={id:'tr'+Date.now(), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:[bid||0], train:true, eloDelta:null};
+  HIST={}; AN=null; CHAT=[]; view='game'; sheet=null; introUntil=0;
+  TR.oppName=oppName||'Adversaire';
+  S=sides(); buildBoard(); resetLook();
+  G=newRound(); G.cells=cells.slice(); G.pawns=pawns.map(x=>x.slice()); G.J=(J||[1,1]).slice(); G.turn=0; G.noClock=true; G.bid=bid||0; G.msg='';
+  lastSkinKey='';
+}
+function startPuzzle(cat, idx){
+  const z=PUZ[cat][idx]; if (!z) return;
+  TR={kind:'puzzle', cat, idx, z, my:0, state:'play'};
+  trBase(cellsFrom(z.c), z.p, z.j, z.b);
+  startTurn(); G.msg=''; render();
+}
+function startLesson(i){
+  const L=LESSONS[i]; if (!L) return;
+  TR={kind:'lesson', i, L, phase:'demo', step:-1, my:0, state:'demo'};
+  const d=L.demo;
+  if (d.z) trBase(cellsFrom(d.z.c), d.z.p, d.z.j, d.z.b); else trBase(d.c, d.p, [1,1], 0);
+  G.turn=0; G.pick=null; render(); playDemo();
+}
+function demoMove(p,k,to,jump){
+  const from=G.pawns[p][k]; G.cells[from]--; G.pawns[p][k]=to; if (jump) G.J[p]=0;
+  look(p,k,from,to); G.last={p,from,to,jump}; const fell=G.cells[from]===0; fx(from,to,p,fell); sfx.move(); if (fell) setTimeout(sfx.fall,200); if (jump) sfx.jump();
+  G.turn=1-p; G.pick=null;
+}
+function playDemo(){
+  const tr=TR, L=tr.L, steps=L.demo.steps; tr.phase='demo'; tr.step=-1;
+  const next=()=>{
+    if (TR!==tr || tr.phase!=='demo') return;
+    tr.step++;
+    if (tr.step>=steps.length){ tr.phase='ready'; render(); return; }
+    const st=steps[tr.step];
+    if (st.mv) setTimeout(()=>{ if (TR===tr && tr.phase==='demo'){ G.pick=st.mv[1]; G.turn=st.mv[0]; render(); setTimeout(()=>{ if (TR===tr && tr.phase==='demo'){ demoMove(...st.mv); render(); } }, 500); } }, 700);
+    if (st.sol){ const z=L.demo.z; setTimeout(()=>{ if (TR===tr && tr.phase==='demo'){ demoMove(0,z.sol[0],z.sol[1],z.sol[2]); render(); } }, 900); }
+    if (st.line!==undefined){ const mv=L.demo.line[st.line]; setTimeout(()=>{ if (TR===tr && tr.phase==='demo'){ demoMove(...mv); render(); } }, 900); }
+    render();
+    setTimeout(next, 3200);
+  };
+  next();
+}
+function startExercise(){
+  const tr=TR, ex=tr.L.ex;
+  if (ex.z) { G.cells=cellsFrom(ex.z.c); G.pawns=ex.z.p.map(x=>x.slice()); G.J=ex.z.j.slice(); G.bid=ex.z.b; }
+  else { G.cells=ex.c.slice(); G.pawns=ex.p.map(x=>x.slice()); G.J=[1,1]; }
+  G.turn=0; G.over=false; G.winner=null; G.last=null; G.msg=''; G.ver++; HIST={}; resetLook();
+  tr.phase='ex'; tr.state='play'; tr.my=0; tr.goal=ex.goal;
+  const b=$('#board'); b.classList.remove('deal'); void b.offsetWidth; b.classList.add('deal'); setTimeout(()=>b.classList.remove('deal'),1100);
+  startTurn(); G.msg=''; render();
+}
+function trRestart(){
+  if (!TR) return;
+  if (TR.kind==='puzzle') startPuzzle(TR.cat, TR.idx);
+  else if (TR.phase==='ex' || TR.state==='win' || TR.state==='fail') { sheet=null; startExercise(); }
+  else startLesson(TR.i);
+}
+function trDone(ok, why){
+  const tr=TR; tr.state=ok?'win':'fail'; tr.why=why||'';
+  if (ok){
+    if (tr.kind==='puzzle'){ P.puz=P.puz||{}; P.puz[tr.cat+tr.idx]=1; }
+    else { P.lessons=P.lessons||{}; P.lessons[tr.L.id]=1; }
+    saveP(); sfx.win();
+    if (!REDUCED){ const box=$('#fxscreen'); ['BRAVO'].forEach(t=>{ const w=document.createElement('div'); w.className='wword'; w.textContent=t; w.style.setProperty('--pc','#b6ff3b'); w.style.setProperty('--rot','-6deg'); w.style.left='22%'; w.style.top='38%'; box.appendChild(w); setTimeout(()=>w.remove(),800); }); }
+  } else sfx.round();
+  render(); setTimeout(()=>{ if (TR===tr){ sheet={type:'tr'}; render(); } }, 700);
+}
+function trAfterMove(t, m){
+  const tr=TR; if (!tr || t!==0 || tr.state!=='play') return;
+  tr.my++;
+  if (tr.kind==='lesson'){
+    const ex=tr.L.ex;
+    if (ex.ok()) return trDone(true, ex.why);
+    if (tr.my>=ex.max) return trDone(false, 'Objectif pas atteint dans le nombre de coups. Réessaie !');
+    if (ex.opp==='pass'){ G.turn=0; G.over=false; startTurn(); G.msg=''; render(); return; }
+    if (ex.opp==='ai') return trOppReply();
+    return;
+  }
+  const z=tr.z;
+  if (tr.cat==='adv'){
+    const h=HIST[G.round], e=h[h.length-1]; tr.state='check'; G.over=true; render();
+    ask('analyze',{list:[e]}).then(r=>{
+      if (TR!==tr) return; const a=r&&r[0];
+      const after=[aiMob(G.cells,G.pawns,0), aiMob(G.cells,G.pawns,1)];
+      const c2=e.cells.slice(), P2=e.pawns.map(x=>x.slice()), bm=a?a.bm:z.sol; c2[P2[0][bm[0]]]--; P2[0][bm[0]]=bm[1];
+      const bestAfter=[aiMob(c2,P2,0), aiMob(c2,P2,1)];
+      const ok = a && (a.played>=a.best-2);
+      const txt=`Après ton coup, tu as ${after[0]} déplacements possibles et l'adversaire ${after[1]}. `+
+        (ok ? 'C\'est l\'avantage : plus de liberté pour toi, moins pour lui.' : `Le meilleur coup était <b class="sqb">${sq(e.pawns[0][bm[0]])}→${sq(bm[1])}</b> : il te laissait ${bestAfter[0]} déplacements et seulement ${bestAfter[1]} à l'adversaire.`);
+      trDone(!!ok, txt);
+    });
+    return;
+  }
+  if (G.over){ if (G.winner===0){ const h=HIST[G.round]||[]; const first=h[0]; return trDone(true, `Après ton dernier coup, l'adversaire n'a plus aucun déplacement : ses pions sont enfermés par les trous, les bords et tes pions.${z.n>1&&first?` Ton premier coup <b class="sqb">${sq(first.pawns[0][first.move[0]])}→${sq(first.move[1])}</b> lui avait déjà retiré presque toutes ses sorties.`:''}`); } return; }
+  if (tr.my>=z.n) return trDone(false, `L'adversaire peut encore bouger. La solution commençait par <b class="sqb">${sq(z.p[0][z.sol[0]])}${z.sol[2]?'↷':'→'}${sq(z.sol[1])}</b>.`);
+  trOppReply();
+}
+function trOppReply(){
+  const tr=TR, g=G, ver=G.ver; if (G.over) return;
+  setTimeout(async()=>{
+    if (TR!==tr || G!==g || G.ver!==ver) return;
+    const om=await ask('choose',{st:stateOf(),level:'expert'});
+    if (TR!==tr || G!==g || G.ver!==ver || !om) return;
+    G.pick=om[0]; render(); await sleep(380);
+    if (TR===tr && G===g && G.ver===ver){ doMove(om); if (TR===tr && G.over && G.winner===1) trDone(false,'L\'adversaire t\'a bloqué. Réessaie !'); }
+  }, 450);
+}
+function trTitle(){
+  if (!TR) return '';
+  if (TR.kind==='puzzle'){ const c=PUZ_CATS.find(x=>x.k===TR.cat); return `${c.t} · ${TR.idx+1}/${PUZ[TR.cat].length}`; }
+  return `Cours ${TR.i+1} · ${TR.L.t}`;
+}
+function trStatus(){
+  const tr=TR;
+  if (tr.kind==='lesson' && tr.phase==='demo'){ const st=tr.L.demo.steps[Math.max(0,tr.step)]; return `<b>${esc(st?st.cap:'')}</b>`; }
+  if (tr.kind==='lesson' && tr.phase==='ready') return 'Démonstration terminée. À toi de jouer !';
+  if (tr.state==='win') return '<b>Réussi !</b>';
+  if (tr.state==='fail') return 'Raté. Réessaie ou regarde la solution.';
+  if (tr.state==='check') return 'Analyse de ton coup…';
+  if (G.turn!==0) return 'L\'adversaire réfléchit…';
+  const txt = tr.kind==='puzzle' ? (PUZ_CATS.find(x=>x.k===tr.cat).d) : tr.L.ex.text;
+  const left = tr.kind==='puzzle' ? (tr.cat==='adv'?1:tr.z.n)-tr.my : tr.L.ex.max-tr.my;
+  return `${esc(txt)} <b>${left} coup${left>1?'s':''} restant${left>1?'s':''}.</b>`;
+}
+function renderTrActions(){
+  const tr=TR, a=[];
+  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.dis?'disabled':''} style="--pc:#2ef2ff">${icon?ic(icon):''}${label}</button>`;
+  if (tr.kind==='lesson' && tr.phase==='demo'){ a.push(btn('tr-skip','', 'Passer la démo',{cls:'primary'})); }
+  else if (tr.kind==='lesson' && tr.phase==='ready'){ a.push(btn('tr-replay','undo','Revoir')); a.push(btn('tr-go','', 'À toi !',{cls:'primary'})); }
+  else if (tr.state==='win'){ a.push(btn('tr-restart','undo','Rejouer')); a.push(btn('tr-next','', 'Suivant',{cls:'primary'})); }
+  else if (tr.state==='fail'){ a.push(btn('tr-sol','bulb','Solution')); a.push(btn('tr-restart','', 'Réessayer',{cls:'primary'})); }
+  else { a.push(btn('tr-hint','bulb','Indice',{dis:G.turn!==0})); a.push(btn('tr-restart','undo','Recommencer')); }
+  a.push(btn('tr-quit','list','Quitter'));
+  $('#actions').innerHTML=a.join('');
+}
+function trNext(){
+  const tr=TR; sheet=null;
+  if (tr.kind==='puzzle'){ if (tr.idx+1<PUZ[tr.cat].length) return startPuzzle(tr.cat, tr.idx+1); const ci=PUZ_CATS.findIndex(x=>x.k===tr.cat); if (ci+1<PUZ_CATS.length) return startPuzzle(PUZ_CATS[ci+1].k,0); }
+  else if (tr.i+1<LESSONS.length) return startLesson(tr.i+1);
+  trQuit();
+}
+function trQuit(){ const kind=TR&&TR.kind; TR=null; G=null; M=null; sheet={type: kind==='puzzle'?'puzzles':'lessons'}; view='play'; render(); }
+function trHint(){
+  const tr=TR; if (!G || G.turn!==0) return;
+  if (tr.kind==='puzzle' && tr.my===0){ G.hint=tr.z.sol; G.pick=tr.z.sol[0]; render(); return; }
+  if (tr.kind==='lesson' && tr.L.ex.z && tr.my===0){ G.hint=tr.L.ex.z.sol; G.pick=G.hint[0]; render(); return; }
+  hint();
+}
+function trSolution(){
+  const tr=TR; const z = tr.kind==='puzzle' ? tr.z : tr.L.ex.z;
+  if (!z){ sheet={type:'tr'}; render(); return; }
+  if (tr.kind==='puzzle') startPuzzle(tr.cat, tr.idx); else startExercise();
+  G.hint=z.sol; G.pick=z.sol[0]; render();
+}
+function lessonsHTML(){
+  const done=P.lessons||{};
+  return `<h2>Cours</h2><p>Une démonstration animée, puis un exercice à réussir. Commence par le cours 1.</p>
+  <div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span><span></span></button>`).join('')}
+  ${LOCKED_LESSONS.map((t,i)=>`<button type="button" class="lesson" disabled><span class="no">${LESSONS.length+i+1}</span><span><b>${esc(t)}</b><small>Avec l'abonnement Premium · bientôt</small></span><span class="tag">Premium</span></button>`).join('')}</div>`;
+}
+function puzzlesHTML(){
+  const ok=P.puz||{};
+  return `<h2>Puzzles</h2><p>Des positions réelles, vérifiées par calcul : la solution existe toujours.</p>
+  ${PUZ_CATS.map(c=>`<div class="field"><b>${esc(c.t)}</b><small class="sub">${esc(c.d)} · ${PUZ[c.k].filter((_,i)=>ok[c.k+i]).length}/${PUZ[c.k].length} réussis</small>
+    <div class="pzgrid">${PUZ[c.k].map((_,i)=>`<button type="button" class="${ok[c.k+i]?'ok':''}" data-act="puzzle" data-k="${c.k}" data-v="${i}" aria-label="${esc(c.t)} ${i+1}">${ok[c.k+i]?'✓':i+1}</button>`).join('')}</div></div>`).join('')}`;
+}
+function trSheetHTML(){
+  const tr=TR; if (!tr) return '';
+  const win=tr.state==='win';
+  return `<h2>${win?'Réussi !':'Pas encore…'}</h2>
+    <p class="tr-explain">${tr.why||''}</p>
+    <div class="row">${win?`<button class="primary" type="button" data-act="tr-next">Suivant</button>`:`<button class="primary" type="button" data-act="tr-restart">Réessayer</button><button class="secondary" type="button" data-act="tr-sol">Voir la solution</button>`}</div>
+    <button class="secondary" type="button" data-act="tr-quit">Retour à la liste</button>`;
+}
 
 /* ---------- Célébration ---------- */
 let raf=null;
