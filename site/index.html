@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dernier Pas · le jeu de stratégie où les cases s'usent</title>
+<meta name="description" content="Dernier Pas : deux pions chacun, des cases qui s'usent, un seul saut. Bloque ton adversaire avant qu'il te bloque. Gratuit, en ligne et contre l'ordinateur.">
+<meta property="og:title" content="Dernier Pas">
+<meta property="og:description" content="Le jeu de stratégie où les cases s'usent. Défie tes amis.">
+<meta property="og:image" content="../og.png">
+<meta name="theme-color" content="#07060f">
+<link rel="icon" href="../icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07060f;--card:#15112d;--line:#2c2558;--ink:#f3f0ff;--muted:#a39cd0;--c1:#2ef2ff;--c2:#ff3dd8;--c3:#b6ff3b;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;color-scheme:dark}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(60% 40% at 0% 0%,#ff3dd833,transparent 70%),radial-gradient(60% 45% at 100% 100%,#2ef2ff2e,transparent 70%),linear-gradient(#ffffff06 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,#ffffff06 1px,transparent 1px) 0 0/28px 28px,var(--bg);background-attachment:fixed;color:var(--ink);font-family:var(--display);line-height:1.5}
+main{max-width:900px;margin:0 auto;padding:32px 16px 60px}
+.logo{font-size:clamp(2.6rem,9vw,4.6rem);font-weight:800;letter-spacing:-.03em;line-height:1;margin:0;text-shadow:0 0 18px #2ef2ff99}
+.logo span{color:var(--c2);text-shadow:0 0 12px var(--c2),0 0 30px #ff3dd8aa}
+.tag{font-family:var(--mono);color:var(--c1);letter-spacing:.12em;text-transform:uppercase;font-size:.8rem;margin:14px 0 0}
+.lead{font-size:1.2rem;max-width:36ch;color:#ded9ff;margin:18px 0 26px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 24px;border-radius:14px;font-weight:800;font-size:1.05rem;text-decoration:none}
+.btn.main{background:linear-gradient(90deg,var(--c1),var(--c2));color:#0a0718;box-shadow:0 0 22px #2ef2ff88}
+.btn.alt{border:1px solid #8f7bff88;color:var(--ink)}
+.stores{margin-top:12px;font-family:var(--mono);font-size:.85rem;color:var(--muted)}
+h2{font-size:1.6rem;margin:56px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card b{display:block;font-size:1.1rem;margin-bottom:6px}
+.card p{margin:0;color:var(--muted)}
+.n{font-family:var(--mono);color:var(--c3);font-weight:600}
+.prem{background:linear-gradient(135deg,#3a1a8a,#c2189a 60%,#ff3dd8);border:0;box-shadow:0 0 26px #ff3dd855}
+.prem p,.prem li{color:#fdf2ff}
+ul{margin:8px 0 0;padding-left:20px}
+footer{margin-top:60px;color:var(--muted);font-family:var(--mono);font-size:.8rem}
+footer a{color:inherit}
+a:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+  <h1 class="logo">Dernier <span>Pas</span></h1>
+  <p class="tag">Le jeu de stratégie où les cases s'usent</p>
+  <p class="lead">Deux pions chacun. Des cases qui tombent. Un seul saut par manche. Enferme ton adversaire avant qu'il ne t'enferme.</p>
+  <div class="cta"><a class="btn main" href="../">Jouer maintenant</a><a class="btn alt" href="#premium">Premium</a></div>
+  <p class="stores">Bientôt sur l'App Store et Google Play. En attendant, joue dans ton navigateur et ajoute le jeu à ton écran d'accueil.</p>
+
+  <h2>Comment ça marche</h2>
+  <div class="grid">
+    <div class="card"><span class="n">01</span><b>Bouge</b><p>À ton tour, avance un pion de 1, 2 ou 3 cases en ligne droite.</p></div>
+    <div class="card"><span class="n">02</span><b>Use le plateau</b><p>Chaque case ne supporte qu'un nombre limité de départs. À 0, elle tombe.</p></div>
+    <div class="card"><span class="n">03</span><b>Saute une fois</b><p>Une fois par manche, passe par-dessus un trou ou un pion.</p></div>
+    <div class="card"><span class="n">04</span><b>Bloque</b><p>Quand l'adversaire ne peut plus bouger, tu gagnes la manche : 10 points + les cases restantes.</p></div>
+  </div>
+
+  <h2>Pour tous les joueurs</h2>
+  <div class="grid">
+    <div class="card"><b>En ligne et entre amis</b><p>Trouve un adversaire ou défie tes amis avec un code ou un lien.</p></div>
+    <div class="card"><b>Contre l'ordinateur</b><p>Quatre niveaux, de Pépin au Sphinx, avec un classement Elo par cadence.</p></div>
+    <div class="card"><b>Cours, puzzles et badges</b><p>Apprends pas à pas, progresse sur le parcours de puzzles et débloque des badges.</p></div>
+    <div class="card"><b>Personnalisation</b><p>Couleurs, fourrures, yeux, accessoires et plateaux, achetés avec les pièces gagnées en jouant.</p></div>
+  </div>
+
+  <h2 id="premium">Premium</h2>
+  <div class="card prem">
+    <b>Pour devenir meilleur</b>
+    <ul><li>Cours avancés</li><li>Indices et solutions des puzzles</li><li>Analyses de parties illimitées</li><li>Bloquer wizz, toc toc et haha</li></ul>
+    <p style="margin-top:12px">Bientôt disponible.</p>
+  </div>
+
+  <footer>Dernier Pas · <a href="../privacy.html">Confidentialité</a></footer>
+</main>
+</body>
+</html>
