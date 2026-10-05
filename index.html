@@ -7,7 +7,7 @@
 <meta name="description" content="Lastep : le jeu de stratégie où les cases s'usent. Bloque ton adversaire, garde toujours un pas d'avance.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Lastep">
 <meta property="og:title" content="Lastep">
 <meta property="og:description" content="Le jeu de stratégie où les cases s'usent. Défie tes amis.">
@@ -31,6 +31,9 @@
 }
 [hidden]{display:none!important}
 html,body{min-height:100%;margin:0;touch-action:manipulation;overscroll-behavior:none}
+html{min-height:calc(100% + env(safe-area-inset-top,0px));background:#07060f}
+html.calm{background:#16181d}
+body{min-height:100vh;min-height:100dvh}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input{-webkit-user-select:text;user-select:text}
 html.lock,html.lock body{height:100%;overflow:hidden}
