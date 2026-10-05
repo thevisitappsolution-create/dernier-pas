@@ -1603,7 +1603,7 @@ function renderHome(){
   return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} steps · ${t[1]}</small></div><span class="flame" aria-label="Série de ${streak} jours">🔥 ${streak}</span></div>${topRight()}</div>
   <div class="hscroll">
     <div class="hcard c"><h3>⏱️ Défis chrono</h3>${np>=RUSH_UNLOCK?`<small>Record série : ${(P.rush||{}).serie||0}</small><button class="primary" type="button" data-act="rush-pick">Jouer</button>`:`<small>Réussis ${RUSH_UNLOCK} puzzles pour débloquer</small><button class="primary" type="button" data-act="tab" data-v="puzzles">Puzzles</button>`}</div>
-    <div class="hcard"><h3>🧩 Puzzles</h3><div class="row2"><b>${np}/${PUZ_LIST.length}</b><div class="prog"><i style="width:${np/PUZ_LIST.length*100}%"></i></div></div><button class="primary" type="button" data-act="tab" data-v="puzzles">Résoudre</button></div>
+    <div class="hcard"><h3>🧩 Puzzles</h3><div class="row2"><b>${Math.min(pzToday(),PZ_DAY)}/${PZ_DAY}</b><div class="prog"><i style="width:${Math.min(1,pzToday()/PZ_DAY)*100}%"></i></div></div><button class="primary" type="button" data-act="tab" data-v="puzzles">Résoudre</button></div>
     <div class="hcard b"><h3>Lastep du jour #${djNum()}</h3>${d?`<b class="emo" style="font-size:1.6rem">${d.res.map(r=>r?'✅':'❌').join('')}</b><button class="primary" type="button" data-act="dj-share">Partager</button>`:`<small>3 puzzles · 1 essai</small><button class="primary" type="button" data-act="dj">Jouer</button>`}</div>
   </div>
   <div class="hhead"><h2 class="h2">Stats</h2></div>
@@ -1763,7 +1763,7 @@ function sheetHTML(){
     return `<h2>Défis chrono</h2><div class="list">${Object.keys(RUSH_MODES).map(k=>`<button class="item" type="button" data-act="rush" data-v="${k}" style="justify-content:space-between">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>
       <p class="note">${P.premium?'Sans limite.':`${left} essai${left>1?'s':''} aujourd'hui.`} Une erreur ou le temps écoulé : fin. Série : 3 erreurs permises.</p>`; }
   if (s.type==='ldone') return `<div class="modicon">🎓</div><h2 style="padding:0">Leçon terminée !</h2><p>Bien joué, ${esc(P.name)}. Tu as maîtrisé <b>${esc(TR&&TR.L?TR.L.t:'')}</b>.</p><button class="primary" type="button" data-act="tr-quit">Terminer</button>`;
-  if (s.type==='limit') return `<div class="modicon">🎓</div><span class="limtag">${s.prem?'COURS PREMIUM':'LIMITE QUOTIDIENNE ATTEINTE'}</span><h2 style="padding:0">Des cours illimités</h2><p>${s.prem?'Ce cours fait partie de Premium.':'Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium.'}</p><button class="primary" type="button" data-act="go-shop">Passer Premium</button>`;
+  if (s.type==='limit') return `<div class="modicon">${s.pz?'🧩':'🎓'}</div><span class="limtag">${s.prem?'COURS PREMIUM':'LIMITE QUOTIDIENNE ATTEINTE'}</span><h2 style="padding:0">${s.pz?'Des puzzles illimités':'Des cours illimités'}</h2><p>${s.prem?'Ce cours fait partie de Premium.':s.pz?`Tes ${PZ_DAY} puzzles du jour sont faits. Reviens demain, ou passe Premium.`:'Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium.'}</p><button class="primary" type="button" data-act="go-shop">Passer Premium</button>`;
   if (s.type==='badges') return `<h2>Badges</h2>${badgesHTML()}`;
   if (s.type==='info') return `<h2>${esc(s.t)}</h2><p>${esc(s.p)}</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
   if (s.type==='games'){
@@ -2160,7 +2160,8 @@ function trBase(cells, pawns, J, bid, oppName){
   G=newRound(); G.cells=cells.slice(); G.pawns=pawns.map(x=>x.slice()); G.J=(J||[1,1]).slice(); G.turn=0; G.noClock=true; G.bid=bid||0; G.msg='';
   lastSkinKey='';
 }
-const PZ_FREE=10;   // gratuit : 10 puzzles ; Premium doit toujours en avoir au moins le double
+const PZ_FREE=10, PZ_DAY=5;
+const pzToday = () => { const pd=P.pzDay||{}; return pd.d===dayKey() ? pd.n||0 : 0; };   // gratuit : 10 puzzles ; Premium doit toujours en avoir au moins le double
 function hash32(str){ let h=2166136261; for (const ch of str){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
 const rot90 = i => (i%5)*5 + (4-((i/5)|0));   // quart de tour, sens horaire
 function rotZ(z, q){
@@ -2172,6 +2173,7 @@ const pzRot = key => hash32(P.uid+':'+key)%4;
 function startPuzzle(cat, idx, mode){
   const z0=PUZ[cat][idx]; if (!z0) return;
   const n=pzIndex(cat,idx); if (!mode && n>=PZ_FREE && !P.premium){ sheet={type:'locked', what:'premiumpz'}; render(); return; }
+  if (!mode && !P.premium && !(P.puz||{})[cat+idx] && pzToday()>=PZ_DAY){ sheet={type:'limit', pz:1}; render(); return; }
   const z=rotZ(z0, pzRot(cat+idx));
   TR={kind:'puzzle', cat, idx, z, my:0, state:'play', rush:mode==='rush', mode:mode||'', t0:performance.now()};
   trBase(cellsFrom(z.c), z.p, z.j, z.b);
@@ -2215,7 +2217,7 @@ function trDone(ok, why){
   if (ok && tr.kind==='puzzle') tr.ms=performance.now()-tr.t0;
   if (ok){
     if (tr.kind==='puzzle'){ P.puz=P.puz||{}; const key=tr.cat+tr.idx, first=!P.puz[key]; P.puz[key]=1;
-      if (first){ P.coins=(P.coins||0)+5; toast('+5 pièces'); if (!(P.stat.pzTried||{})[key]) P.stat.first=(P.stat.first||0)+1; } saveP(); puzBadges(); }
+      if (first){ P.coins=(P.coins||0)+5; toast('+5 pièces'); if (!tr.mode){ const pd=P.pzDay||{}, td=dayKey(); P.pzDay={d:td, n:(pd.d===td?pd.n:0)+1}; } if (!(P.stat.pzTried||{})[key]) P.stat.first=(P.stat.first||0)+1; } saveP(); puzBadges(); }
     else { P.lessons=P.lessons||{}; const first=!P.lessons[tr.L.id]; P.lessons[tr.L.id]=1; if (first){ P.coins=(P.coins||0)+10; if (!TUTO){ const ld=P.lessonDay||{}, td=dayKey(); P.lessonDay={d:td, n:(ld.d===td?ld.n:0)+1}; } } saveP();
       if (tr.L.id==='l1') badge('pas1'); if (LESSONS.filter(L=>!L.p).every(L=>P.lessons[L.id])) badge('eleve'); }
     saveP(); sfx.win(); presBroadcast();
@@ -3019,7 +3021,7 @@ function trProg(){
   else if (tr.rush && RUSH){ return `<div class="trprog"><b>${RUSH.score} réussi${RUSH.score>1?'s':''}</b></div>`; }
   else if (tr.mode==='dj'){ n=3; k=DJ?DJ.k:3; label=`Lastep du jour · ${Math.min(3,k+1)}/3`; }
   else if (tr.mode==='chal'){ return `<div class="trprog"><b>Défi de ${esc(CHAL?CHAL.n:'')}</b></div>`; }
-  else { n=PUZ_LIST.length; k=pzDone(); label=`Puzzle ${pzIndex(tr.cat,tr.idx)+1}/${n}`; }
+  else { n=PZ_DAY; const t=pzToday()%PZ_DAY; k = tr.state==='win' ? (t||PZ_DAY) : t; label=`Puzzle ${Math.min(PZ_DAY, tr.state==='win'?(t||PZ_DAY):t+1)}/${PZ_DAY}`; }
   return `<div class="trprog"><b>${label}</b><div class="prog"><i style="width:${Math.round(k/n*100)}%"></i></div></div>`;
 }
 let bannerQ=[];
