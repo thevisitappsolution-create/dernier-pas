@@ -592,6 +592,46 @@ html.calm .code{color:var(--accent)}
 .clipv{width:100%;max-width:280px;align-self:center;border-radius:14px;background:#000}
 .cad{grid-template-columns:repeat(auto-fit,minmax(74px,1fr))}
 @media (prefers-reduced-motion:reduce){.spark{display:none}}
+
+/* ===== v8 : accueil façon chess.com ===== */
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.me{display:flex;align-items:center;gap:10px;min-width:0}
+.me .av{width:46px;flex:none}
+.me b{display:block;font-size:1.05rem;line-height:1.1}
+.me small{color:var(--muted);font-family:var(--mono);font-size:.8rem}
+.flame{font-family:var(--mono);font-weight:600;color:#ffb02e;white-space:nowrap}
+.me small{white-space:nowrap}
+.hrow .tswitch>span:first-child{display:none}
+.hrow .topr{gap:6px;flex:none}
+.hscroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:2px 16px 6px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll>*{scroll-snap-align:start;flex:none}
+.hcard{width:78%;min-height:150px;box-sizing:border-box;border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#3a1a8a,#1b1638);border:1px solid #8f7bff66;color:#fff}
+.hcard.b{background:linear-gradient(135deg,#0d5679,#15112d);border-color:#2ef2ff55}
+.hcard h3{margin:0;font-size:1.35rem;font-weight:800}
+.hcard .row2{display:flex;align-items:center;gap:10px}
+.hcard .prog{flex:1}
+.hcard .primary{align-self:flex-end;padding:11px 20px}
+.tile{width:104px;box-sizing:border-box;padding:12px 8px;border-radius:14px;background:#15112d;border:1px solid #2c2558;text-align:center;display:flex;flex-direction:column;gap:2px}
+.tile .em{font-size:1.4rem}
+.tile b{font-family:var(--mono);font-size:1.2rem}
+.tile small{color:var(--muted);font-size:.75rem}
+.fc{width:132px;box-sizing:border-box;padding:12px 8px;border-radius:14px;background:#15112d;border:1px solid #2c2558;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--ink)}
+.fc .av{width:56px}
+.fc b{font-size:.9rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc small{color:var(--muted);font-size:.72rem;min-height:2.2em}
+.fc .secondary{padding:8px 10px;width:100%;font-size:.85rem}
+.fc.add{justify-content:center;cursor:pointer;border-style:dashed}
+.fc.add .ic{width:34px;height:34px;stroke:var(--accent)}
+.hhead{display:flex;align-items:baseline;justify-content:space-between}
+.playbar{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:11;pointer-events:none}
+.playbar .in{max-width:520px;margin:0 auto;padding:0 16px 10px;pointer-events:auto}
+.playbar .big{font-size:1.4rem;padding:16px}
+.spacer{height:84px;flex:none}
+.pagehead{display:grid;grid-template-columns:40px 1fr 40px;align-items:center}
+.pagehead h1{text-align:center}
+.bigpawn{width:90px;margin:0 auto}
+html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-color:var(--line)}
 </style>
 
 </head>
@@ -1500,26 +1540,31 @@ function sparkline(h){
   return `<svg class="spark" viewBox="-2 -2 ${w+4} ${ht+4}" preserveAspectRatio="none" aria-label="Évolution de tes steps"><polyline points="${pts}" fill="none" stroke="var(--tc)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="var(--tc)"/></svg>`;
 }
 function renderHome(){
-  const t=tierOf(P.elo.r);
-  return `<div class="top"><h1 class="logo">La<span>step</span></h1>${topRight()}</div>
-  <div class="hero" style="--tc:${t[2]}"><div class="avatar adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div style="min-width:0">
-    <div class="nm">${esc(P.name)} ${P.premium?'<span class="pill premok">Premium</span>':''}</div><div><span class="elo">${P.elo.r}</span> <small class="sub">steps</small> <span class="tier">${t[1]}</span></div>
-    ${sparkline(P.elo.hist)}</div></div>
-  <button class="big" type="button" data-act="match">${ic('globe')}<span>Jouer<small>contre un joueur en ligne · ${tLabel(P.time)}</small></span></button>
-  ${djCard()}
-  <h2 class="h2">Amis</h2>
-  ${friendsHTML()}
-  <div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}Ajouter</button><button type="button" data-act="invite-link">${ic('link')}Inviter</button><button type="button" data-act="poster">${ic('image')}Mon poster</button></div>
-  <p class="note" style="text-align:center">Un ami rejoint avec ton lien : 100 pièces pour chacun.</p>
-  ${installCard()}`;
+  const t=tierOf(P.elo.r), d=djToday(), st=(P.djStreak||{}), streak=st.last===dayKey()||st.last===dayKey(new Date(Date.now()-864e5)) ? st.n||0 : 0, np=pzDone();
+  const fs=[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a)) || (b.last||0)-(a.last||0));
+  return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} steps · ${t[1]}</small></div><span class="flame" aria-label="Série de ${streak} jours">🔥 ${streak}</span></div>${topRight()}</div>
+  <div class="hscroll">
+    <div class="hcard"><h3>🧩 Puzzles</h3><div class="row2"><b>${np}/${PUZ_LIST.length}</b><div class="prog"><i style="width:${np/PUZ_LIST.length*100}%"></i></div></div><button class="primary" type="button" data-act="tab" data-v="puzzles">Résoudre</button></div>
+    <div class="hcard b"><h3>Lastep du jour #${djNum()}</h3>${d?`<b class="emo" style="font-size:1.6rem">${d.res.map(r=>r?'✅':'❌').join('')}</b><button class="primary" type="button" data-act="dj-share">Partager</button>`:`<small>3 puzzles · 1 essai</small><button class="primary" type="button" data-act="dj">Jouer</button>`}</div>
+  </div>
+  <div class="hhead"><h2 class="h2">Stats</h2></div>
+  <div class="hscroll">${TIMES.map(tm=>{ const c=getR('champ',tm), a=getR('ia',tm); return `<div class="tile"><span class="em">${tm===1?'⚡':tm===3?'🔥':tm===5?'⏱️':'🐢'}</span><b>${c.g?c.r:a.r}</b><small>${tm===1?'Éclair':tm+' min'}</small></div>`; }).join('')}</div>
+  <div class="hhead"><h2 class="h2">Amis ${P.friends.length?`<small class="note">${P.friends.length}</small>`:''}</h2></div>
+  <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>Ajouter</b><small>+100 pièces par ami qui rejoint</small></button>${fs.map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?'En ligne':lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">Défier</button></div>`).join('')}</div>
+  ${installCard()}
+  <div class="spacer"></div>
+  <div class="playbar"><div class="in"><button class="big" type="button" data-act="tab" data-v="play">Jouer</button></div></div>`;
 }
 function renderPlay(){
-  return `<div class="top"><h1 class="logo">Jouer</h1>${topRight()}</div>
+  return `<div class="pagehead"><button class="iconbtn" type="button" data-act="tab" data-v="home" aria-label="Retour">${ic('back')}</button><h1 class="logo">Jouer</h1><span></span></div>
+  <div class="bigpawn">${pawnSVG(P.skin)}</div>
   <button class="timebtn" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} <span aria-hidden="true">▾</span></button>
-  <button class="big" type="button" data-act="match">${ic('globe')}<span>En ligne<small>contre un joueur au hasard</small></span></button>
-  <button class="item" type="button" data-act="friend">${ic('friends')}Avec un ami</button>
-  <button class="item" type="button" data-act="ai-sheet">${ic('bot')}Contre l'ordinateur</button>
-  <button class="item" type="button" data-act="local">${ic('phone')}À deux sur ce téléphone</button>`;
+  <button class="big" type="button" data-act="match">Commencer la partie</button>
+  <button class="item" type="button" data-act="friend">${ic('friends')}Jouer avec un ami</button>
+  <button class="item" type="button" data-act="ai-sheet">${ic('bot')}Jouer contre l'ordinateur</button>
+  <button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button>
+  <button class="more" type="button" data-act="more" aria-expanded="${playMore}">Plus ${playMore?'▴':'▾'}</button>
+  ${playMore?`<button class="item" type="button" data-act="local">${ic('phone')}À deux sur ce téléphone</button>`:''}`;
 }
 function card(kind,id,o={}){
   const it=CAT[kind][id], own=unlocked(kind,id), eq = kind==='theme' ? P.theme===id : P.skin[kind]===id;
@@ -1555,8 +1600,8 @@ function renderProfile(){
   ${sec('about','À propos', `${installCard()}<p class="note">Lastep · <a href="privacy.html" style="color:inherit">Confidentialité</a> · <a href="site/" style="color:inherit">Site</a> · contact : ${esc(CONFIG.contact)}</p>`)}`;
 }
 function renderTabs(){
-  const t=[['home','home','Accueil'],['play','play','Jouer'],['learn','coach','Apprendre'],['shop','shop','Boutique'],['profile','user','Profil']];
-  $('#tabsIn').innerHTML=t.map(([v,i,l])=>`<button type="button" data-act="tab" data-v="${v}" ${view===v||(v==='learn'&&view==='puzzles')?'aria-current="page"':''}>${ic(i)}${l}</button>`).join('');
+  const t=[['home','home','Accueil'],['puzzles','bulb','Puzzles'],['learn','coach','Apprendre'],['shop','shop','Boutique'],['profile','user','Profil']];
+  $('#tabsIn').innerHTML=t.map(([v,i,l])=>`<button type="button" data-act="tab" data-v="${v}" ${view===v||(v==='home'&&view==='play')?'aria-current="page"':''}>${ic(i)}${l}</button>`).join('');
 }
 
 /* ---------- Rendu : feuilles ---------- */
@@ -1580,9 +1625,9 @@ function sheetHTML(){
   const s=sheet;
   if (s.type==='time') return `<h2>Cadence</h2><p>Temps par joueur et par manche. Éclair : une seule manche d'une minute.</p><div class="timegrid">${TIMES.map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>`;
   if (s.type==='ai'){
-    return `<h2>${s.coach?'Jouer avec l\'entraîneur':'Choisis ton adversaire'}</h2><p>${s.coach?'Indices et annulation de coups. La partie ne compte pas pour ton classement.':'La partie compte pour tes steps.'}</p>
+    return `<h2>${s.coach?'Jouer avec l\'entraîneur':'Choisis ton adversaire'}</h2>
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.label} · ${l.elo}</small></button>`).join('')}</div>
-    <label class="toggle"><span>Partie piégée 💣<small class="note">Chacun cache une bombe. Si l'adversaire marche dessus pendant ses 3 premiers coups, il perd la manche. Sur ta propre bombe : elle est désamorcée.</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>
+    <label class="toggle"><span>Partie piégée 💣<small class="note">Une bombe cachée chacun, active 3 coups.</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>
     <button class="primary" type="button" data-act="${s.coach?'go-coach':'go-ai'}">Jouer · ${tLabel(P.time)}</button>`;
   }
   if (s.type==='friend'){
@@ -2210,10 +2255,8 @@ function renderLearn(){
   const nl=LESSONS.filter(L=>(P.lessons||{})[L.id]).length, np=pzDone(), nb=Object.keys(P.badges).length;
   return `<div class="top"><h1 class="logo">Apprendre</h1>${topRight()}</div>
   <div class="cad"><div><h4>Cours</h4><b>${nl}/${LESSONS.length}</b><small>terminés</small></div><div><h4>Puzzles</h4><b>${np}/${PUZ_LIST.length}</b><small>réussis</small></div><div><h4>Badges</h4><b>${nb}/${BADGES.length}</b><small>débloqués</small></div></div>
-  <h2 class="h2">Cours</h2><p class="sub">Une démonstration animée, puis un exercice à réussir. Commence par le cours 1.</p>
+  <h2 class="h2">Cours</h2>
   ${lessonsList()}
-  <h2 class="h2">Puzzles</h2>
-  <button class="item" type="button" data-act="puzzles">${ic('bulb')}Parcours de puzzles <span class="lock" style="color:var(--neon3);border-color:var(--neon3)">${np}/${PUZ_LIST.length}</span></button>
   <h2 class="h2">S'entraîner</h2>
   <button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button>
   <h2 class="h2">Badges</h2>
@@ -2612,7 +2655,7 @@ function renderPuzzles(){
       html+=`<button type="button" class="node${d?' done':''}${isCur&&!prem?' cur':''}" style="--x:${x}px" data-act="puzzle" data-k="${c.k}" data-v="${i}" ${open?'':'disabled'} aria-label="Puzzle ${k+1}, ${esc(c.t)}${d?', réussi':prem?', Premium':open?'':', verrouillé'}">${d?'★':!open?ic('lock'):prem?ic('gem'):k+1}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}${here.length?`<span class="frs">${here.slice(0,3).map(f=>`<span title="${esc(f.name)}">${pawnSVG(cleanSkin(f.sk))}</span>`).join('')}</span>`:''}</button>`;
     });
   });
-  return `<div class="top"><button class="iconbtn" type="button" data-act="tab" data-v="learn" aria-label="Retour">${ic('back')}</button><h1 class="logo" style="flex:1">Puzzles</h1>${topRight()}</div>
+  return `<div class="top"><h1 class="logo">Puzzles</h1>${topRight()}</div>
   <div class="pzhead"><div class="prog" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="${PUZ_LIST.length}" aria-valuenow="${done}"><i style="width:${done/PUZ_LIST.length*100}%"></i></div>
   <p class="sub">${done}/${PUZ_LIST.length} réussis · ${fr.length?`<b>${myRank}${myRank===1?'er':'e'}</b> sur ${ranked.length} parmi tes amis`:'ajoute des amis pour voir où ils en sont'} · classement national bientôt</p>
   <p class="note">Aucun indice : juste la consigne. Chaque joueur voit le plateau sous son propre angle.${P.premium?'':` Puzzles ${PZ_FREE+1} à ${PUZ_LIST.length} : Premium.`}</p></div>
