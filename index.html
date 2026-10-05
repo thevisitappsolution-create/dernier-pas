@@ -986,7 +986,7 @@ function doMove(m){
 }
 function endRound(w){
   G.over=true; G.winner=w; G.sum=boardSum(); G.ver++;
-  M.wins[w]++; M.rounds.push({w, sum:G.sum, pts:10+G.sum, moves:G.moves, bid:G.bid});
+  M.wins[w]++; M.rounds.push({w, sum:G.sum, pts:10+G.sum, lpts:losePts(G.sum), moves:G.moves, bid:G.bid});
   roundBadges(w);
   sfx.round();
   if (vsAI) setTimeout(()=>{ botSay(w===1 ? 'win' : 'lose', true); if (w===1 && Math.random()<.6) receiveWizz('haha',1); }, 600);
@@ -1467,7 +1467,8 @@ function renderActions(){
   $('#actions').innerHTML=a.join('');
 }
 
-const matchPts = () => [0,1].map(s=>M.rounds.filter(r=>r.w===s).reduce((x,r)=>x+(r.pts!=null?r.pts:10+r.sum),0));
+const losePts = sum => Math.max(0, Math.min(5, 10-sum));
+const matchPts = () => [0,1].map(s=>M.rounds.reduce((x,r)=>x+(r.w===s ? (r.pts!=null?r.pts:10+r.sum) : (r.lpts!=null?r.lpts:losePts(r.sum))),0));
 /* ---------- Rendu : écrans ---------- */
 function sparkline(h){
   const v=(h&&h.length>1)?h:[P.elo.r,P.elo.r]; const min=Math.min(...v)-10, max=Math.max(...v)+10, w=200, ht=34;
@@ -1642,7 +1643,7 @@ function sheetHTML(){
   if (s.type==='chat') return `<h2>Messages</h2><div class="chatlog" id="chatlog"></div><div class="quick">${QUICK.map(q=>`<button type="button" data-act="quick-msg" data-v="${esc(q)}">${esc(q)}</button>`).join('')}</div>
     <form class="chatform" id="chatform" autocomplete="off"><input id="chatin" maxlength="80" placeholder="Écris un message…" aria-label="Message"><button class="primary" type="submit">Envoyer</button></form>`;
   if (s.type==='results'){
-    const recap=M.rounds.map((r,k)=>`<li>Manche ${k+1} · ${BOARDS[r.bid].name} : <b>${esc(S[r.w].name)}</b> · +${r.pts!=null?r.pts:10+r.sum} pts (10 + ${r.sum} cases) · ${r.moves} coups</li>`).join('');
+    const recap=M.rounds.map((r,k)=>`<li>Manche ${k+1} · ${BOARDS[r.bid].name} : <b>${esc(S[r.w].name)}</b> · +${r.pts!=null?r.pts:10+r.sum} pts (10 + ${r.sum} cases)${losePts(r.sum)?`, perdant +${losePts(r.sum)} pts`:''} · ${r.moves} coups</li>`).join('');
     let h=`<h2>${M.done?`${esc(S[M.wins[0]===2?0:1].name)} gagne ${Math.max(...M.wins)}-${Math.min(...M.wins)}`:`${esc(S[G.winner].name)} gagne la manche`}</h2><ul class="recap">${recap}</ul>`;
     if (!M.done) h+=`<p>${M.rounds.length===2?'Une manche partout : on joue la belle. ':''}${esc(S[M.next].name)} commence la manche ${M.round+1}${M.why?` : ${esc(M.why)}`:''}.</p>`;
     if (M.done && vsAI && M.eloDelta!=null) h+=`<p>Elo ${P.elo.r} (${M.eloDelta>=0?'+':''}${M.eloDelta})</p>`;
@@ -1653,7 +1654,7 @@ function sheetHTML(){
       <li><span>2</span><div><b>À ton tour</b>, bouge un pion de 1, 2 ou 3 cases en ligne droite.</div></li>
       <li><span>3</span><div><b>Obstacles.</b> Jamais sur un pion ni par-dessus. Un trou bloque la ligne.</div></li>
       <li><span>4</span><div><b>Saut ↷.</b> Une fois par manche, ton pion peut passer par-dessus trous et pions. Les cases marquées ↷ l'utilisent automatiquement. Le badge « Saut dispo » sous ton nom te dit s'il te reste.</div></li>
-      <li><span>★</span><div><b>Points.</b> Gagner une manche rapporte 10 points, plus la somme des chiffres des cases restantes sur le plateau.</div></li>
+      <li><span>★</span><div><b>Points.</b> Gagner une manche rapporte 10 points, plus la somme des chiffres des cases restantes. Si cette somme est inférieure à 10, le perdant marque la différence, 5 points au maximum (il reste 5 : 15 à 5 ; il reste 2 : 12 à 5).</div></li>
       <li><span>5</span><div><b>Les cases s'usent.</b> Le chiffre dit combien de fois on peut encore la quitter. À 0, elle tombe.</div></li>
       <li><span>6</span><div><b>Tu perds la manche</b> quand aucun de tes pions ne peut bouger, ou à 0:00.</div></li>
       <li><span>7</span><div><b>2 manches gagnantes.</b> Chacun commence une manche. À 1-1, le vainqueur avec la plus grande somme restante commence la belle.</div></li>
