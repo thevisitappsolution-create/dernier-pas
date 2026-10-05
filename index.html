@@ -637,6 +637,41 @@ html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-co
 #app.ingame #game{height:100%;justify-content:space-between}
 #app.ingame #stripTop{margin-top:auto}
 #app.ingame #gstatus{margin-bottom:auto}
+
+/* ===== v9 : coach, bannières, apprendre ===== */
+.coach{display:flex;align-items:flex-end;gap:8px}
+.coach .av,.coachrow .av{width:58px;flex:none}
+.bub{position:relative;flex:1;background:#fff;color:#0a0718;border-radius:16px;padding:10px 14px;box-shadow:0 0 18px #ffffff33;min-width:0}
+.bub::before{content:"";position:absolute;left:-8px;bottom:14px;border:8px solid transparent;border-right-color:#fff;border-left:0}
+.bub b{display:block;font-size:1rem;line-height:1.25}
+.bub p{margin:2px 0 0;font-size:.95rem;line-height:1.35;color:#2a2550}
+.bub .demo-cap{color:#8f7bff}
+.coachrow{display:flex;align-items:flex-end;gap:8px}
+.trprog{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left}
+.trprog b{font-size:1.05rem;color:#fff}
+#app.tr .clock.inf{visibility:hidden}
+#app.tr .strip{min-height:40px}
+.banner{position:fixed;left:0;right:0;top:0;z-index:46;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 18px 12px;background:#120f26f2;border-bottom:1px solid #2ef2ff55;box-shadow:0 8px 30px #000a;animation:bdrop 2.8s ease both;pointer-events:none}
+.banner .bi{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:1.8rem;background:linear-gradient(135deg,#ffe14d,#ffb02e);flex:none}
+.banner small{display:block;color:var(--muted);font-size:.8rem}
+.banner b{display:block;font-size:1.25rem;color:#fff}
+@keyframes bdrop{0%{transform:translateY(-100%)}10%,88%{transform:none}100%{transform:translateY(-100%)}}
+#sheet.center{justify-content:center;padding:16px}
+#sheet.center .sheet{border-radius:20px;text-align:center;align-items:stretch;max-height:80vh}
+#sheet.center .sheet p{text-align:center}
+.modicon{font-size:4.2rem;line-height:1;text-align:center;filter:drop-shadow(0 0 18px #2ef2ff88)}
+.limtag{align-self:center;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 8px}
+.lnode{position:relative;width:74px;height:74px;flex:none;border:0;border-radius:20px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:1.2rem;cursor:pointer;transform:translateX(var(--x,0));background:#3a2f7a;color:#c9c2f0;box-shadow:inset 0 -7px 0 #0005}
+.lnode.done{background:linear-gradient(180deg,#8f7bff,#5b48d6);color:#fff}
+.lnode.cur{z-index:3;background:linear-gradient(180deg,#2ef2ff,#8f7bff);color:#0a0718;box-shadow:inset 0 -7px 0 #0003,0 0 26px #2ef2ff}
+.lnode.lk{background:#241d4a;color:#8f88b8}
+.lnode .tag{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#fff;color:#0a0718;font-family:var(--display);font-weight:800;font-size:.95rem;padding:6px 12px;border-radius:8px;white-space:nowrap;box-shadow:0 0 16px #ffe14d88}
+.lnode .tag::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#fff}
+.lbar{display:flex;gap:10px}
+.lbar .sq{width:60px;height:auto;border-radius:12px;font-size:1.3rem}
+.lbar .big{flex:1}
+.lmenu{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+html.calm .bub{box-shadow:none} html.calm .lnode{box-shadow:inset 0 -7px 0 #0004}
 </style>
 
 </head>
@@ -644,8 +679,9 @@ html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-co
 <div id="app">
   <main id="screen" class="screen"></main>
   <section id="game" hidden>
-    <div class="gbar"><button class="iconbtn" type="button" data-act="settings" aria-label="Réglages : sons, musique, thème, règles"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><span class="phase" id="phase"></span></div>
+    <div class="gbar"><button class="iconbtn" id="gbtn" type="button" data-act="settings" aria-label="Réglages : sons, musique, thème, règles"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><span class="phase" id="phase"></span></div>
     <div class="scorebar" id="scorebar" aria-live="polite"></div>
+    <div class="coach" id="coach" hidden aria-live="polite"></div>
     <div class="strip" id="stripTop"></div>
     <div id="bubbleTop" class="bubble bot" hidden></div>
     <div class="board" id="board"></div>
@@ -659,6 +695,7 @@ html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-co
 <div class="sheetwrap" id="sheet" hidden><div class="scrim" data-act="sheet-close"></div><div class="sheet" id="sheetBody" role="dialog" aria-modal="true"></div></div>
 <div class="intro" id="intro" hidden></div>
 <div class="toast" id="toast" hidden></div>
+<div class="banner" id="banner" hidden role="status"></div>
 <div class="fxscreen" id="fxscreen"></div>
 <div class="overlay" id="party" hidden role="dialog" aria-modal="true" aria-label="Fin de partie"><canvas aria-hidden="true"></canvas><div class="pcard" id="partyCard"></div></div>
 
@@ -1439,7 +1476,7 @@ function strip(side){
   return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div>
     <div style="min-width:0"><div class="nm">${esc(s.name)} ${tag?`<small>(${tag})</small>`:''}</div>
     <div class="meta" style="--pc:${s.hex}"><span class="dots" aria-label="${wins} manche(s) gagnée(s)">${'●'.repeat(wins)}${'○'.repeat(Math.max(0,needW()-wins))}</span>${jumpTag(side)}</div></div>
-    <div class="clock${on?' on':''}${ms<30000&&playing&&!(G&&G.noClock)?' low':''}" id="clk${side}">${TR&&TR.rush&&RUSH?(side===0?fmt(rushLeft()):'—'):TR&&TR.mode?(side===0?fmt(performance.now()-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)):'—'):G&&G.noClock?'∞':fmt(ms)}</div>`;
+    <div class="clock${on?' on':''}${ms<30000&&playing&&!(G&&G.noClock)?' low':''}" id="clk${side}">${TR&&TR.rush&&RUSH?(side===0?fmt(rushLeft()):'—'):TR&&TR.mode?(side===0?fmt(performance.now()-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)):'—'):G&&G.noClock?'∞':fmt(ms)}</div>`.replace('class="clock', G&&G.noClock&&!(TR&&(TR.mode||TR.rush))?'class="clock inf':'class="clock');
 }
 function jumpTag(side){
   const j=G?G.J[side]:1, big=!!TR || humanSeat()===null || side===bottomSide();
@@ -1452,7 +1489,8 @@ function renderGame(){
   const playing=G&&!G.over, seat=humanSeat(), myTurn=playing&&(seat===null||G.turn===seat);
   const bot=bottomSide();
   $('#stripTop').innerHTML=strip(1-bot); $('#stripBot').innerHTML=strip(bot);
-  if (TR){ $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[0].hex}"><span class="nm2"><i></i><span>${esc(S[0].name)}</span></span></div><div class="mid"><b style="font-size:1rem">${esc(TR.kind==='puzzle'?'Puzzle':'Cours')}</b></div><div class="sd r" style="--pc:${S[1].hex}"><span class="nm2"><span>${esc(S[1].name)}</span><i></i></span></div>`; }
+  $('#scorebar').hidden=!!TR; $('#coach').hidden=!TR; $('#app').classList.toggle('tr', !!TR); gbtnSet();
+  if (TR){ $('#coach').innerHTML=`<div class="av">${coachSVG()}</div><div class="bub"><b>${esc(trHead())}</b><p>${trStatus()}</p></div>`; }
   else { const a=bot, b=1-bot, pts=matchPts();
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
       `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b><small>manches · plateau ${boardSum()}</small></div>`+
@@ -1495,7 +1533,7 @@ function renderGame(){
   }
   // statut
   const st=$('#gstatus'); let txt='', isMsg=false;
-  if (TR) txt=trStatus();
+  if (TR) txt=trProg();
   else if (G.bombPhase) txt='💣 <b>Pose ta bombe</b> : touche une case. Si l\'adversaire marche dessus pendant ses 3 premiers coups, il perd la manche.';
   else if (G.over) txt = M.done ? `<b>${esc(S[mWinner()].name)}</b> remporte la partie ${Math.max(...M.wins)}-${Math.min(...M.wins)}` : `<b>${esc(S[G.winner].name)}</b> gagne la manche. ${G.msg?esc(G.msg):''}`;
   else if (G.msg){ txt=esc(G.msg); isMsg=true; }
@@ -1553,7 +1591,7 @@ function sparkline(h){
   return `<svg class="spark" viewBox="-2 -2 ${w+4} ${ht+4}" preserveAspectRatio="none" aria-label="Évolution de tes steps"><polyline points="${pts}" fill="none" stroke="var(--tc)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="var(--tc)"/></svg>`;
 }
 function renderHome(){
-  const t=tierOf(P.elo.r), d=djToday(), st=(P.djStreak||{}), streak=st.last===dayKey()||st.last===dayKey(new Date(Date.now()-864e5)) ? st.n||0 : 0, np=pzDone();
+  const t=tierOf(P.elo.r), d=djToday(), streak=streakNow(), np=pzDone();
   const fs=[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a)) || (b.last||0)-(a.last||0));
   return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} steps · ${t[1]}</small></div><span class="flame" aria-label="Série de ${streak} jours">🔥 ${streak}</span></div>${topRight()}</div>
   <div class="hscroll">
@@ -1623,6 +1661,7 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
+  w.classList.toggle('center', ['ldone','limit'].includes(sheet.type));
   w.hidden=false;
   if (sheet.type==='chat' && sheetKey==='chat'){ updateChatLog(); return; }
   const html='<div class="grab" aria-hidden="true"></div><button class="xclose" type="button" data-act="sheet-close" aria-label="Fermer">✕</button>'+sheetHTML();
@@ -1715,6 +1754,9 @@ function sheetHTML(){
   if (s.type==='rushpick'){ const left=rushTodayLeft();
     return `<h2>Défis chrono</h2><div class="list">${Object.keys(RUSH_MODES).map(k=>`<button class="item" type="button" data-act="rush" data-v="${k}" style="justify-content:space-between">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>
       <p class="note">${P.premium?'Sans limite.':`${left} essai${left>1?'s':''} aujourd'hui.`} Une erreur ou le temps écoulé : fin. Série : 3 erreurs permises.</p>`; }
+  if (s.type==='ldone') return `<div class="modicon">🎓</div><h2 style="padding:0">Leçon terminée !</h2><p>Bien joué, ${esc(P.name)}. Tu as maîtrisé <b>${esc(TR&&TR.L?TR.L.t:'')}</b>.</p><button class="primary" type="button" data-act="tr-quit">Terminer</button>`;
+  if (s.type==='limit') return `<div class="modicon">🎓</div><span class="limtag">${s.prem?'COURS PREMIUM':'LIMITE QUOTIDIENNE ATTEINTE'}</span><h2 style="padding:0">Des cours illimités</h2><p>${s.prem?'Ce cours fait partie de Premium.':'Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium.'}</p><button class="primary" type="button" data-act="go-shop">Passer Premium</button>`;
+  if (s.type==='badges') return `<h2>Badges</h2>${badgesHTML()}`;
   if (s.type==='info') return `<h2>${esc(s.t)}</h2><p>${esc(s.p)}</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
   if (s.type==='games'){
     const f=s.f||'all', list=realGames().filter(g=>f==='all'||g.src===f).reverse();
@@ -1803,8 +1845,11 @@ document.addEventListener('click', e=>{
   const a=e.target.closest('[data-act]'); if (!a) return;
   const k=a.dataset.act, v=a.dataset.v;
   switch(k){
-    case 'tab': view=v; sheet=null; render(); window.scrollTo(0,0); if (v==='puzzles') pzScroll(); break;
-    case 'lessons': sheet=null; view='learn'; render(); window.scrollTo(0,0); break;
+    case 'tab': view=v; sheet=null; learnMenu=false; render(); window.scrollTo(0,0); if (v==='puzzles') pzScroll(); if (v==='learn') lnScroll(); break;
+    case 'learn-menu': learnMenu=!learnMenu; render(); break;
+    case 'lessons-sheet': learnMenu=false; sheet={type:'lessons'}; render(); break;
+    case 'badges': learnMenu=false; sheet={type:'badges'}; render(); break;
+    case 'lessons': sheet=null; view='learn'; render(); lnScroll(); break;
     case 'puzzles': sheet=null; view='puzzles'; render(); window.scrollTo(0,0); break;
     case 'lesson': startLesson(+v); break;
     case 'puzzle': if (pzOpen(pzIndex(a.dataset.k,+v))) startPuzzle(a.dataset.k, +v); break;
@@ -1955,7 +2000,7 @@ function dailyCard(){
 }
 function startDaily(){ leaveOnline(); vsAI=dailyLevel(); training=false; dailyNext=true; startMatch(); }
 function recordGame(){
-  if (!M || !M.done || REC_ID===M.id) return; REC_ID=M.id;
+  if (!M || !M.done || REC_ID===M.id) return; REC_ID=M.id; if (!M.aborted) markActive();
   const me=humanSeat(); if (me===-1) return;
   const c=mWinner(), w=me===null ? null : me===c;
   P.stat.games=(P.stat.games||0)+1;
@@ -2125,7 +2170,8 @@ function startPuzzle(cat, idx, mode){
 }
 function startLesson(i){
   const L=LESSONS[i]; if (!L) return;
-  if (L.p && !P.premium){ sheet={type:'locked', what:'premium'}; render(); return; }
+  if (L.p && !P.premium){ sheet={type:'limit', prem:1}; render(); return; }
+  if (!P.premium && !TUTO && !(P.lessons||{})[L.id]){ const ld=P.lessonDay||{}; if (ld.d===dayKey() && ld.n>=1){ sheet={type:'limit'}; render(); return; } }
   TR={kind:'lesson', i, L, phase:'demo', step:-1, my:0, state:'demo'};
   const d=L.demo;
   if (d.z) trBase(cellsFrom(d.z.c), d.z.p, d.z.j, d.z.b); else trBase(d.c, d.p, [1,1], 0);
@@ -2153,7 +2199,7 @@ function trRestart(){
   else startLesson(TR.i);
 }
 function trDone(ok, why){
-  const tr=TR; tr.state=ok?'win':'fail'; tr.why=why||'';
+  const tr=TR; tr.state=ok?'win':'fail'; tr.why=why||''; if (ok) markActive();
   if (tr.rush){ sfx[ok?'move':'round'](); render(); rushAfter(ok); return; }
   if (tr.mode==='dj'){ sfx[ok?'win':'round'](); render(); djAfter(ok); return; }
   if (tr.mode==='chal'){ sfx[ok?'win':'round'](); render(); chalAfter(ok, performance.now()-tr.t0); return; }
@@ -2161,12 +2207,12 @@ function trDone(ok, why){
   if (ok){
     if (tr.kind==='puzzle'){ P.puz=P.puz||{}; const key=tr.cat+tr.idx, first=!P.puz[key]; P.puz[key]=1;
       if (first){ P.coins=(P.coins||0)+5; toast('+5 pièces'); if (!(P.stat.pzTried||{})[key]) P.stat.first=(P.stat.first||0)+1; } saveP(); puzBadges(); }
-    else { P.lessons=P.lessons||{}; const first=!P.lessons[tr.L.id]; P.lessons[tr.L.id]=1; if (first){ P.coins=(P.coins||0)+10; toast('+10 pièces'); } saveP();
+    else { P.lessons=P.lessons||{}; const first=!P.lessons[tr.L.id]; P.lessons[tr.L.id]=1; if (first){ P.coins=(P.coins||0)+10; if (!TUTO){ const ld=P.lessonDay||{}, td=dayKey(); P.lessonDay={d:td, n:(ld.d===td?ld.n:0)+1}; } } saveP();
       if (tr.L.id==='l1') badge('pas1'); if (LESSONS.filter(L=>!L.p).every(L=>P.lessons[L.id])) badge('eleve'); }
     saveP(); sfx.win(); presBroadcast();
     if (!REDUCED){ const box=$('#fxscreen'); ['BRAVO'].forEach(t=>{ const w=document.createElement('div'); w.className='wword'; w.textContent=t; w.style.setProperty('--pc','#b6ff3b'); w.style.setProperty('--rot','-6deg'); w.style.left='22%'; w.style.top='38%'; box.appendChild(w); setTimeout(()=>w.remove(),800); }); }
   } else { if (tr.kind==='puzzle'){ P.stat.pzTried=P.stat.pzTried||{}; P.stat.pzTried[tr.cat+tr.idx]=1; saveP(); } sfx.round(); }
-  render(); setTimeout(()=>{ if (TR===tr){ sheet={type: TUTO&&ok&&tr.kind==='lesson'?'tuto':'tr'}; render(); } }, 700);
+  render(); setTimeout(()=>{ if (TR===tr){ sheet={type: TUTO&&ok&&tr.kind==='lesson'?'tuto':ok&&tr.kind==='lesson'?'ldone':'tr'}; render(); } }, 700);
 }
 function trAfterMove(t, m){
   const tr=TR; if (!tr || t!==0 || tr.state!=='play') return;
@@ -2219,7 +2265,7 @@ function trTitle(){
 }
 function trStatus(){
   const tr=TR;
-  if (tr.kind==='lesson' && tr.phase==='demo'){ const steps=tr.L.demo.steps, n=Math.max(0,tr.step), st=steps[n]; return `<span class="demo-cap">${n+1}/${steps.length}</span><b>${esc(st?st.cap:'')}</b>`; }
+  if (tr.kind==='lesson' && tr.phase==='demo'){ const steps=tr.L.demo.steps, n=Math.max(0,tr.step), st=steps[n]; return esc(st?st.cap:''); }
   if (tr.kind==='lesson' && tr.phase==='ready') return 'Démonstration terminée. À toi de jouer !';
   if (tr.state==='win') return '<b>Réussi !</b>';
   if (tr.state==='fail') return tr.kind==='puzzle' ? 'Raté.' : 'Raté. Réessaie ou regarde la solution.';
@@ -2235,16 +2281,13 @@ function renderTrActions(){
   if (tr.kind==='lesson' && tr.phase==='demo'){ const n=tr.step||0;
     a.push(btn('demo-prev','back','Précédent',{dis:n<=0}).replace('<button','<button aria-label="Explication précédente"'));
     const last=n>=tr.L.demo.steps.length-1, hasMv=!!(tr.L.demo.steps[Math.max(0,n)] && stepMove(tr.L, tr.L.demo.steps[Math.max(0,n)]));
-    a.push(btn('demo-replay','undo','Revoir',{dis:!hasMv}).replace('<button','<button aria-label="Revoir le déplacement"'));
-    a.push(btn('tr-skip','', 'Passer'));
     a.push(btn('demo-next', last?'':'fwd', last?'À l\'exercice':'Suivant', {cls:'primary'}).replace('<button','<button aria-label="Explication suivante"')); }
   else if (tr.kind==='lesson' && tr.phase==='ready'){ a.push(btn('demo-prev','back','Revoir la fin')); a.push(btn('tr-replay','undo','Revoir tout')); a.push(btn('tr-go','', 'À toi !',{cls:'primary'})); }
-  else if (tr.state==='win'){ a.push(btn('tr-restart','undo','Rejouer')); a.push(btn('tr-next','', 'Suivant',{cls:'primary'})); }
+  else if (tr.state==='win'){ a.push(btn('tr-next','', 'Suivant',{cls:'primary'})); }
   else if (tr.rush){ a.push(btn('rush-stop','flag','Arrêter le défi')); }
   else if (tr.mode){ a.push(btn('pz-stop','flag','Abandonner')); }
   else if (tr.state==='fail'){ if (tr.kind!=='puzzle') a.push(btn('tr-sol',P.premium?'bulb':'lock','Solution')); a.push(btn('tr-restart','', 'Réessayer',{cls:'primary'})); }
   else { if (tr.kind!=='puzzle') a.push(btn('tr-hint',P.premium?'bulb':'lock','Indice',{dis:G.turn!==0})); a.push(btn('tr-restart','undo','Recommencer')); }
-  if (!tr.rush) a.push(btn('tr-quit','list','Quitter'));
   $('#actions').innerHTML=a.join('');
 }
 function trNext(){
@@ -2253,8 +2296,9 @@ function trNext(){
   else if (tr.i+1<LESSONS.length && (!LESSONS[tr.i+1].p || P.premium)) return startLesson(tr.i+1);
   trQuit();
 }
+function lnScroll(){ setTimeout(()=>{ const n=document.querySelector('.lnode.cur'); if (n) n.scrollIntoView({block:'center'}); }, 0); }
 function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.node.cur')||[...document.querySelectorAll('.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
-function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; } render(); }
+function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 function trHint(){
   const tr=TR; if (!G || G.turn!==0) return;
   if (!P.premium){ sheet={type:'locked', what:'hint'}; render(); return; }
@@ -2270,16 +2314,19 @@ function trSolution(){
   G.hint=z.sol; G.pick=z.sol[0]; render();
 }
 function lessonsHTML(){ return `<h2>Cours</h2><p>Une démonstration animée, puis un exercice à réussir. Commence par le cours 1.</p>${lessonsList()}`; }
+let learnMenu=false;
+const nextLesson = () => { const d=P.lessons||{}, i=LESSONS.findIndex(L=>!d[L.id]); return i<0 ? LESSONS.length-1 : i; };
 function renderLearn(){
-  const nl=LESSONS.filter(L=>(P.lessons||{})[L.id]).length, np=pzDone(), nb=Object.keys(P.badges).length;
+  const d=P.lessons||{}, cur=nextLesson(), L=LESSONS[cur]; let html='';
+  LESSONS.forEach((l,i)=>{ const done=d[l.id], lock=l.p&&!P.premium, x=Math.round(Math.sin(i*1.1)*80);
+    if (i%5===0) html+=`<div class="ustep">Chapitre ${i/5+1} · ${CHAPTERS[i/5]||''}</div>`;
+    html+=`<button type="button" class="lnode${done?' done':''}${i===cur?' cur':''}${lock&&!done?' lk':''}" style="--x:${x}px" data-act="lesson" data-v="${i}" aria-label="Cours ${i+1} : ${esc(l.t)}${done?', terminé':lock?', Premium':''}">${i===cur?'<span class="tag">Suivant</span>':''}${done?'✓':lock?'💎':i+1}</button>`; });
   return `<div class="top"><h1 class="logo">Apprendre</h1>${topRight()}</div>
-  <div class="cad"><div><h4>Cours</h4><b>${nl}/${LESSONS.length}</b><small>terminés</small></div><div><h4>Puzzles</h4><b>${np}/${PUZ_LIST.length}</b><small>réussis</small></div><div><h4>Badges</h4><b>${nb}/${BADGES.length}</b><small>débloqués</small></div></div>
-  <h2 class="h2">Cours</h2>
-  ${lessonsList()}
-  <h2 class="h2">S'entraîner</h2>
-  <button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button>
-  <h2 class="h2">Badges</h2>
-  ${badgesHTML()}`;
+  <div class="coachrow"><div class="av">${coachSVG()}</div><div class="bub"><b>${esc(L.t)}</b><p>${esc(L.d)}</p></div></div>
+  <div class="ppath">${html}<div class="ustep">Saison 1 · bientôt</div></div>
+  <div class="spacer"></div>
+  <div class="playbar"><div class="in">${learnMenu?`<div class="lmenu"><button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button><button class="item" type="button" data-act="lessons-sheet">${ic('book')}Tous les cours</button><button class="item" type="button" data-act="badges">🏅 Badges</button></div>`:''}
+    <div class="lbar"><button class="iconbtn sq" type="button" data-act="learn-menu" aria-label="${learnMenu?'Fermer le menu':'Menu'}" aria-expanded="${learnMenu}">${learnMenu?'✕':ic('list')}</button><button class="big" type="button" data-act="lesson" data-v="${cur}">Leçon suivante</button></div></div></div>`;
 }
 function lessonsList(){
   const done=P.lessons||{};
@@ -2364,7 +2411,7 @@ const BADGES=[
 function badge(id){
   if (P.badges[id]) return; const b=BADGES.find(x=>x.id===id); if (!b) return;
   P.badges[id]=Date.now(); P.coins=(P.coins||0)+20; saveP(); sfx.round();
-  toast(`${b.e} Badge débloqué : ${b.n} (+20 pièces)`); presBroadcast();
+  banner(b.e, 'Nouveau badge · +20 pièces', b.n); presBroadcast();
 }
 function puzBadges(){
   const ok=P.puz||{}, n=k=>PUZ[k].filter((_,i)=>ok[k+i]).length;
@@ -2734,6 +2781,7 @@ function closeSheet(){
   if (sheet.type==='analysis') AN=null;
   if (sheet.type==='mm'){ mmCancel(); return; }
   if (sheet.type==='defi') presSend(sheet.fid, {t:'non'});
+  if (sheet.type==='ldone'){ sheet=null; trQuit(); return; }
   sheet=null; render();
 }
 (()=>{
@@ -2940,6 +2988,43 @@ document.addEventListener('visibilitychange', ()=>{
     sheet={type:'info', t:'Partie perdue', p:'Tu as quitté l\'appli plus de 15 secondes pendant la partie.'}; render(); }
   else abortMatch('Tu as quitté l\'appli avant le premier coup.');
 });
+
+
+/* ---------- Coach, bannières, série de jours ---------- */
+let COACH=null; const coachSVG = () => COACH || (COACH=pawnSVG({color:'or',fur:'lisse',eyes:'joyeux',acc:'lunettes'}));
+function gbtnSet(){
+  const b=$('#gbtn'); if (!b) return; const tr=!!TR;
+  if (b.dataset.mode===String(tr)) return; b.dataset.mode=String(tr);
+  if (tr){ b.dataset.act='tr-quit'; b.setAttribute('aria-label','Quitter'); b.innerHTML=ic('back'); }
+  else { b.dataset.act='settings'; b.setAttribute('aria-label','Réglages : sons, musique, thème, règles'); b.innerHTML=ic('gear'); }
+}
+function trHead(){
+  const tr=TR; if (!tr) return '';
+  if (tr.state==='win') return '✅ Réussi !'; if (tr.state==='fail') return '❌ Raté';
+  if (tr.kind==='lesson') return tr.phase==='demo' ? tr.L.t : 'À toi !';
+  return G && G.turn===0 ? 'À toi !' : 'Attends…';
+}
+function trProg(){
+  const tr=TR; let k, n, label;
+  if (tr.kind==='lesson'){ if (tr.phase==='demo'){ n=tr.L.demo.steps.length; k=Math.max(0,tr.step)+1; label=`Étape ${k}/${n}`; } else { n=1; k=tr.state==='win'?1:0; label='Exercice'; } }
+  else if (tr.rush && RUSH){ return `<div class="trprog"><b>${RUSH.score} réussi${RUSH.score>1?'s':''}</b></div>`; }
+  else if (tr.mode==='dj'){ n=3; k=DJ?DJ.k:3; label=`Lastep du jour · ${Math.min(3,k+1)}/3`; }
+  else if (tr.mode==='chal'){ return `<div class="trprog"><b>Défi de ${esc(CHAL?CHAL.n:'')}</b></div>`; }
+  else { n=PUZ_LIST.length; k=pzDone(); label=`Puzzle ${pzIndex(tr.cat,tr.idx)+1}/${n}`; }
+  return `<div class="trprog"><b>${label}</b><div class="prog"><i style="width:${Math.round(k/n*100)}%"></i></div></div>`;
+}
+let bannerQ=[];
+function banner(icon, small, big){ bannerQ.push({icon,small,big}); if (bannerQ.length===1) bannerShow(); }
+function bannerShow(){ const b=bannerQ[0], el=$('#banner'); if (!b){ el.hidden=true; return; }
+  el.innerHTML=`<span class="bi" aria-hidden="true">${b.icon}</span><span>${b.small?`<small>${esc(b.small)}</small>`:''}<b>${esc(b.big)}</b></span>`;
+  el.hidden=false; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; setTimeout(()=>{ bannerQ.shift(); bannerShow(); }, 2900); }
+function markActive(){
+  const td=dayKey(), y=new Date(); y.setDate(y.getDate()-1); const st=P.streak||{};
+  if (st.last===td) return;
+  P.streak={last:td, n: st.last===dayKey(y) ? (st.n||0)+1 : 1}; saveP();
+  banner('🔥', 'Série', `${P.streak.n} jour${P.streak.n>1?'s':''} de suite !`);
+}
+const streakNow = () => { const st=P.streak||{}, y=new Date(); y.setDate(y.getDate()-1); return st.last===dayKey()||st.last===dayKey(y) ? st.n||0 : 0; };
 
 initWorker();
 if (!P.rules && !new URLSearchParams(location.search).get('join') && !new URLSearchParams(location.search).get('pz') && !new URLSearchParams(location.search).get('dj')){ P.rules=true; saveP(); TUTO=true; setTimeout(()=>startLesson(0), 300); }
