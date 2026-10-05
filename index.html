@@ -679,6 +679,7 @@ html.homefix,html.homefix body{height:100%;overflow:hidden}
 html.homefix #app{height:100%;box-sizing:border-box;overflow:hidden}
 @media (max-height:700px){html.homefix .screen{gap:9px}.hcard{min-height:96px!important}.hcard .primary{padding:8px 16px}.fc .secondary{padding:6px}.h2{font-size:.95rem}}
 @media (max-height:760px){.hcard{min-height:118px;padding:12px}.hcard h3{font-size:1.15rem}.tile{padding:8px 6px}.tile .em{font-size:1.1rem}.fc{padding:8px 6px;width:118px}.fc .av{width:42px}.fc small{min-height:0}.playbar .big{padding:13px}}
+.logo .brand{color:#fff;background:linear-gradient(90deg,#ffffff 0%,#2ef2ff 45%,#ff3dd8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;animation:none;filter:drop-shadow(0 0 8px #ff3dd888) drop-shadow(0 0 18px #2ef2ff55)}
 </style>
 
 </head>
@@ -1603,7 +1604,7 @@ function renderHome(){
   const fs=[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a)) || (b.last||0)-(a.last||0));
   return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} steps · ${t[1]}</small></div><span class="flame" aria-label="Série de ${streak} jours">🔥 ${streak}</span></div>${topRight()}</div>
   <div class="hscroll">
-    <div class="hcard c"><h3>⏱️ Défis chrono</h3>${np>=RUSH_UNLOCK?`<small>Record série : ${(P.rush||{}).serie||0}</small><button class="primary" type="button" data-act="rush-pick">Jouer</button>`:`<small>Réussis ${RUSH_UNLOCK} puzzles pour débloquer</small><button class="primary" type="button" data-act="tab" data-v="puzzles">Puzzles</button>`}</div>
+    ${(()=>{ const k=rushTier(), T=RUSH_MODES[k], bst=Math.min(rushBest(k),T.target); return `<div class="hcard c"><h3>⏱️ Défis chrono</h3><div class="row2"><b>${T.e} ${T.n}</b><div class="prog"><i style="width:${bst/T.target*100}%"></i></div><b>${rushAllDone()?'✓':`${bst}/${T.target}`}</b></div><button class="primary" type="button" data-act="rush-pick">Jouer</button></div>`; })()}
     <div class="hcard"><h3>🧩 Puzzles</h3><div class="row2"><b>${Math.min(pzToday(),PZ_DAY)}/${PZ_DAY}</b><div class="prog"><i style="width:${Math.min(1,pzToday()/PZ_DAY)*100}%"></i></div></div><button class="primary" type="button" data-act="tab" data-v="puzzles">Résoudre</button></div>
     <div class="hcard b"><h3>Lastep du jour #${djNum()}</h3>${d?`<b class="emo" style="font-size:1.6rem">${d.res.map(r=>r?'✅':'❌').join('')}</b><button class="primary" type="button" data-act="dj-share">Partager</button>`:`<small>3 puzzles · 1 essai</small><button class="primary" type="button" data-act="dj">Jouer</button>`}</div>
   </div>
@@ -1749,8 +1750,9 @@ function sheetHTML(){
       <button class="secondary" type="button" data-act="mm-cancel">Annuler la recherche</button>
       <p class="note">Il n'y a pas encore de serveur de jeu : seuls les joueurs connectés au même moment se trouvent. Partage le jeu pour qu'il y ait du monde !</p>`;
   }
-  if (s.type==='rush') return `<h2>${esc(RUSH_MODES[s.r.mode].n)}</h2><div class="code">${s.r.score}</div><p style="text-align:center">puzzle${s.r.score>1?'s':''} réussi${s.r.score>1?'s':''}${s.rec?' · nouveau record !':` · record ${s.best}`}${s.r.score?` · +${s.r.score*2} pièces`:''}</p>
-    <div class="row"><button class="primary" type="button" data-act="rush-again">Rejouer</button><button class="secondary" type="button" data-act="rush-out">Retour</button></div>`;
+  if (s.type==='rush'){ const T=RUSH_MODES[s.r.mode]; return `<h2>${T.e} ${T.n}</h2><div class="code">${s.r.score}</div><p style="text-align:center">puzzle${s.r.score>1?'s':''} réussi${s.r.score>1?'s':''} · ${Math.min(s.best,T.target)}/${T.target} pour valider ${T.n}${s.r.score?` · +${s.r.score*2} pièces`:''}</p>
+    <div class="prog"><i style="width:${Math.min(1,s.best/T.target)*100}%"></i></div>
+    <div class="row"><button class="primary" type="button" data-act="rush-again">Rejouer</button><button class="secondary" type="button" data-act="rush-out">Retour</button></div>`; }
   if (s.type==='dj'){ const d=djToday(); if (!d) return '<h2>Lastep du jour</h2>';
     return `<h2>Lastep #${d.n}</h2><div class="bigres">${d.res.map(r=>r?'✅':'❌').join('')}</div><p style="text-align:center">${d.res.reduce((a,b)=>a+b,0)}/3 en ${fmt(d.ms)}${(P.djStreak||{}).n>1?` · série de ${P.djStreak.n} jours`:''}</p>
       <button class="primary" type="button" data-act="dj-share">Partager mon résultat</button><p class="note" style="text-align:center">Le résultat se partage sans dévoiler la solution. Nouveau puzzle demain.</p>`; }
@@ -1884,9 +1886,9 @@ document.addEventListener('click', e=>{
     case 'tuto-play': TUTO=false; if (TR) trClear(TR); TR=null; G=null; M=null; sheet=null; startAI('easy',false); break;
     case 'tuto-more': TUTO=false; sheet=null; startLesson(1); break;
     case 'rush': startRush(v); break;
-    case 'rush-pick': sheet={type:'rushpick'}; render(); break;
+    case 'rush-pick': startRush(); break;
     case 'rush-stop': rushEnd(); break;
-    case 'rush-again': startRush(RUSH_LAST); break;
+    case 'rush-again': startRush(); break;
     case 'rush-out': sheet=null; RUSH=null; view='home'; render(); break;
     case 'tr-hint': trHint(); break;
     case 'tr-sol': sheet=null; trSolution(); break;
@@ -2271,7 +2273,7 @@ function trTitle(){
   if (!TR) return '';
   if (TR.mode==='dj') return `Lastep du jour · ${DJ?Math.min(3,DJ.k+1):3}/3`;
   if (TR.mode==='chal' && CHAL) return `Défi de ${CHAL.n}`;
-  if (TR.rush && RUSH) return `${RUSH_MODES[RUSH.mode].n} · ${RUSH.score} réussi${RUSH.score>1?'s':''}${RUSH.mode==='serie'?` · ${RUSH.err}/3 erreurs`:''}`;
+  if (TR.rush && RUSH) return `${RUSH_MODES[RUSH.mode].e} ${RUSH_MODES[RUSH.mode].n} · ${RUSH.score}/${RUSH_MODES[RUSH.mode].target} · ${RUSH.err}/3 erreurs`;
   if (TR.kind==='puzzle'){ const c=PUZ_CATS.find(x=>x.k===TR.cat); return `${c.t} · ${TR.idx+1}/${PUZ[TR.cat].length}`; }
   return `Cours ${TR.i+1} · ${TR.L.t}`;
 }
@@ -2626,8 +2628,8 @@ async function makePoster(){
   for (let i=0;i<=W;i+=54){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,H); x.stroke(); }
   for (let j=0;j<=H;j+=54){ x.beginPath(); x.moveTo(0,j); x.lineTo(W,j); x.stroke(); }
   const txt=(s,X,Y,font,col,blur,align)=>{ x.font=font; x.textAlign=align||'center'; x.textBaseline='alphabetic'; x.shadowColor=col; x.shadowBlur=blur||0; x.fillStyle=col; x.fillText(s,X,Y); x.shadowBlur=0; };
-  x.font=`800 112px ${F}`; const w1=x.measureText('LA').width, w2=x.measureText('STEP').width, sx=(W-w1-w2)/2;
-  txt('LA',sx,170,`800 112px ${F}`,'#ffffff',30,'left'); txt('STEP',sx+w1,170,`800 112px ${F}`,'#ff3dd8',40,'left');
+  { x.font=`800 112px ${F}`; const gw=x.measureText('LASTEP').width, gr=x.createLinearGradient((W-gw)/2,0,(W+gw)/2,0); gr.addColorStop(0,'#ffffff'); gr.addColorStop(.45,'#2ef2ff'); gr.addColorStop(1,'#ff3dd8');
+    x.textAlign='center'; x.shadowColor='#ff3dd8'; x.shadowBlur=36; x.fillStyle=gr; x.fillText('LASTEP',W/2,170); x.shadowBlur=0; }
   txt('LE JEU DE STRATÉGIE OÙ LES CASES S\'USENT',W/2,226,`600 30px ${MO}`,'#2ef2ff',14);
   const hex=COLORS[P.skin.color].hex;
   const svg=pawnSVG(P.skin).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" ');
@@ -2670,54 +2672,50 @@ const pzDone = () => PUZ_LIST.filter(q=>(P.puz||{})[pzKey(q)]).length;
 const pzIndex = (cat,i) => PUZ_LIST.findIndex(q=>q.cat===cat && q.i===i);
 const pzOpen = n => n===0 || !!(P.puz||{})[pzKey(PUZ_LIST[n-1])] || !!(P.puz||{})[pzKey(PUZ_LIST[n])];
 /* ---------- Défis chrono ---------- */
-const RUSH_UNLOCK=10, RUSH_FREE=3;
-const RUSH_MODES={easyL:{n:'Facile · 1 min', per:60000, pool:['win1','adv']}, easyS:{n:'Facile · 30 s', per:30000, pool:['win1','adv']},
-  hardL:{n:'Difficile · 1 min', per:60000, pool:['win2','win3']}, hardS:{n:'Difficile · 30 s', per:30000, pool:['win2','win3']},
-  serie:{n:'Série · 3 min', total:180000, pool:['win1','adv','win2','win3']}};
-let RUSH=null, RUSH_LAST='easyL';
-const rushLeft = () => !RUSH ? 0 : Math.max(0, RUSH.mode==='serie' ? RUSH.total : RUSH.left);
+const RUSH_FREE=3;
+// Paliers : on débloque le suivant en atteignant l'objectif du palier en cours (3 min, 3 erreurs max)
+const RUSH_MODES={bronze:{n:'Bronze', e:'🥉', total:180000, pool:['win1'], target:6},
+  argent:{n:'Argent', e:'🥈', total:180000, pool:['win1','adv'], target:6},
+  or:{n:'Or', e:'🥇', total:180000, pool:['win2'], target:5},
+  diamant:{n:'Diamant', e:'💎', total:180000, pool:['win2','win3'], target:4}};
+const RUSH_ORDER=['bronze','argent','or','diamant'];
+let RUSH=null;
+const rushBest = k => (P.rush||{})[k]||0;
+const rushTier = () => RUSH_ORDER.find(k=>rushBest(k)<RUSH_MODES[k].target) || 'diamant';
+const rushAllDone = () => RUSH_ORDER.every(k=>rushBest(k)>=RUSH_MODES[k].target);
+const rushLeft = () => !RUSH ? 0 : Math.max(0, RUSH.total);
 function rushTodayLeft(){ const d=dayKey(), r=P.rushDay||{}; return P.premium ? Infinity : Math.max(0, RUSH_FREE-(r.d===d?r.n:0)); }
-function startRush(mode){
-  if (!RUSH_MODES[mode]) return;
-  if (pzDone()<RUSH_UNLOCK) return;
+function startRush(){
+  const mode=rushTier();
   if (rushTodayLeft()<=0){ sheet={type:'locked', what:'rushday'}; render(); return; }
   if (!P.premium){ const d=dayKey(), r=P.rushDay||{}; P.rushDay={d, n:(r.d===d?r.n:0)+1}; saveP(); }
-  RUSH_LAST=mode; const M0=RUSH_MODES[mode];
-  RUSH={mode, score:0, err:0, total:M0.total||0, left:M0.per||0, last:''};
+  const M0=RUSH_MODES[mode];
+  RUSH={mode, score:0, err:0, total:M0.total, last:''};
   sheet=null; rushNext();
 }
 function rushNext(){
   const M0=RUSH_MODES[RUSH.mode];
   const pool=PUZ_LIST.filter(q=>M0.pool.includes(q.cat) && pzKey(q)!==RUSH.last);
   const q=pool[Math.floor(Math.random()*pool.length)]; RUSH.last=pzKey(q);
-  if (M0.per) RUSH.left=M0.per;
   startPuzzle(q.cat, q.i, 'rush');
 }
 function rushTick(dt){
-  if (!TR || TR.state!=='play' || G.turn!==0 || document.hidden) { if (!(RUSH.mode==='serie' && TR && TR.state==='play')) return; }
-  dt=Math.min(dt,1000);
-  if (RUSH.mode==='serie') RUSH.total-=dt; else RUSH.left-=dt;
+  if (!TR || TR.state!=='play' || document.hidden) return;
+  dt=Math.min(dt,1000); RUSH.total-=dt;
   const el=document.getElementById('clk0'); if (el){ el.textContent=fmt(rushLeft()); el.classList.toggle('low', rushLeft()<10000); }
   if (rushLeft()<=0){ toast('Temps écoulé !'); rushEnd(); }
 }
 function rushAfter(ok){
   if (ok) RUSH.score++; else RUSH.err++;
-  if (RUSH.mode!=='serie' && !ok) return setTimeout(rushEnd, 700);
-  if (RUSH.mode==='serie' && RUSH.err>=3) return setTimeout(rushEnd, 700);
+  if (RUSH.err>=3) return setTimeout(rushEnd, 700);
   const r=RUSH; setTimeout(()=>{ if (RUSH===r) rushNext(); }, 650);
 }
 function rushEnd(){
-  if (!RUSH) return; const r=RUSH; P.rush=P.rush||{}; const best=P.rush[r.mode]||0, rec=r.score>best;
+  if (!RUSH) return; const r=RUSH; P.rush=P.rush||{}; const best=P.rush[r.mode]||0, rec=r.score>best, tgt=RUSH_MODES[r.mode].target;
   if (rec) P.rush[r.mode]=r.score; if (r.score) P.coins=(P.coins||0)+r.score*2; saveP();
+  if (best<tgt && r.score>=tgt){ const i=RUSH_ORDER.indexOf(r.mode), nx=RUSH_ORDER[i+1]; setTimeout(()=>banner(RUSH_MODES[r.mode].e, `${RUSH_MODES[r.mode].n} validé`, nx?`${RUSH_MODES[nx].n} débloqué !`:'Tous les paliers validés !'), 300); }
   if (TR) trClear(TR); TR=null; G=null; M=null; musicStop();
   view='home'; sheet={type:'rush', r, rec, best:Math.max(best,r.score)}; RUSH=null; render();
-}
-function rushHTML(){
-  const done=pzDone(), on=done>=RUSH_UNLOCK, left=rushTodayLeft();
-  if (!on) return `<div class="unit"><b>Défis chrono</b><small>Réussis ${RUSH_UNLOCK} puzzles pour débloquer les défis chrono (encore ${RUSH_UNLOCK-done}).</small></div>`;
-  return `<div class="unit"><b>Défis chrono</b><small>${P.premium?'Sans limite avec Premium.':`${left} essai${left>1?'s':''} restant${left>1?'s':''} aujourd'hui.`} Une erreur ou le temps écoulé termine le défi, sauf en Série (3 erreurs permises).</small></div>
-  <div class="cad">${['easyL','easyS','hardL'].map(k=>`<button type="button" class="item" style="flex-direction:column;gap:2px;padding:12px 6px;font-size:.9rem" data-act="rush" data-v="${k}">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>
-  <div class="cad" style="grid-template-columns:1fr 2fr">${['hardS','serie'].map(k=>`<button type="button" class="item" style="flex-direction:column;gap:2px;padding:12px 6px;font-size:.9rem" data-act="rush" data-v="${k}">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>`;
 }
 function renderPuzzles(){
   const ok=P.puz||{}, done=pzDone(), cur=PUZ_LIST.findIndex(q=>!ok[pzKey(q)]);
