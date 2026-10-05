@@ -994,6 +994,7 @@ function doMove(m){
   if (m[2]){ sfx.jump(); toast(`${S[t].name} utilise son saut ↷`); }
   const fell=G.cells[from]===0; fx(from,m[1],t,fell); sfx.move(); if (fell) setTimeout(sfx.fall,200);
   if (fell && !TR && t===humanSeat()){ P.stat.fell=(P.stat.fell||0)+1; if (P.stat.fell>=50) badge('demolisseur'); }
+  if (online() && M){ M.fm=M.fm||[0,0]; M.fm[t]=1; }
   G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.hinting=false;
   if (fell) burst(from, '#2ef2ff'); if (t===humanSeat()) vibrate(6);
   if (trapCheck(t, m[1])) return;
@@ -1229,6 +1230,9 @@ function netSend(msg){ try { if (net && net.conn && net.conn.open) net.conn.send
 function onNetData(d){
   if (!net || !d || typeof d!=='object') return;
   const other = net.seat===0 ? 1 : 0;
+  net.lastSeen=Date.now(); if (net.warned){ net.warned=false; if (G && view==='game') renderGame(); }
+  if (d.t==='ping') return;
+  if (d.t==='abort'){ abortMatch(d.why==='first'?'Ton adversaire n\'a pas joué son premier coup à temps.':'Partie annulée par une coupure de connexion.', true); return; }
   if (d.t==='hello'){
     const rc={}; if (d.rc && typeof d.rc==='object') for (const t of TIMES){ const v=+d.rc[t]; if (v>0 && v<4000) rc[t]=Math.round(v); }
     PEERS[other]={nm:cleanName(d.nm), sk:cleanSkin(d.sk), rc, uid: typeof d.uid==='string' && /^[a-z0-9]{8}$/.test(d.uid) ? d.uid : '', nb:!!d.nb}; net.opp=true; if (net.timer){ clearTimeout(net.timer); net.timer=null; } S=sides();
@@ -1247,14 +1251,13 @@ function onNetData(d){
   if (d.t==='full'){ if (net.mm && !net.opp){ const i=net.slot; try { net.peer.destroy(); } catch(e){} net=null; goMatch(i+1); return; } net.err='Cette partie a déjà deux joueurs.'; render(); return; }
   if (d.t==='nb'){ if (PEERS[other]) PEERS[other].nb=!!d.v; renderActions(); return; }
   if (d.t==='resign' && M && !M.done && (net.seat===0||net.seat===1)){
-    const me=net.seat; M.wins[me]=needW(); M.done=true; M.forfeit=true; if (G){ G.over=true; G.winner=me; }
-    toast(`${S[other].name} abandonne la partie.`); render(); setTimeout(celebrate, 500); return; }
+    forfeitWin(`${S[other].name} abandonne la partie.`); return; }
   if (d.t==='chat') { addChat(other, String(d.text||'').slice(0,80), false); return; }
   if (d.t==='wizz' && G) { receiveWizz(['toc','haha'].includes(d.k)?d.k:'wizz', other); return; }
 }
 function wireConn(conn){
   net.conn=conn;
-  conn.on('open', ()=>{ conn.send({t:'hello', nm:P.name, sk:P.skin, uid:P.uid, nb:myBlock(), rc:Object.fromEntries(TIMES.map(t=>[t,getR('champ',t).r]))}); });
+  conn.on('open', ()=>{ net.lastSeen=Date.now(); clearInterval(net.hb); net.hb=setInterval(()=>netSend({t:'ping'}), 3000); conn.send({t:'hello', nm:P.name, sk:P.skin, uid:P.uid, nb:myBlock(), rc:Object.fromEntries(TIMES.map(t=>[t,getR('champ',t).r]))}); });
   conn.on('data', onNetData);
   conn.on('close', ()=>{ if (!net) return; net.opp=false; toast('Ton adversaire s\'est déconnecté.'); render(); });
   conn.on('error', ()=>{});
@@ -1289,7 +1292,7 @@ function goOnline(code, host, fid){
   });
   peer.on('disconnected', ()=>{ try { peer.reconnect(); } catch(e){} });
 }
-function leaveOnline(){ if (net){ if (net.timer) clearTimeout(net.timer); try { net.conn && net.conn.close(); } catch(e){} try { net.peer && net.peer.destroy(); } catch(e){} } net=null; PEERS={}; }
+function leaveOnline(){ if (net){ if (net.timer) clearTimeout(net.timer); clearInterval(net.hb); try { net.conn && net.conn.close(); } catch(e){} try { net.peer && net.peer.destroy(); } catch(e){} } net=null; PEERS={}; }
 function newCode(){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let s=''; for (let i=0;i<5;i++) s+=abc[Math.floor(Math.random()*abc.length)]; return s; }
 const canAct = () => !online() || net.seat===0 || net.seat===1;
 const inviteURL = () => net ? `${location.origin}${location.pathname}?join=${net.code}` : '';
@@ -1650,6 +1653,7 @@ function sheetHTML(){
     <div class="row"><button class="primary" type="button" data-act="clip-share" ${CLIP&&CLIP.url?'':'disabled'}>Partager</button></div><p class="note">Format vertical pour TikTok, Reels et Shorts : « Trouveras-tu le coup gagnant ? »</p>`;
   if (s.type==='tuto') return `<h2>Bien joué !</h2><p>L'essentiel tient en trois phrases :</p><ul class="recap"><li>Bloque les <b>deux</b> pions adverses pour gagner la manche.</li><li>Les cases s'usent et tombent quand on les quitte.</li><li>Une fois par manche, ton pion peut <b>sauter</b>.</li></ul>
     <button class="primary" type="button" data-act="tuto-play">Jouer ma première partie</button><button class="secondary" type="button" data-act="tuto-more">Voir le cours suivant</button>`;
+  if (s.type==='info') return `<h2>${esc(s.t)}</h2><p>${esc(s.p)}</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
   if (s.type==='games'){
     const f=s.f||'all', list=realGames().filter(g=>f==='all'||g.src===f).reverse();
     return `<h2>Parties contre de vrais joueurs</h2><div class="seg" role="group" aria-label="Filtrer">${[['all','Toutes'],['ami','Amis'],['online','En ligne']].map(([k,l])=>`<button type="button" data-act="games-f" data-v="${k}" aria-pressed="${f===k}">${l}</button>`).join('')}</div>
@@ -1679,7 +1683,8 @@ function sheetHTML(){
       <li><span>4</span><div><b>Saut ↷.</b> Une fois par manche, ton pion peut passer par-dessus trous et pions. Les cases marquées ↷ l'utilisent automatiquement. Le badge « Saut dispo » sous ton nom te dit s'il te reste.</div></li>
       <li><span>★</span><div><b>Points.</b> Gagner une manche rapporte 10 points, plus la somme des chiffres des cases restantes. Si cette somme est inférieure à 10, le perdant marque la différence, 5 points au maximum (il reste 5 : 15 à 5 ; il reste 2 : 12 à 5).</div></li>
       <li><span>5</span><div><b>Les cases s'usent.</b> Le chiffre dit combien de fois on peut encore la quitter. À 0, elle tombe.</div></li>
-      <li><span>6</span><div><b>Tu perds la manche</b> quand aucun de tes pions ne peut bouger, ou à 0:00.</div></li>
+      <li><span>6</span><div><b>Tu perds la manche</b> quand aucun de tes pions ne peut bouger, ou quand ta pendule tombe à 0:00. Chacun a sa pendule : il y a toujours un gagnant.</div></li>
+      <li><span>⚡</span><div><b>En ligne.</b> Chacun doit jouer son premier coup en 15 s, sinon la partie est annulée sans perte de points. Ensuite, quitter l'appli plus de 15 s fait perdre la partie.</div></li>
       <li><span>7</span><div><b>2 manches gagnantes.</b> Chacun commence une manche. À 1-1, le vainqueur avec la plus grande somme restante commence la belle.</div></li>
       <li><span>8</span><div><b>Prémove.</b> Pendant le tour adverse, prépare ton coup : il part tout seul s'il est encore possible.</div></li></ol>
       <button class="primary" type="button" data-act="sheet-close">C'est parti</button>`;
@@ -1861,6 +1866,7 @@ document.addEventListener('submit', e=>{
 let lastTick=performance.now(), lastSleep=false;
 setInterval(()=>{
   const now=performance.now(), dt=now-lastTick; lastTick=now;
+  onlineWatch();
   if (RUSH && TR && TR.rush && view==='game'){ rushTick(dt); }
   if (TR && TR.mode && TR.mode!=='rush' && view==='game'){ const el=document.getElementById('clk0'); if (el) el.textContent=fmt(now-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)); }
   if (G && !G.over && view==='game' && !document.hidden){ P.playMs=(P.playMs||0)+Math.min(dt,1000); if (P.playMs>=60000){ P.playMs-=60000; addCoins(2,true); } }
@@ -2837,6 +2843,42 @@ function burst(i, col){
 
 /* Première partie guidée */
 let TUTO=false;
+
+
+/* ---------- En ligne : premier coup en 15 s, absence de 15 s = défaite ---------- */
+const AFK_MS=15000;
+const firstDone = () => !!(M && M.fm && M.fm[0] && M.fm[1]);
+function abortMatch(why, fromPeer){
+  if (!M || M.done) return;
+  if (!fromPeer) netSend({t:'abort', why: firstDone()?'net':'first'});
+  M.done=true; M.aborted=true; leaveGame();
+  sheet={type:'info', t:'Partie annulée', p:`${why} Personne ne perd de points.`}; render();
+}
+function forfeitWin(msg){
+  if (!M || M.done || !online()) return; const me=net.seat;
+  M.wins[me]=needW(); M.wins[1-me]=Math.min(M.wins[1-me], needW()-1); M.done=true; M.forfeit=true; if (G){ G.over=true; G.winner=me; }
+  toast(msg); render(); setTimeout(celebrate, 500);
+}
+function onlineWatch(){
+  if (!online() || (net.seat!==0 && net.seat!==1) || !M || M.done || !G || view!=='game') return;
+  const me=net.seat;
+  if (!firstDone() && M.round===1 && !G.over && performance.now()>=introUntil && G.turnAt){
+    const el=performance.now()-Math.max(G.turnAt,introUntil);
+    if (el>AFK_MS) return abortMatch(G.turn===me ? 'Tu n\'as pas joué ton premier coup à temps.' : 'Ton adversaire n\'a pas joué son premier coup à temps.');
+  }
+  const gone=Date.now()-(net.lastSeen||Date.now());
+  if (gone>AFK_MS){ if (firstDone()) forfeitWin('Ton adversaire a quitté la partie : victoire !'); else abortMatch('Connexion perdue avant le premier coup.'); return; }
+  if (gone>5000){ net.warned=true; const st=$('#gstatus'); if (st){ st.innerHTML=`Ton adversaire ne répond plus… ${firstDone()?'victoire':'annulation'} dans <b>${Math.ceil((AFK_MS-gone)/1000)} s</b>`; st.classList.add('msg'); } }
+}
+let hiddenAt=0;
+document.addEventListener('visibilitychange', ()=>{
+  if (document.hidden){ hiddenAt=Date.now(); return; }
+  const away=Date.now()-hiddenAt; hiddenAt=0;
+  if (!online() || (net.seat!==0 && net.seat!==1) || !M || M.done || away<=AFK_MS) return;
+  if (firstDone()){ const me=net.seat; netSend({t:'resign'}); M.wins[1-me]=needW(); M.done=true; M.forfeit=true; if (G){ G.over=true; G.winner=1-me; } recordGame(); leaveGame();
+    sheet={type:'info', t:'Partie perdue', p:'Tu as quitté l\'appli plus de 15 secondes pendant la partie.'}; render(); }
+  else abortMatch('Tu as quitté l\'appli avant le premier coup.');
+});
 
 initWorker();
 if (!P.rules && !new URLSearchParams(location.search).get('join') && !new URLSearchParams(location.search).get('pz') && !new URLSearchParams(location.search).get('dj')){ P.rules=true; saveP(); TUTO=true; setTimeout(()=>startLesson(0), 300); }
