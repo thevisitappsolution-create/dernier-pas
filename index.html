@@ -712,7 +712,8 @@ html.homefix #app{height:100%;box-sizing:border-box;overflow:hidden}
 const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
-  contact: 'contact@exemple.fr',   // À REMPLACER par l'e-mail de contact que tu veux rendre public
+  contact: 'contact@exemple.fr',
+  themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
 const START=[[20,24],[4,0]];
@@ -909,7 +910,7 @@ function applyElo(score){
   P.elo.r+=d; P.elo.g++; if (score) P.elo.w++; P.elo.hist=[...(P.elo.hist||[]), P.elo.r].slice(-30); saveP(); return d;
 }
 const CALM_T={t1:'#d8cba6',t2:'#c79b6f',x1:'#3a2c10',x2:'#3a1d08',fr:'#22262d'};
-function applyTheme(){ const calm=!!P.calm, t=calm?CALM_T:THEMES[P.theme], r=document.documentElement.style; document.documentElement.classList.toggle('calm',calm); const mt=document.querySelector('meta[name=theme-color]'); if (mt) mt.content=calm?'#16181d':'#07060f'; r.setProperty('--t1',t.t1); r.setProperty('--t2',t.t2); r.setProperty('--x1',t.x1); r.setProperty('--x2',t.x2); r.setProperty('--bframe',t.fr); }
+function applyTheme(){ const calm=!!P.calm && CONFIG.themeChoice, t=calm?CALM_T:THEMES[P.theme], r=document.documentElement.style; document.documentElement.classList.toggle('calm',calm); const mt=document.querySelector('meta[name=theme-color]'); if (mt) mt.content=calm?'#16181d':'#07060f'; r.setProperty('--t1',t.t1); r.setProperty('--t2',t.t2); r.setProperty('--x1',t.x1); r.setProperty('--x2',t.x2); r.setProperty('--bframe',t.fr); }
 
 /* ---------- Pions dessinés ---------- */
 function pawnSVG(sk, hex){
@@ -2739,7 +2740,7 @@ function renderPuzzles(){
 }
 
 /* ---------- Écrans : éléments communs ---------- */
-function themeSwitch(){ return `<button class="tswitch" type="button" role="switch" aria-checked="${!!P.calm}" data-act="calm" aria-label="Thème calme, moins lumineux"><span aria-hidden="true">${P.calm?'Calme':'Néon'}</span><span class="tr" aria-hidden="true"></span></button>`; }
+function themeSwitch(){ if (!CONFIG.themeChoice) return ''; return `<button class="tswitch" type="button" role="switch" aria-checked="${!!P.calm}" data-act="calm" aria-label="Thème calme, moins lumineux"><span aria-hidden="true">${P.calm?'Calme':'Néon'}</span><span class="tr" aria-hidden="true"></span></button>`; }
 function topRight(){ return `<div class="topr"><button class="coins" type="button" data-act="tab" data-v="shop" aria-label="${P.coins} pièces. Ouvrir la boutique">${ic('coin')}${P.coins}</button>${themeSwitch()}</div>`; }
 function friendsHTML(){
   if (!P.friends.length) return `<p class="demo">Pas encore d'amis ici. Partage ton lien ou ton code ami <b>${fmtUid(P.uid)}</b> : vous pourrez vous défier et comparer vos progrès.</p>`;
@@ -2755,7 +2756,7 @@ const gameRow = g => `<div class="prow"><span class="rk" style="color:${g.w?'var
 function settingsBody(){
   return `<label class="toggle"><span>Sons</span><input type="checkbox" id="o-sound" ${P.sound?'checked':''}></label>
   <label class="toggle"><span>Musique pendant les parties</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
-  <label class="toggle"><span>Thème calme<small class="note">Moins lumineux, plus reposant pour les yeux.</small></span><input type="checkbox" id="o-calm" ${P.calm?'checked':''}></label>
+  ${CONFIG.themeChoice?`<label class="toggle"><span>Thème calme<small class="note">Moins lumineux, plus reposant pour les yeux.</small></span><input type="checkbox" id="o-calm" ${P.calm?'checked':''}></label>`:''}
   <label class="toggle"><span>Afficher les messages de l'adversaire</span><input type="checkbox" id="o-chat" ${P.chat?'checked':''}></label>
   <label class="toggle${P.premium?'':' off'}"><span>Bloquer wizz, toc toc et haha${P.premium?'':' · Premium'}<small class="note">${P.premium?'Tu ne les reçois plus, mais tu ne peux plus en envoyer.':'Réservé à Premium. Sinon, coupe les sons : les animations restent.'}</small></span><input type="checkbox" id="o-block" ${myBlock()?'checked':''} ${P.premium?'':'disabled'}></label>
   <button class="secondary" type="button" data-act="rules">Règles du jeu</button>`;
@@ -2877,7 +2878,7 @@ async function makeClip(){
   try { await document.fonts.ready; } catch(_){}
   const F='"Bricolage Grotesque", system-ui, sans-serif', MO='"IBM Plex Mono", monospace';
   const imgs=await Promise.all([0,1].map(p=>loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(pawnSVG(S[p].skin,S[p].hex).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" '))).catch(()=>null)));
-  const th=P.calm?CALM_T:THEMES[P.theme], B=600, bx=(W-B)/2, by=360, gap=10, cs=(B-gap*6)/5;
+  const th=(P.calm&&CONFIG.themeChoice)?CALM_T:THEMES[P.theme], B=600, bx=(W-B)/2, by=360, gap=10, cs=(B-gap*6)/5;
   const pos=i=>[bx+gap+(i%5)*(cs+gap), by+gap+((i/5)|0)*(cs+gap)];
   const from=e.pawns[me][e.move[0]], to=e.move[1];
   const txt=(s,X,Y,font,col,blur)=>{ x.font=font; x.textAlign='center'; x.shadowColor=col; x.shadowBlur=blur||0; x.fillStyle=col; x.fillText(s,X,Y); x.shadowBlur=0; };
