@@ -163,7 +163,7 @@ button{font:inherit;color:inherit}
 .bubble.bot{align-self:flex-end}
 
 /* Plateau */
-.board{position:relative;container-type:inline-size;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:9px 9px 22px 22px;background:var(--bframe);border-radius:12px;box-shadow:inset 0 0 0 1px #ffffff12,0 18px 40px #0006;width:100%;max-width:min(440px, calc(100vh - 360px));max-width:min(440px, calc(100dvh - 360px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)));margin:0 auto;box-sizing:border-box}
+.board{position:relative;container-type:inline-size;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:9px 9px 22px 22px;background:var(--bframe);border-radius:12px;box-shadow:inset 0 0 0 1px #ffffff12,0 18px 40px #0006;width:100%;max-width:min(100%, calc(100dvh - 330px));margin:0 auto;box-sizing:border-box}
 .board.jolt{animation:jolt .18s}
 @keyframes jolt{50%{transform:translateY(3px) scale(.995)}}
 .cell{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:7px;display:grid;place-items:center;font-size:calc(100cqw / 5 * .36)}
@@ -486,7 +486,8 @@ details.sec>.in{display:flex;flex-direction:column;gap:10px;padding:0 14px 14px}
 .bdg.lk .md{background:#241d4a;box-shadow:none;filter:grayscale(1);opacity:.45}
 .bdg b{font-size:.8rem;line-height:1.15}
 .bdg small{font-size:.66rem;color:var(--muted);line-height:1.2}
-.ppath{display:flex;flex-direction:column;align-items:center;gap:16px;padding:6px 0 30px}
+.ppath{display:flex;flex-direction:column-reverse;align-items:center;gap:16px;padding:6px 0 30px}
+.ustep{align-self:stretch;text-align:center;font-family:var(--mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding-top:8px;margin:6px 0}
 .unit{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;background:linear-gradient(90deg,#3a1a8a,#1b1638);border:1px solid #8f7bff66;margin-top:6px}
 .unit b{display:block}
 .unit small{color:#c9c2f0;font-size:.8rem}
@@ -607,6 +608,7 @@ html.calm .code{color:var(--accent)}
 .hscroll::-webkit-scrollbar{display:none}
 .hscroll>*{scroll-snap-align:start;flex:none}
 .hcard{width:78%;min-height:150px;box-sizing:border-box;border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#3a1a8a,#1b1638);border:1px solid #8f7bff66;color:#fff}
+.hcard.c{background:linear-gradient(135deg,#8a3a1a,#1b1638);border-color:#ffb02e66}
 .hcard.b{background:linear-gradient(135deg,#0d5679,#15112d);border-color:#2ef2ff55}
 .hcard h3{margin:0;font-size:1.35rem;font-weight:800}
 .hcard .row2{display:flex;align-items:center;gap:10px}
@@ -632,6 +634,9 @@ html.calm .code{color:var(--accent)}
 .pagehead h1{text-align:center}
 .bigpawn{width:90px;margin:0 auto}
 html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-color:var(--line)}
+#app.ingame #game{height:100%;justify-content:space-between}
+#app.ingame #stripTop{margin-top:auto}
+#app.ingame #gstatus{margin-bottom:auto}
 </style>
 
 </head>
@@ -1501,8 +1506,16 @@ function renderGame(){
   else if (G.pick===null) txt = seat===null ? `<b>${esc(S[G.turn].name)}</b> : choisis un pion` : 'À toi : choisis un pion';
   else { const hasJ=pickMoves.some(m=>m[2]); txt = hasJ ? 'Touche une case marquée. ↷ = ton saut, utilisé automatiquement' : 'Touche une case marquée'; }
   st.innerHTML=txt; st.classList.toggle('msg', isMsg);
-  renderActions();
+  renderActions(); fitBoard();
 }
+function fitBoard(){
+  const g=$('#game'), b=$('#board'); if (!g || g.hidden || !b) return;
+  let other=0, n=0; for (const el of g.children){ if (el===b || el.hidden || getComputedStyle(el).position==='absolute') continue; other+=el.offsetHeight; n++; }
+  const app=getComputedStyle($('#app')), top=parseFloat(getComputedStyle(document.body).paddingTop)||0;
+  const avail=window.innerHeight - other - 8*n - parseFloat(app.paddingTop) - parseFloat(app.paddingBottom) - top - 4;
+  b.style.maxWidth=Math.max(220, Math.min(g.clientWidth, avail))+'px';
+}
+window.addEventListener('resize', ()=>{ if (view==='game') fitBoard(); });
 function renderActions(){
   if (view!=='game' || !G) return;
   if (TR) return renderTrActions();
@@ -1544,11 +1557,12 @@ function renderHome(){
   const fs=[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a)) || (b.last||0)-(a.last||0));
   return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} steps · ${t[1]}</small></div><span class="flame" aria-label="Série de ${streak} jours">🔥 ${streak}</span></div>${topRight()}</div>
   <div class="hscroll">
+    <div class="hcard c"><h3>⏱️ Défis chrono</h3>${np>=RUSH_UNLOCK?`<small>Record série : ${(P.rush||{}).serie||0}</small><button class="primary" type="button" data-act="rush-pick">Jouer</button>`:`<small>Réussis ${RUSH_UNLOCK} puzzles pour débloquer</small><button class="primary" type="button" data-act="tab" data-v="puzzles">Puzzles</button>`}</div>
     <div class="hcard"><h3>🧩 Puzzles</h3><div class="row2"><b>${np}/${PUZ_LIST.length}</b><div class="prog"><i style="width:${np/PUZ_LIST.length*100}%"></i></div></div><button class="primary" type="button" data-act="tab" data-v="puzzles">Résoudre</button></div>
     <div class="hcard b"><h3>Lastep du jour #${djNum()}</h3>${d?`<b class="emo" style="font-size:1.6rem">${d.res.map(r=>r?'✅':'❌').join('')}</b><button class="primary" type="button" data-act="dj-share">Partager</button>`:`<small>3 puzzles · 1 essai</small><button class="primary" type="button" data-act="dj">Jouer</button>`}</div>
   </div>
   <div class="hhead"><h2 class="h2">Stats</h2></div>
-  <div class="hscroll">${TIMES.map(tm=>{ const c=getR('champ',tm), a=getR('ia',tm); return `<div class="tile"><span class="em">${tm===1?'⚡':tm===3?'🔥':tm===5?'⏱️':'🐢'}</span><b>${c.g?c.r:a.r}</b><small>${tm===1?'Éclair':tm+' min'}</small></div>`; }).join('')}</div>
+  <div class="hscroll">${TIMES.map(tm=>{ const c=getR('champ',tm), a=getR('ia',tm); return `<div class="tile"><span class="em">${tm===1?'⚡':tm===3?'🔥':'⏱️'}</span><b>${c.g?c.r:a.r}</b><small>${tm===1?'Éclair':tm+' min'}</small></div>`; }).join('')}</div>
   <div class="hhead"><h2 class="h2">Amis ${P.friends.length?`<small class="note">${P.friends.length}</small>`:''}</h2></div>
   <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>Ajouter</b><small>+100 pièces par ami qui rejoint</small></button>${fs.map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?'En ligne':lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">Défier</button></div>`).join('')}</div>
   ${installCard()}
@@ -1698,6 +1712,9 @@ function sheetHTML(){
     <div class="row"><button class="primary" type="button" data-act="clip-share" ${CLIP&&CLIP.url?'':'disabled'}>Partager</button></div><p class="note">Format vertical pour TikTok, Reels et Shorts : « Trouveras-tu le coup gagnant ? »</p>`;
   if (s.type==='tuto') return `<h2>Bien joué !</h2><p>L'essentiel tient en trois phrases :</p><ul class="recap"><li>Bloque les <b>deux</b> pions adverses pour gagner la manche.</li><li>Les cases s'usent et tombent quand on les quitte.</li><li>Une fois par manche, ton pion peut <b>sauter</b>.</li></ul>
     <button class="primary" type="button" data-act="tuto-play">Jouer ma première partie</button><button class="secondary" type="button" data-act="tuto-more">Voir le cours suivant</button>`;
+  if (s.type==='rushpick'){ const left=rushTodayLeft();
+    return `<h2>Défis chrono</h2><div class="list">${Object.keys(RUSH_MODES).map(k=>`<button class="item" type="button" data-act="rush" data-v="${k}" style="justify-content:space-between">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>
+      <p class="note">${P.premium?'Sans limite.':`${left} essai${left>1?'s':''} aujourd'hui.`} Une erreur ou le temps écoulé : fin. Série : 3 erreurs permises.</p>`; }
   if (s.type==='info') return `<h2>${esc(s.t)}</h2><p>${esc(s.p)}</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
   if (s.type==='games'){
     const f=s.f||'all', list=realGames().filter(g=>f==='all'||g.src===f).reverse();
@@ -1786,7 +1803,7 @@ document.addEventListener('click', e=>{
   const a=e.target.closest('[data-act]'); if (!a) return;
   const k=a.dataset.act, v=a.dataset.v;
   switch(k){
-    case 'tab': view=v; sheet=null; render(); window.scrollTo(0,0); break;
+    case 'tab': view=v; sheet=null; render(); window.scrollTo(0,0); if (v==='puzzles') pzScroll(); break;
     case 'lessons': sheet=null; view='learn'; render(); window.scrollTo(0,0); break;
     case 'puzzles': sheet=null; view='puzzles'; render(); window.scrollTo(0,0); break;
     case 'lesson': startLesson(+v); break;
@@ -1812,9 +1829,10 @@ document.addEventListener('click', e=>{
     case 'tuto-play': TUTO=false; if (TR) trClear(TR); TR=null; G=null; M=null; sheet=null; startAI('easy',false); break;
     case 'tuto-more': TUTO=false; sheet=null; startLesson(1); break;
     case 'rush': startRush(v); break;
+    case 'rush-pick': sheet={type:'rushpick'}; render(); break;
     case 'rush-stop': rushEnd(); break;
     case 'rush-again': startRush(RUSH_LAST); break;
-    case 'rush-out': sheet=null; RUSH=null; view='puzzles'; render(); break;
+    case 'rush-out': sheet=null; RUSH=null; view='home'; render(); break;
     case 'tr-hint': trHint(); break;
     case 'tr-sol': sheet=null; trSolution(); break;
     case 'more': playMore=!playMore; render(); break;
@@ -2235,7 +2253,8 @@ function trNext(){
   else if (tr.i+1<LESSONS.length && (!LESSONS[tr.i+1].p || P.premium)) return startLesson(tr.i+1);
   trQuit();
 }
-function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; } else { sheet=null; view='learn'; } render(); }
+function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.node.cur')||[...document.querySelectorAll('.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
+function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; } render(); }
 function trHint(){
   const tr=TR; if (!G || G.turn!==0) return;
   if (!P.premium){ sheet={type:'locked', what:'hint'}; render(); return; }
@@ -2632,7 +2651,7 @@ function rushEnd(){
   if (!RUSH) return; const r=RUSH; P.rush=P.rush||{}; const best=P.rush[r.mode]||0, rec=r.score>best;
   if (rec) P.rush[r.mode]=r.score; if (r.score) P.coins=(P.coins||0)+r.score*2; saveP();
   if (TR) trClear(TR); TR=null; G=null; M=null; musicStop();
-  view='puzzles'; sheet={type:'rush', r, rec, best:Math.max(best,r.score)}; RUSH=null; render();
+  view='home'; sheet={type:'rush', r, rec, best:Math.max(best,r.score)}; RUSH=null; render();
 }
 function rushHTML(){
   const done=pzDone(), on=done>=RUSH_UNLOCK, left=rushTodayLeft();
@@ -2647,7 +2666,7 @@ function renderPuzzles(){
   const ranked=[{me:1, pz:done}, ...fr.map(f=>({pz:f.pz}))].sort((a,b)=>b.pz-a.pz), myRank=ranked.findIndex(r=>r.me)+1;
   let n=0, html='';
   PUZ_CATS.forEach((c,ci)=>{
-    html+=`<div class="unit"><b>Étape ${ci+1} · ${esc(c.t)}</b><small>${esc(c.d)}</small></div>`;
+    html+=`<div class="ustep">Étape ${ci+1} · ${esc(c.t)}</div>`;
     PUZ[c.k].forEach((_,i)=>{
       const k=n++, d=ok[c.k+i], open=pzOpen(k), isCur=k===cur, x=Math.round(Math.sin(k*0.95)*72);
       const here=fr.filter(f=>Math.min(f.pz, PUZ_LIST.length-1)===k);
@@ -2657,10 +2676,8 @@ function renderPuzzles(){
   });
   return `<div class="top"><h1 class="logo">Puzzles</h1>${topRight()}</div>
   <div class="pzhead"><div class="prog" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="${PUZ_LIST.length}" aria-valuenow="${done}"><i style="width:${done/PUZ_LIST.length*100}%"></i></div>
-  <p class="sub">${done}/${PUZ_LIST.length} réussis · ${fr.length?`<b>${myRank}${myRank===1?'er':'e'}</b> sur ${ranked.length} parmi tes amis`:'ajoute des amis pour voir où ils en sont'} · classement national bientôt</p>
-  <p class="note">Aucun indice : juste la consigne. Chaque joueur voit le plateau sous son propre angle.${P.premium?'':` Puzzles ${PZ_FREE+1} à ${PUZ_LIST.length} : Premium.`}</p></div>
-  ${rushHTML()}
-  <div class="ppath">${html}<div class="unit" style="text-align:center"><b>Saison 1</b><small>De nouveaux puzzles et cours arriveront avec la Saison 1.</small></div></div>`;
+  <p class="sub">${done}/${PUZ_LIST.length}${fr.length?` · <b>${myRank}${myRank===1?'er':'e'}</b> sur ${ranked.length} amis`:''}</p></div>
+  <div class="ppath">${html}<div class="ustep">Saison 1 · bientôt</div></div>`;
 }
 
 /* ---------- Écrans : éléments communs ---------- */
@@ -2744,7 +2761,8 @@ document.addEventListener('contextmenu', e=>{ if (e.target.closest('[data-admin]
 
 
 /* ---------- v7 : cadences, puzzle du jour, défis par lien, clip, bombe ---------- */
-const TIMES=[1,3,5,7];
+const TIMES=[1,3,5];
+if (!TIMES.includes(P.time)){ P.time=5; saveP(); }
 const tLabel = t => t===1 ? 'Éclair · 1 min' : `${t} min`;
 const needW = () => (M && M.need) || 2;
 const mWinner = () => M.wins[0]>=needW() ? 0 : 1;
