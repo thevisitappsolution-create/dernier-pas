@@ -1386,7 +1386,7 @@ function renderGame(){
   const playing=G&&!G.over, seat=humanSeat(), myTurn=playing&&(seat===null||G.turn===seat);
   const bot=bottomSide();
   $('#stripTop').innerHTML=strip(1-bot); $('#stripBot').innerHTML=strip(bot);
-  if (TR){ $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[0].hex}"><span class="nm2"><i></i><span>${esc(S[0].name)}</span></span></div><div class="mid"><b style="font-size:1rem">${esc(TR.kind==='puzzle'?'Puzzle':'Cours')}</b><small>${esc(trTitle())}</small></div><div class="sd r" style="--pc:${S[1].hex}"><span class="nm2"><span>${esc(S[1].name)}</span><i></i></span></div>`; }
+  if (TR){ $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[0].hex}"><span class="nm2"><i></i><span>${esc(S[0].name)}</span></span></div><div class="mid"><b style="font-size:1rem">${esc(TR.kind==='puzzle'?'Puzzle':'Cours')}</b></div><div class="sd r" style="--pc:${S[1].hex}"><span class="nm2"><span>${esc(S[1].name)}</span><i></i></span></div>`; }
   else { const a=bot, b=1-bot, pts=matchPts();
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
       `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b><small>manches · plateau ${boardSum()}</small></div>`+
@@ -1586,6 +1586,7 @@ function sheetHTML(){
   }
   if (s.type==='locked'){
     if (s.what==='analyse') return `<h2>Plus d'analyse gratuite</h2><p>Tu as utilisé tes 3 analyses des 7 derniers jours. La prochaine se libère dans ${anRenewH()} h. Les analyses illimitées arriveront avec Premium.</p>`;
+    if (s.what==='premium') return `<h2>Cours Premium</h2><p>Ce cours fait partie de Premium : il apprend les techniques des meilleurs joueurs. Premium arrive bientôt en abonnement.</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
     if (s.what==='hint') return `<h2>Indices · Premium</h2><p>Les indices et les solutions des cours et des puzzles font partie de Premium. Sans indice, cherche par toi-même : c'est comme ça qu'on progresse le plus.</p><button class="primary" type="button" data-act="sheet-close">Je cherche encore</button>`;
     if (s.what==='tournament') return true ? `<h2>Tournois · bientôt</h2><p>Les tournois, ligues et classements mondiaux arriveront avec les comptes joueurs et le serveur de l'application.</p>` : `<h2>Tournois · Premium</h2><p>Tournois éclair, ligues et trophées sont réservés aux membres Premium.</p><button class="primary" type="button" data-act="go-shop">Voir Premium</button>`;
   }
@@ -1922,8 +1923,46 @@ const LESSONS=[
      {cap:'…et le second coup l\'enferme. Il faut toujours calculer sa réponse.', line:2}]},
    ex:{z:PUZ.win2[1], max:2, opp:'ai', text:'Gagne en 2 coups. L\'ordinateur défend au mieux.',
      ok:()=>G.over && G.winner===0, why:'Ton premier coup réduisait déjà ses déplacements. Le second fermait la dernière issue.'}},
+  {id:'p1', p:1, t:'Contrôler le centre', d:'Un pion au centre voit tout le plateau.',
+   demo:{c:allTwo(), p:[[22,24],[2,0]], steps:[
+     {cap:'La force d\'un pion, c\'est sa mobilité : le nombre de cases qu\'il peut atteindre.'},
+     {cap:'Au bord, des directions sont perdues. Vers le centre, il en a quatre.', mv:[0,0,12,0]},
+     {cap:'Plus tu as de déplacements, plus il est dur de t\'enfermer.'}]},
+   ex:{z:{"c":"1121111112112112121211211","p":[[15,13],[3,6]],"j":[1,1],"b":9,"sol":[0,17,0]}, max:1, opp:'none', text:'Joue le coup qui te laisse le plus de déplacements possibles.',
+     ok:()=>aiMob(G.cells,G.pawns,0)>=15, why:'Ce coup rapproche ton pion du centre et des grandes lignes libres : c\'est lui qui t\'ouvre le plus de cases.'}},
+  {id:'p2', p:1, t:'Couper le plateau', d:'Ferme les lignes de l\'adversaire.',
+   demo:{c:allTwo(), p:[[20,24],[0,4]], steps:[
+     {cap:'Un pion posé en travers d\'une ligne la coupe : l\'adversaire ne peut ni passer, ni s\'y poser.'},
+     {cap:'Ici, ton pion bloque la colonne du pion adverse du coin.', mv:[0,1,9,0]},
+     {cap:'Il ne lui reste que la ligne du haut. Moins de sorties, c\'est plus près de la défaite.'}]},
+   ex:{z:{"c":"0120112211112111212111211","p":[[10,6],[7,1]],"j":[1,0],"b":2,"sol":[0,12,0]}, max:1, opp:'none', text:'Joue le coup qui laisse le moins de déplacements à l\'adversaire.',
+     ok:()=>aiMob(G.cells,G.pawns,1)<=4, why:'Ton pion se place sur ses lignes et les coupe : il perd d\'un coup plusieurs sorties.'}},
+  {id:'p3', p:1, t:'Garder son saut pour la fin', d:'Le saut gaspillé ne revient pas.',
+   demo:{z:{"c":"1000101010001011101110101","p":[[19,0],[18,15]],"j":[1,0],"b":4,"sol":[0,14,0],"n":2,"line":[[0,0,14,0],[1,1,20,0],[0,0,4,1]]}, line:[[0, 0, 14, 0], [1, 1, 20, 0], [0, 0, 4, 1]], steps:[
+     {cap:'Ton saut est précieux. Gaspillé trop tôt, tu ne pourrais plus gagner ici.'},
+     {cap:'D\'abord un coup normal, qui réduit ses options…', line:0},
+     {cap:'Il se défend comme il peut…', line:1},
+     {cap:'…et le saut, gardé pour la fin, ferme la dernière issue.', line:2}]},
+   ex:{z:{"c":"1121100200000110110110101","p":[[2,14],[0,3]],"j":[1,0],"b":3,"sol":[1,19,0],"n":2,"line":[[0,1,19,0],[1,0,1,0],[0,1,4,1]]}, max:2, opp:'ai', text:'Gagne en 2 coups. Indice : ne gaspille pas ton saut.',
+     ok:()=>G.over && G.winner===0, why:'Le premier coup se joue sans sauter. Le saut sert au coup final, quand il ferme la dernière sortie.'}},
+  {id:'p4', p:1, t:'Survivre sous pression', d:'Trouver la sortie quand tout se referme.',
+   demo:{z:{"c":"0110110001011011011011011","p":[[20,23],[9,1]],"j":[1,1],"b":9,"sol":[0,15,0]}, steps:[
+     {cap:'Parfois, l\'adversaire t\'étouffe. Avant de bouger, regarde ce qu\'il te restera après sa réponse.'},
+     {cap:'Ici, seuls 2 coups sur 6 te gardent en vie pendant trois tours.'},
+     {cap:'Garde toujours une case de secours pour chacun de tes pions.'}]},
+   ex:{z:{"c":"0110110001011011011011011","p":[[20,23],[9,1]],"j":[1,1],"b":9,"sol":[0,15,0]}, max:3, opp:'ai', text:'Survis 3 coups face à l\'ordinateur, qui joue au mieux.',
+     ok:()=>(G.over && G.winner===0) || TR.my>=3, why:'Tu as choisi des cases qui gardaient une sortie après chacune de ses réponses.'}},
+  {id:'p5', p:1, t:'Calculer 3 coups', d:'Voir la fin avant tout le monde.',
+   demo:{z:{"c":"1000111001001010102011001","p":[[5,18],[16,4]],"j":[1,0],"b":5,"sol":[0,6,0],"n":3,"line":[[0,0,6,0],[1,0,21,0],[0,0,9,1],[1,0,20,0],[0,0,14,0]]}, line:[[0, 0, 6, 0], [1, 0, 21, 0], [0, 0, 9, 1], [1, 0, 20, 0], [0, 0, 14, 0]], steps:[
+     {cap:'Les meilleurs joueurs calculent trois coups à l\'avance. Regarde.', line:0},
+     {cap:'L\'adversaire choisit sa meilleure défense…', line:1},
+     {cap:'On réduit encore ses sorties, ici avec le saut.', line:2},
+     {cap:'Il n\'a plus qu\'un chemin…', line:3},
+     {cap:'…et le dernier coup l\'enferme.', line:4}]},
+   ex:{z:{"c":"1010020111110011010111200","p":[[22,0],[9,19]],"j":[1,0],"b":9,"sol":[0,7,1],"n":3,"line":[[0,0,7,1],[1,0,8,0],[0,0,2,0],[1,1,14,0],[0,1,5,0]]}, max:3, opp:'ai', text:'Gagne en 3 coups. L\'ordinateur défend au mieux.',
+     ok:()=>G.over && G.winner===0, why:'Ton premier coup lui retirait déjà presque tout. Ensuite, chaque coup fermait une sortie de plus.'}},
 ];
-const LOCKED_LESSONS=['Contrôler le centre','Couper le plateau en deux','Parité des cases','Garder son saut pour la fin','Lire les plateaux en rotation','Parties des meilleurs joueurs'];
+const LOCKED_LESSONS=['Parties des meilleurs joueurs'];
 
 function trBase(cells, pawns, J, bid, oppName){
   leaveOnline(); vsAI=null; training=false; premove=null;
@@ -1942,6 +1981,7 @@ function startPuzzle(cat, idx){
 }
 function startLesson(i){
   const L=LESSONS[i]; if (!L) return;
+  if (L.p && !P.premium){ sheet={type:'locked', what:'premium'}; render(); return; }
   TR={kind:'lesson', i, L, phase:'demo', step:-1, my:0, state:'demo'};
   const d=L.demo;
   if (d.z) trBase(cellsFrom(d.z.c), d.z.p, d.z.j, d.z.b); else trBase(d.c, d.p, [1,1], 0);
@@ -1974,7 +2014,7 @@ function trDone(ok, why){
     if (tr.kind==='puzzle'){ P.puz=P.puz||{}; const key=tr.cat+tr.idx, first=!P.puz[key]; P.puz[key]=1;
       if (first){ P.coins=(P.coins||0)+5; toast('+5 pièces'); if (!(P.stat.pzTried||{})[key]) P.stat.first=(P.stat.first||0)+1; } saveP(); puzBadges(); }
     else { P.lessons=P.lessons||{}; const first=!P.lessons[tr.L.id]; P.lessons[tr.L.id]=1; if (first){ P.coins=(P.coins||0)+10; toast('+10 pièces'); } saveP();
-      if (tr.L.id==='l1') badge('pas1'); if (LESSONS.every(L=>P.lessons[L.id])) badge('eleve'); }
+      if (tr.L.id==='l1') badge('pas1'); if (LESSONS.filter(L=>!L.p).every(L=>P.lessons[L.id])) badge('eleve'); }
     saveP(); sfx.win(); presBroadcast();
     if (!REDUCED){ const box=$('#fxscreen'); ['BRAVO'].forEach(t=>{ const w=document.createElement('div'); w.className='wword'; w.textContent=t; w.style.setProperty('--pc','#b6ff3b'); w.style.setProperty('--rot','-6deg'); w.style.left='22%'; w.style.top='38%'; box.appendChild(w); setTimeout(()=>w.remove(),800); }); }
   } else { if (tr.kind==='puzzle'){ P.stat.pzTried=P.stat.pzTried||{}; P.stat.pzTried[tr.cat+tr.idx]=1; saveP(); } sfx.round(); }
@@ -2055,7 +2095,7 @@ function renderTrActions(){
 function trNext(){
   const tr=TR; sheet=null;
   if (tr.kind==='puzzle'){ const k=pzIndex(tr.cat,tr.idx)+1; if (k<PUZ_LIST.length) return startPuzzle(PUZ_LIST[k].cat, PUZ_LIST[k].i); }
-  else if (tr.i+1<LESSONS.length) return startLesson(tr.i+1);
+  else if (tr.i+1<LESSONS.length && (!LESSONS[tr.i+1].p || P.premium)) return startLesson(tr.i+1);
   trQuit();
 }
 function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; } else { sheet=null; view='learn'; } render(); }
@@ -2089,8 +2129,8 @@ function renderLearn(){
 }
 function lessonsList(){
   const done=P.lessons||{};
-  return `<div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span><span></span></button>`).join('')}
-  ${LOCKED_LESSONS.map((t,i)=>`<button type="button" class="lesson" disabled><span class="no">${LESSONS.length+i+1}</span><span><b>${esc(t)}</b><small>Premium · en préparation</small></span><span class="tag">Premium</span></button>`).join('')}</div>`;
+  return `<div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span>${L.p?`<span class="tag">${P.premium?'Premium ✓':'Premium'}</span>`:'<span></span>'}</button>`).join('')}
+  ${LOCKED_LESSONS.map((t,i)=>`<button type="button" class="lesson" disabled><span class="no">${LESSONS.length+i+1}</span><span><b>${esc(t)}</b><small>Bientôt : il faut d'abord des parties de vrais champions</small></span><span class="tag">Premium</span></button>`).join('')}</div>`;
 }
 function puzzlesHTML(){
   const ok=P.puz||{};
