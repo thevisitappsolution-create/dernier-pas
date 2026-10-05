@@ -51,7 +51,7 @@ button{font:inherit;color:inherit}
 
 /* Onglets */
 #tabs{position:fixed;left:0;right:0;bottom:0;z-index:12;background:#0f1412;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-#tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+#tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 #tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 9px;background:none;border:0;color:var(--muted);font-size:.78rem;font-weight:600;cursor:pointer}
 #tabs button[aria-current="page"]{color:var(--ink)}
 #tabs button[aria-current="page"] .ic{stroke:var(--accent)}
@@ -1482,8 +1482,8 @@ function renderHome(){
   <div class="hero" style="--tc:${t[2]}"><div class="avatar adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div style="min-width:0">
     <div class="nm">${esc(P.name)} ${P.premium?'<span class="pill premok">Premium</span>':''}</div><div><span class="elo">${P.elo.r}</span> <span class="tier">${t[1]}</span></div>
     ${sparkline(P.elo.hist)}<p class="sub">${P.elo.g ? `${P.elo.w} victoires · ${P.elo.g} matchs · ${wr} %` : 'Joue contre l\'ordinateur pour lancer ton classement.'}</p></div></div>
-  <button class="big" type="button" data-act="tab" data-v="play">${ic('play')}Jouer</button>
-  <button class="item" type="button" data-act="match">${ic('globe')}Jouer en ligne <span class="lock" style="color:var(--neon3);border-color:var(--neon3)">${P.time} min</span></button>
+  <button class="big" type="button" data-act="match">${ic('globe')}<span>Jouer<small>contre un joueur en ligne · ${P.time} min</small></span></button>
+  <button class="item" type="button" data-act="tab" data-v="play">${ic('bot')}Autres modes de jeu</button>
   ${dailyCard()}
   <h2 class="h2">Amis</h2>
   ${friendsHTML()}
@@ -1504,8 +1504,6 @@ function renderPlay(){
   <button class="item" type="button" data-act="tournament">${ic('trophy')}Tournois${P.premium?'':'<span class="lock">Premium</span>'}</button>
   <button class="item" type="button" data-act="friend">${ic('friends')}Jouer avec un ami</button>
   <button class="item" type="button" data-act="ai-sheet">${ic('bot')}Jouer contre l'ordinateur</button>
-  <button class="item" type="button" data-act="lessons">${ic('book')}Cours${(()=>{ const n=LESSONS.filter(L=>(P.lessons||{})[L.id]).length; return n<LESSONS.length?`<span class="lock" style="color:var(--neon3);border-color:var(--neon3)">${n}/${LESSONS.length}</span>`:''; })()}</button>
-  <button class="item" type="button" data-act="puzzles">${ic('bulb')}Puzzles</button>
   <button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button>
   <button class="more" type="button" data-act="more" aria-expanded="${playMore}">Plus ${playMore?'▴':'▾'}</button>
   ${playMore?`<button class="item" type="button" data-act="local">${ic('phone')}À deux sur ce téléphone</button><button class="item" type="button" data-act="rules">${ic('book')}Règles du jeu</button>`:''}`;
@@ -1545,8 +1543,8 @@ function renderProfile(){
   ${sec('about','À propos', `${installCard()}<p class="note">Dernier Pas · <a href="privacy.html" style="color:inherit">Confidentialité</a> · <a href="site/" style="color:inherit">Site</a> · contact : ${esc(CONFIG.contact)}</p>`)}`;
 }
 function renderTabs(){
-  const t=[['home','home','Accueil'],['play','play','Jouer'],['shop','shop','Boutique'],['profile','user','Profil']];
-  $('#tabsIn').innerHTML=t.map(([v,i,l])=>`<button type="button" data-act="tab" data-v="${v}" ${view===v||(v==='play'&&view==='puzzles')?'aria-current="page"':''}>${ic(i)}${l}</button>`).join('');
+  const t=[['home','home','Accueil'],['play','play','Jouer'],['learn','coach','Apprendre'],['shop','shop','Boutique'],['profile','user','Profil']];
+  $('#tabsIn').innerHTML=t.map(([v,i,l])=>`<button type="button" data-act="tab" data-v="${v}" ${view===v||(v==='learn'&&view==='puzzles')?'aria-current="page"':''}>${ic(i)}${l}</button>`).join('');
 }
 
 /* ---------- Rendu : feuilles ---------- */
@@ -1700,7 +1698,7 @@ function render(){
   if (inGame) renderGame();
   else {
     if (view==='game') view='play';
-    const html = view==='home'?renderHome():view==='shop'?renderShop():view==='profile'?renderProfile():view==='puzzles'?renderPuzzles():renderPlay();
+    const html = view==='home'?renderHome():view==='shop'?renderShop():view==='profile'?renderProfile():view==='puzzles'?renderPuzzles():view==='learn'?renderLearn():renderPlay();
     if ($('#screen').dataset.v!==view || $('#screen').innerHTML!==html){ $('#screen').innerHTML=html; $('#screen').dataset.v=view; }
     renderTabs();
   }
@@ -1714,7 +1712,7 @@ document.addEventListener('click', e=>{
   const k=a.dataset.act, v=a.dataset.v;
   switch(k){
     case 'tab': view=v; sheet=null; render(); window.scrollTo(0,0); break;
-    case 'lessons': sheet={type:'lessons'}; render(); break;
+    case 'lessons': sheet=null; view='learn'; render(); window.scrollTo(0,0); break;
     case 'puzzles': sheet=null; view='puzzles'; render(); window.scrollTo(0,0); break;
     case 'lesson': startLesson(+v); break;
     case 'puzzle': if (pzOpen(pzIndex(a.dataset.k,+v))) startPuzzle(a.dataset.k, +v); break;
@@ -2060,7 +2058,7 @@ function trNext(){
   else if (tr.i+1<LESSONS.length) return startLesson(tr.i+1);
   trQuit();
 }
-function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; } else { sheet={type:'lessons'}; view='play'; } render(); }
+function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; } else { sheet=null; view='learn'; } render(); }
 function trHint(){
   const tr=TR; if (!G || G.turn!==0) return;
   if (!P.premium){ sheet={type:'locked', what:'hint'}; render(); return; }
@@ -2075,10 +2073,23 @@ function trSolution(){
   if (tr.kind==='puzzle') startPuzzle(tr.cat, tr.idx); else startExercise();
   G.hint=z.sol; G.pick=z.sol[0]; render();
 }
-function lessonsHTML(){
+function lessonsHTML(){ return `<h2>Cours</h2><p>Une démonstration animée, puis un exercice à réussir. Commence par le cours 1.</p>${lessonsList()}`; }
+function renderLearn(){
+  const nl=LESSONS.filter(L=>(P.lessons||{})[L.id]).length, np=pzDone(), nb=Object.keys(P.badges).length;
+  return `<div class="top"><h1 class="logo">Apprendre</h1>${topRight()}</div>
+  <div class="cad"><div><h4>Cours</h4><b>${nl}/${LESSONS.length}</b><small>terminés</small></div><div><h4>Puzzles</h4><b>${np}/${PUZ_LIST.length}</b><small>réussis</small></div><div><h4>Badges</h4><b>${nb}/${BADGES.length}</b><small>débloqués</small></div></div>
+  <h2 class="h2">Cours</h2><p class="sub">Une démonstration animée, puis un exercice à réussir. Commence par le cours 1.</p>
+  ${lessonsList()}
+  <h2 class="h2">Puzzles</h2>
+  <button class="item" type="button" data-act="puzzles">${ic('bulb')}Parcours de puzzles <span class="lock" style="color:var(--neon3);border-color:var(--neon3)">${np}/${PUZ_LIST.length}</span></button>
+  <h2 class="h2">S'entraîner</h2>
+  <button class="item" type="button" data-act="coach">${ic('coach')}Jouer avec l'entraîneur</button>
+  <h2 class="h2">Badges</h2>
+  ${badgesHTML()}`;
+}
+function lessonsList(){
   const done=P.lessons||{};
-  return `<h2>Cours</h2><p>Une démonstration animée, puis un exercice à réussir. Commence par le cours 1.</p>
-  <div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span><span></span></button>`).join('')}
+  return `<div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span><span></span></button>`).join('')}
   ${LOCKED_LESSONS.map((t,i)=>`<button type="button" class="lesson" disabled><span class="no">${LESSONS.length+i+1}</span><span><b>${esc(t)}</b><small>Premium · en préparation</small></span><span class="tag">Premium</span></button>`).join('')}</div>`;
 }
 function puzzlesHTML(){
@@ -2414,7 +2425,7 @@ function renderPuzzles(){
       html+=`<button type="button" class="node${d?' done':''}${isCur?' cur':''}" style="--x:${x}px" data-act="puzzle" data-k="${c.k}" data-v="${i}" ${open?'':'disabled'} aria-label="Puzzle ${k+1}, ${esc(c.t)}${d?', réussi':open?'':', verrouillé'}">${d?'★':open?k+1:ic('lock')}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}${here.length?`<span class="frs">${here.slice(0,3).map(f=>`<span title="${esc(f.name)}">${pawnSVG(cleanSkin(f.sk))}</span>`).join('')}</span>`:''}</button>`;
     });
   });
-  return `<div class="top"><button class="iconbtn" type="button" data-act="tab" data-v="play" aria-label="Retour">${ic('back')}</button><h1 class="logo" style="flex:1">Puzzles</h1>${topRight()}</div>
+  return `<div class="top"><button class="iconbtn" type="button" data-act="tab" data-v="learn" aria-label="Retour">${ic('back')}</button><h1 class="logo" style="flex:1">Puzzles</h1>${topRight()}</div>
   <div class="pzhead"><div class="prog" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="${PUZ_LIST.length}" aria-valuenow="${done}"><i style="width:${done/PUZ_LIST.length*100}%"></i></div>
   <p class="sub">${done}/${PUZ_LIST.length} réussis · ${fr.length?`<b>${myRank}${myRank===1?'er':'e'}</b> sur ${ranked.length} parmi tes amis`:'ajoute des amis pour voir où ils en sont'} · classement national bientôt</p>
   <p class="note">${P.premium?'Premium : indices et solutions disponibles.':'Sans Premium, pas d\'indice : cherche par toi-même, c\'est comme ça qu\'on progresse.'}</p></div>
