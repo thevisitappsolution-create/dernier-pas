@@ -1474,13 +1474,13 @@ function sparkline(h){
   const v=(h&&h.length>1)?h:[P.elo.r,P.elo.r]; const min=Math.min(...v)-10, max=Math.max(...v)+10, w=200, ht=34;
   const pts=v.map((x,i)=>`${(i/(v.length-1)*w).toFixed(1)},${(ht-(x-min)/(max-min)*ht).toFixed(1)}`).join(' ');
   const last=pts.split(' ').pop().split(',');
-  return `<svg class="spark" viewBox="-2 -2 ${w+4} ${ht+4}" preserveAspectRatio="none" aria-label="Évolution de ton Elo"><polyline points="${pts}" fill="none" stroke="var(--tc)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="var(--tc)"/></svg>`;
+  return `<svg class="spark" viewBox="-2 -2 ${w+4} ${ht+4}" preserveAspectRatio="none" aria-label="Évolution de tes steps"><polyline points="${pts}" fill="none" stroke="var(--tc)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="var(--tc)"/></svg>`;
 }
 function renderHome(){
   const t=tierOf(P.elo.r), wr=P.elo.g?Math.round(P.elo.w/P.elo.g*100):0, rg=realGames();
   return `<div class="top"><h1 class="logo">Dernier <span>Pas</span></h1>${topRight()}</div>
   <div class="hero" style="--tc:${t[2]}"><div class="avatar adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div style="min-width:0">
-    <div class="nm">${esc(P.name)} ${P.premium?'<span class="pill premok">Premium</span>':''}</div><div><span class="elo">${P.elo.r}</span> <span class="tier">${t[1]}</span></div>
+    <div class="nm">${esc(P.name)} ${P.premium?'<span class="pill premok">Premium</span>':''}</div><div><span class="elo">${P.elo.r}</span> <small class="sub">steps</small> <span class="tier">${t[1]}</span></div>
     ${sparkline(P.elo.hist)}<p class="sub">${P.elo.g ? `${P.elo.w} victoires · ${P.elo.g} matchs · ${wr} %` : 'Joue contre l\'ordinateur pour lancer ton classement.'}</p></div></div>
   <button class="big" type="button" data-act="match">${ic('globe')}<span>Jouer<small>contre un joueur en ligne · ${P.time} min</small></span></button>
   <button class="item" type="button" data-act="tab" data-v="play">${ic('bot')}Autres modes de jeu</button>
@@ -1536,7 +1536,7 @@ function renderProfile(){
   ${sec('rank','Classements · plateau 5×5', `<table class="ratings"><thead><tr><th>Cadence</th><th>Ordinateur<br>(entraînement)</th><th>Championnat<br>(en ligne)</th></tr></thead><tbody>
   ${[3,5,7].map(t=>{ const a=getR('ia',t), c=getR('champ',t); return `<tr class="${P.time===t?'cur':''}"><td>${t} min</td><td><b>${a.r}</b> <small class="note">${a.g} m.</small></td><td><b>${c.r}</b> <small class="note">${c.g} m.</small></td></tr>`; }).join('')}
   </tbody></table><p class="note">Chaque cadence et chaque taille de plateau a son propre classement. Classement national : bientôt, avec le serveur de comptes.</p>`)}
-  ${sec('stats','Statistiques', `<div class="stats"><div><b style="color:${t[2]}">${P.elo.r}</b><small>Elo · ${t[1]}</small></div><div><b>${P.elo.g}</b><small>matchs classés</small></div><div><b>${P.premium?'∞':left}</b><small>${P.premium?'analyses':left<3?`analyses · +1 dans ${anRenewH()} h`:'analyses cette semaine'}</small></div><div><b>${pzDone()}</b><small>puzzles réussis</small></div><div><b>${P.stat.fell||0}</b><small>cases détruites</small></div><div><b>${P.stat.games||0}</b><small>parties jouées</small></div></div>`)}
+  ${sec('stats','Statistiques', `<div class="stats"><div><b style="color:${t[2]}">${P.elo.r}</b><small>steps · ${t[1]}</small></div><div><b>${P.elo.g}</b><small>matchs classés</small></div><div><b>${P.premium?'∞':left}</b><small>${P.premium?'analyses':left<3?`analyses · +1 dans ${anRenewH()} h`:'analyses cette semaine'}</small></div><div><b>${pzDone()}</b><small>puzzles réussis</small></div><div><b>${P.stat.fell||0}</b><small>cases détruites</small></div><div><b>${P.stat.games||0}</b><small>parties jouées</small></div></div>`)}
   ${sec('badges',`Badges · ${nb}/${BADGES.length}`, badgesHTML())}
   ${sec('friends',`Amis · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}Ajouter</button><button type="button" data-act="contacts">${ic('contacts')}Répertoire</button><button type="button" data-act="poster">${ic('image')}Mon poster</button></div>`)}
   ${sec('set','Réglages', settingsBody())}
@@ -1568,7 +1568,7 @@ function sheetHTML(){
   const s=sheet;
   if (s.type==='time') return `<h2>Cadence</h2><p>Temps par joueur et par manche.</p><div class="timegrid">${[3,5,7].map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${t} min</button>`).join('')}</div>`;
   if (s.type==='ai'){
-    return `<h2>${s.coach?'Jouer avec l\'entraîneur':'Choisis ton adversaire'}</h2><p>${s.coach?'Indices et annulation de coups. La partie ne compte pas pour ton classement.':'La partie compte pour ton classement Elo.'}</p>
+    return `<h2>${s.coach?'Jouer avec l\'entraîneur':'Choisis ton adversaire'}</h2><p>${s.coach?'Indices et annulation de coups. La partie ne compte pas pour ton classement.':'La partie compte pour tes steps.'}</p>
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.label} · ${l.elo}</small></button>`).join('')}</div>
     <button class="primary" type="button" data-act="${s.coach?'go-coach':'go-ai'}">Jouer · ${P.time} min</button>`;
   }
@@ -1644,7 +1644,7 @@ function sheetHTML(){
     const recap=M.rounds.map((r,k)=>`<li>Manche ${k+1} · ${BOARDS[r.bid].name} : <b>${esc(S[r.w].name)}</b> · +${r.pts!=null?r.pts:10+r.sum} pts (10 + ${r.sum} cases)${losePts(r.sum)?`, perdant +${losePts(r.sum)} pts`:''} · ${r.moves} coups</li>`).join('');
     let h=`<h2>${M.done?`${esc(S[M.wins[0]===2?0:1].name)} gagne ${Math.max(...M.wins)}-${Math.min(...M.wins)}`:`${esc(S[G.winner].name)} gagne la manche`}</h2><ul class="recap">${recap}</ul>`;
     if (!M.done) h+=`<p>${M.rounds.length===2?'Une manche partout : on joue la belle. ':''}${esc(S[M.next].name)} commence la manche ${M.round+1}${M.why?` : ${esc(M.why)}`:''}.</p>`;
-    if (M.done && vsAI && M.eloDelta!=null) h+=`<p>Elo ${P.elo.r} (${M.eloDelta>=0?'+':''}${M.eloDelta})</p>`;
+    if (M.done && vsAI && M.eloDelta!=null) h+=`<p>${P.elo.r} steps (${M.eloDelta>=0?'+':''}${M.eloDelta})</p>`;
     return h+`<button class="secondary" type="button" data-act="leave-game">Retour au menu</button>`;
   }
   if (s.type==='rules') return `<h2>Comment jouer</h2><ol class="rules">
@@ -2120,8 +2120,8 @@ function celebrate(){
   const quote = vsAI ? BOTS[vsAI][iWon?'lose':'win'][0] : '';
   $('#partyCard').innerHTML=`<button class="xclose" type="button" data-act="party-close" aria-label="Fermer">✕</button><div class="av">${pawnSVG(S[c].skin,S[c].hex)}</div><h2>${title}</h2><p class="score">${M.wins[c]} – ${M.wins[1-c]}</p>
     <p class="sub">Points : ${pts[c]} – ${pts[1-c]}</p>
-    ${vsAI&&M.eloDelta!=null?`<p class="sub">Elo ${P.elo.r} (${M.eloDelta>=0?'+':''}${M.eloDelta}) · ${tierOf(P.elo.r)[1]}</p>`:''}
-    ${online()&&CHAMP_ID===M.id&&LAST_CHAMP!=null?`<p class="sub">Championnat ${getR('champ',P.time).r} (${LAST_CHAMP>=0?'+':''}${LAST_CHAMP})</p>`:''}
+    ${vsAI&&M.eloDelta!=null?`<p class="sub">${P.elo.r} steps (${M.eloDelta>=0?'+':''}${M.eloDelta}) · ${tierOf(P.elo.r)[1]}</p>`:''}
+    ${online()&&CHAMP_ID===M.id&&LAST_CHAMP!=null?`<p class="sub">Championnat ${getR('champ',P.time).r} steps (${LAST_CHAMP>=0?'+':''}${LAST_CHAMP})</p>`:''}
     ${opp&&opp.uid&&!friendById(opp.uid)?`<button class="secondary" type="button" data-act="add-opp" style="width:100%">Ajouter ${esc(opp.nm)} en ami</button>`:''}
     ${quote?`<p class="quote">« ${esc(quote)} » — ${esc(S[1].name)}</p>`:''}
     <div class="row">${canAct()?`<button class="primary" type="button" data-act="new">Rejouer</button>`:''}<button class="secondary" type="button" data-act="party-analyze">Analyser</button></div>
@@ -2378,7 +2378,7 @@ async function makePoster(){
   x.font=`800 104px ${F}`; const nw=x.measureText(P.name).width, fs=Math.min(104, Math.floor(104*960/Math.max(1,nw)));
   txt(P.name,W/2,900,`800 ${fs}px ${F}`,'#ffffff',28);
   const champ=Math.max(...[3,5,7].map(t=>getR('champ',t).r)), ia=Math.max(...[3,5,7].map(t=>getR('ia',t).r));
-  txt(`${tierOf(champ)[1].toUpperCase()} · CHAMPIONNAT ${champ}`,W/2,964,`600 38px ${MO}`,'#b6ff3b',16);
+  txt(`${tierOf(champ)[1].toUpperCase()} · ${champ} STEPS`,W/2,964,`600 38px ${MO}`,'#b6ff3b',16);
   [['ORDINATEUR',String(ia)],['PUZZLES',`${pzDone()}/${PUZ_LIST.length}`],['BADGES',`${Object.keys(P.badges).length}/${BADGES.length}`]].forEach((b,k)=>{
     const bw=300, bx=W/2-470+k*320, by=1004;
     x.fillStyle='rgba(21,17,45,.88)'; x.strokeStyle='rgba(46,242,255,.6)'; x.lineWidth=3; x.shadowColor='#2ef2ff'; x.shadowBlur=18;
