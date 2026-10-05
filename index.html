@@ -1018,7 +1018,7 @@ function startRound(){
 }
 function leaveGame(){
   if (TR){ trClear(TR); TR=null; }
-  musicStop();
+  RUSH=null; musicStop();
   if (vsAI && M && !M.done && !M.train && (M.rounds.length || (G && G.moves>0))) applyElo(0);
   $('#party').hidden=true; stopConfetti(); leaveOnline();
   vsAI=null; M=null; G=null; AN=null; premove=null; HIST={}; sheet=null; view='play'; render();
@@ -1373,7 +1373,7 @@ function strip(side){
   return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div>
     <div style="min-width:0"><div class="nm">${esc(s.name)} ${tag?`<small>(${tag})</small>`:''}</div>
     <div class="meta" style="--pc:${s.hex}"><span class="dots" aria-label="${wins} manche(s) gagnée(s)">${'●'.repeat(wins)}${'○'.repeat(2-wins)}</span>${jumpTag(side)}</div></div>
-    <div class="clock${on?' on':''}${ms<30000&&playing&&!(G&&G.noClock)?' low':''}" id="clk${side}">${G&&G.noClock?'∞':fmt(ms)}</div>`;
+    <div class="clock${on?' on':''}${ms<30000&&playing&&!(G&&G.noClock)?' low':''}" id="clk${side}">${TR&&TR.rush&&RUSH?(side===0?fmt(rushLeft()):'—'):G&&G.noClock?'∞':fmt(ms)}</div>`;
 }
 function jumpTag(side){
   const j=G?G.J[side]:1, big=!!TR || humanSeat()===null || side===bottomSide();
@@ -1586,6 +1586,8 @@ function sheetHTML(){
   }
   if (s.type==='locked'){
     if (s.what==='analyse') return `<h2>Plus d'analyse gratuite</h2><p>Tu as utilisé tes 3 analyses des 7 derniers jours. La prochaine se libère dans ${anRenewH()} h. Les analyses illimitées arriveront avec Premium.</p>`;
+    if (s.what==='premiumpz') return `<h2>Puzzles Premium</h2><p>Les ${PZ_FREE} premiers puzzles sont gratuits. La suite du parcours fait partie de Premium.</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
+    if (s.what==='rushday') return `<h2>Plus d'essai aujourd'hui</h2><p>Sans Premium, tu as ${RUSH_FREE} défis chrono par jour. Reviens demain, ou passe Premium pour jouer sans limite.</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
     if (s.what==='premium') return `<h2>Cours Premium</h2><p>Ce cours fait partie de Premium : il apprend les techniques des meilleurs joueurs. Premium arrive bientôt en abonnement.</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
     if (s.what==='hint') return `<h2>Indices · Premium</h2><p>Les indices et les solutions des cours et des puzzles font partie de Premium. Sans indice, cherche par toi-même : c'est comme ça qu'on progresse le plus.</p><button class="primary" type="button" data-act="sheet-close">Je cherche encore</button>`;
     if (s.what==='tournament') return true ? `<h2>Tournois · bientôt</h2><p>Les tournois, ligues et classements mondiaux arriveront avec les comptes joueurs et le serveur de l'application.</p>` : `<h2>Tournois · Premium</h2><p>Tournois éclair, ligues et trophées sont réservés aux membres Premium.</p><button class="primary" type="button" data-act="go-shop">Voir Premium</button>`;
@@ -1626,6 +1628,8 @@ function sheetHTML(){
       <button class="secondary" type="button" data-act="mm-cancel">Annuler la recherche</button>
       <p class="note">Il n'y a pas encore de serveur de jeu : seuls les joueurs connectés au même moment se trouvent. Partage le jeu pour qu'il y ait du monde !</p>`;
   }
+  if (s.type==='rush') return `<h2>${esc(RUSH_MODES[s.r.mode].n)}</h2><div class="code">${s.r.score}</div><p style="text-align:center">puzzle${s.r.score>1?'s':''} réussi${s.r.score>1?'s':''}${s.rec?' · nouveau record !':` · record ${s.best}`}${s.r.score?` · +${s.r.score*2} pièces`:''}</p>
+    <div class="row"><button class="primary" type="button" data-act="rush-again">Rejouer</button><button class="secondary" type="button" data-act="rush-out">Retour</button></div>`;
   if (s.type==='games'){
     const f=s.f||'all', list=realGames().filter(g=>f==='all'||g.src===f).reverse();
     return `<h2>Parties contre de vrais joueurs</h2><div class="seg" role="group" aria-label="Filtrer">${[['all','Toutes'],['ami','Amis'],['online','En ligne']].map(([k,l])=>`<button type="button" data-act="games-f" data-v="${k}" aria-pressed="${f===k}">${l}</button>`).join('')}</div>
@@ -1726,6 +1730,10 @@ document.addEventListener('click', e=>{
     case 'tr-restart': sheet=null; trRestart(); break;
     case 'tr-next': trNext(); break;
     case 'tr-quit': trQuit(); break;
+    case 'rush': startRush(v); break;
+    case 'rush-stop': rushEnd(); break;
+    case 'rush-again': startRush(RUSH_LAST); break;
+    case 'rush-out': sheet=null; RUSH=null; view='puzzles'; render(); break;
     case 'tr-hint': trHint(); break;
     case 'tr-sol': sheet=null; trSolution(); break;
     case 'more': playMore=!playMore; render(); break;
@@ -1821,6 +1829,7 @@ document.addEventListener('submit', e=>{
 let lastTick=performance.now(), lastSleep=false;
 setInterval(()=>{
   const now=performance.now(), dt=now-lastTick; lastTick=now;
+  if (RUSH && TR && TR.rush && view==='game'){ rushTick(dt); }
   if (G && !G.over && view==='game' && !document.hidden){ P.playMs=(P.playMs||0)+Math.min(dt,1000); if (P.playMs>=60000){ P.playMs-=60000; addCoins(2,true); } }
   if (!G || G.over || now<introUntil || G.noClock) return;
   G.clock[G.turn]=Math.max(0,G.clock[G.turn]-dt);
@@ -1876,12 +1885,12 @@ async function doInstall(){ if (!installEvt) return; installEvt.prompt(); try { 
 
 
 /* ---------- Cours et puzzles ---------- */
-const PUZ = {"win1":[{"c":"1001000211020100020010011","p":[[9,23],[17,3]],"j":[1,0],"n":1,"sol":[0,8,0],"b":5},{"c":"1120112211101011001011201","p":[[7,21],[22,14]],"j":[0,0],"n":1,"sol":[0,9,0],"b":2},{"c":"0010010011011211100010121","p":[[14,16],[11,5]],"j":[0,0],"n":1,"sol":[0,12,0],"b":8},{"c":"0010111110111110102010011","p":[[13,5],[10,14]],"j":[0,0],"n":1,"sol":[0,11,0],"b":4}],"win2":[{"c":"1001111111002112100200201","p":[[8,14],[16,13]],"j":[1,0],"n":2,"sol":[1,12,1],"b":2},{"c":"0101020201000110100010111","p":[[1,7],[14,16]],"j":[1,0],"n":2,"sol":[1,22,1],"b":9},{"c":"1010111202100110010110110","p":[[19,7],[5,13]],"j":[0,0],"n":2,"sol":[0,14,0],"b":9},{"c":"1111101102002000002100121","p":[[2,18],[7,0]],"j":[0,0],"n":2,"sol":[0,1,0],"b":7},{"c":"1110100010101000202011100","p":[[8,1],[18,21]],"j":[1,0],"n":2,"sol":[1,0,0],"b":4},{"c":"0201112022012100001111021","p":[[6,18],[1,11]],"j":[1,0],"n":2,"sol":[1,13,0],"b":8}],"win3":[{"c":"1111100021001110012011111","p":[[20,13],[17,23]],"j":[0,0],"n":3,"sol":[0,21,0],"b":6},{"c":"1001111211002112101200201","p":[[7,14],[16,18]],"j":[1,0],"n":3,"sol":[0,8,0],"b":2},{"c":"0111101100001012002110121","p":[[24,7],[14,2]],"j":[0,0],"n":3,"sol":[0,19,0],"b":7},{"c":"1101121201000111100010111","p":[[0,6],[4,15]],"j":[1,0],"n":3,"sol":[1,9,1],"b":9},{"c":"1010111121021001211010111","p":[[12,16],[8,0]],"j":[1,0],"n":3,"sol":[0,7,0],"b":5},{"c":"1010101021101111101011101","p":[[21,13],[14,8]],"j":[0,0],"n":3,"sol":[0,16,0],"b":4}],"adv":[{"c":"1021101121212011212111201","p":[[7,11],[9,21]],"j":[0,1],"n":1,"sol":[1,16,0],"b":0,"best":5},{"c":"1021022122112101222111111","p":[[18,6],[3,10]],"j":[1,1],"n":1,"sol":[1,8,0],"b":2,"best":11},{"c":"1020111212102012221110211","p":[[8,22],[17,4]],"j":[0,0],"n":1,"sol":[0,9,0],"b":2,"best":10},{"c":"1011101121112111202011111","p":[[7,23],[18,11]],"j":[1,0],"n":1,"sol":[1,13,1],"b":4,"best":10},{"c":"1011121111112121121110211","p":[[16,12],[11,18]],"j":[1,0],"n":1,"sol":[0,15,0],"b":9,"best":8},{"c":"1111101110112110212111110","p":[[6,23],[14,17]],"j":[1,0],"n":1,"sol":[1,13,0],"b":4,"best":9}]};
+const PUZ = {"win1":[{"c":"1001000211020100020010011","p":[[9,23],[17,3]],"j":[1,0],"n":1,"sol":[0,8,0],"b":5},{"c":"1120112211101011001011201","p":[[7,21],[22,14]],"j":[0,0],"n":1,"sol":[0,9,0],"b":2},{"c":"0010010011011211100010121","p":[[14,16],[11,5]],"j":[0,0],"n":1,"sol":[0,12,0],"b":8},{"c":"0010111110111110102010011","p":[[13,5],[10,14]],"j":[0,0],"n":1,"sol":[0,11,0],"b":4},{"c":"1110112010102020110110111","p":[[17,0],[12,14]],"j":[1,0],"n":1,"sol":[0,19,1],"b":0}],"win2":[{"c":"1001111111002112100200201","p":[[8,14],[16,13]],"j":[1,0],"n":2,"sol":[1,12,1],"b":2},{"c":"0101020201000110100010111","p":[[1,7],[14,16]],"j":[1,0],"n":2,"sol":[1,22,1],"b":9},{"c":"1010111202100110010110110","p":[[19,7],[5,13]],"j":[0,0],"n":2,"sol":[0,14,0],"b":9},{"c":"1111101102002000002100121","p":[[2,18],[7,0]],"j":[0,0],"n":2,"sol":[0,1,0],"b":7},{"c":"1110100010101000202011100","p":[[8,1],[18,21]],"j":[1,0],"n":2,"sol":[1,0,0],"b":4},{"c":"0201112022012100001111021","p":[[6,18],[1,11]],"j":[1,0],"n":2,"sol":[1,13,0],"b":8},{"c":"1100102020112000111011101","p":[[24,11],[17,20]],"j":[0,0],"n":2,"sol":[1,21,0],"b":4}],"win3":[{"c":"1111100021001110012011111","p":[[20,13],[17,23]],"j":[0,0],"n":3,"sol":[0,21,0],"b":6},{"c":"1001111211002112101200201","p":[[7,14],[16,18]],"j":[1,0],"n":3,"sol":[0,8,0],"b":2},{"c":"0111101100001012002110121","p":[[24,7],[14,2]],"j":[0,0],"n":3,"sol":[0,19,0],"b":7},{"c":"1101121201000111100010111","p":[[0,6],[4,15]],"j":[1,0],"n":3,"sol":[1,9,1],"b":9},{"c":"1010111121021001211010111","p":[[12,16],[8,0]],"j":[1,0],"n":3,"sol":[0,7,0],"b":5},{"c":"1010101021101111101011101","p":[[21,13],[14,8]],"j":[0,0],"n":3,"sol":[0,16,0],"b":4},{"c":"1211112001001112000010011","p":[[3,13],[14,23]],"j":[1,0],"n":3,"sol":[0,4,0],"b":7}],"adv":[{"c":"1021101121212011212111201","p":[[7,11],[9,21]],"j":[0,1],"n":1,"sol":[1,16,0],"b":0,"best":5},{"c":"1021022122112101222111111","p":[[18,6],[3,10]],"j":[1,1],"n":1,"sol":[1,8,0],"b":2,"best":11},{"c":"1020111212102012221110211","p":[[8,22],[17,4]],"j":[0,0],"n":1,"sol":[0,9,0],"b":2,"best":10},{"c":"1011101121112111202011111","p":[[7,23],[18,11]],"j":[1,0],"n":1,"sol":[1,13,1],"b":4,"best":10},{"c":"1011121111112121121110211","p":[[16,12],[11,18]],"j":[1,0],"n":1,"sol":[0,15,0],"b":9,"best":8},{"c":"1111101110112110212111110","p":[[6,23],[14,17]],"j":[1,0],"n":1,"sol":[1,13,0],"b":4,"best":9}]};
 const PUZ_CATS=[
-  {k:'win1', t:'Isoler en 1 coup', d:'Un seul coup suffit à bloquer les deux pions adverses.'},
-  {k:'win2', t:'Gagner en 2 coups', d:'Réduis ses options, puis enferme-le, quelle que soit sa défense.'},
-  {k:'win3', t:'Gagner en 3 coups', d:'Calcule trois coups à l\'avance. L\'ordinateur défend au mieux.'},
-  {k:'adv',  t:'Prendre l\'avantage', d:'Trouve le coup qui te laisse le plus de liberté et en laisse le moins à l\'adversaire.'},
+  {k:'win1', t:'Isoler en 1 coup', d:'Bloque l\'adversaire en 1 coup.'},
+  {k:'win2', t:'Gagner en 2 coups', d:'Gagne en 2 coups.'},
+  {k:'win3', t:'Gagner en 3 coups', d:'Gagne en 3 coups.'},
+  {k:'adv',  t:'Prendre l\'avantage', d:'Trouve le meilleur coup.'},
 ];
 let TR=null;   // session d'entraînement en cours (cours ou puzzle)
 const cellsFrom = str => [...str].map(Number);
@@ -1950,8 +1959,8 @@ const LESSONS=[
      {cap:'Parfois, l\'adversaire t\'étouffe. Avant de bouger, regarde ce qu\'il te restera après sa réponse.'},
      {cap:'Ici, seuls 2 coups sur 6 te gardent en vie pendant trois tours.'},
      {cap:'Garde toujours une case de secours pour chacun de tes pions.'}]},
-   ex:{z:{"c":"0110110001011011011011011","p":[[20,23],[9,1]],"j":[1,1],"b":9,"sol":[0,15,0]}, max:3, opp:'ai', text:'Survis 3 coups face à l\'ordinateur, qui joue au mieux.',
-     ok:()=>(G.over && G.winner===0) || TR.my>=3, why:'Tu as choisi des cases qui gardaient une sortie après chacune de ses réponses.'}},
+   ex:{z:{"c":"0110110001011011011011011","p":[[20,23],[9,1]],"j":[1,1],"b":9,"sol":[0,15,0]}, max:4, opp:'ai', surv:3, text:'Survis 3 tours face à l\'ordinateur, qui joue au mieux.',
+     ok:()=>G.over && G.winner===0, why:'Tu as choisi des cases qui gardaient une sortie après chacune de ses réponses.'}},
   {id:'p5', p:1, t:'Calculer 3 coups', d:'Voir la fin avant tout le monde.',
    demo:{z:{"c":"1000111001001010102011001","p":[[5,18],[16,4]],"j":[1,0],"b":5,"sol":[0,6,0],"n":3,"line":[[0,0,6,0],[1,0,21,0],[0,0,9,1],[1,0,20,0],[0,0,14,0]]}, line:[[0, 0, 6, 0], [1, 0, 21, 0], [0, 0, 9, 1], [1, 0, 20, 0], [0, 0, 14, 0]], steps:[
      {cap:'Les meilleurs joueurs calculent trois coups à l\'avance. Regarde.', line:0},
@@ -1962,7 +1971,29 @@ const LESSONS=[
    ex:{z:{"c":"1010020111110011010111200","p":[[22,0],[9,19]],"j":[1,0],"b":9,"sol":[0,7,1],"n":3,"line":[[0,0,7,1],[1,0,8,0],[0,0,2,0],[1,1,14,0],[0,1,5,0]]}, max:3, opp:'ai', text:'Gagne en 3 coups. L\'ordinateur défend au mieux.',
      ok:()=>G.over && G.winner===0, why:'Ton premier coup lui retirait déjà presque tout. Ensuite, chaque coup fermait une sortie de plus.'}},
 ];
-const LOCKED_LESSONS=['Parties des meilleurs joueurs'];
+const LOCKED_LESSONS=[];
+const LESSONS_GEN=[{"id":"c11","t":"Compter ses déplacements","d":"Avant de jouer, compte tes cases.","ty":"mob","caps":["Avant chaque coup, compte les cases que tes deux pions peuvent atteindre.","Ce coup en ouvre plus que tous les autres.","Plus de cases, plus de choix, moins de risques."],"demo":{"c":"1211112122122212212111121","p":[[5,9],[14,2]],"j":[1,0],"b":8,"sol":[1,8,0],"best":13},"ex":{"c":"1200112021122212201111121","p":[[5,16],[14,23]],"j":[1,0],"b":8,"sol":[1,11,0],"best":12}},{"id":"c12","t":"Éviter les coins","d":"Le coin est un piège.","ty":"mob","caps":["Dans un coin, un pion n'a plus que deux directions. Au bord, trois. Au centre, quatre.","On sort du bord vers les grandes lignes.","Reste loin des coins tant que le plateau est plein."],"demo":{"c":"1121201211222221121111211","p":[[10,23],[4,7]],"j":[1,1],"b":3,"sol":[0,11,0],"best":15},"ex":{"c":"1021111211221011011011201","p":[[21,12],[22,6]],"j":[1,1],"b":3,"sol":[0,20,0],"best":8}},{"id":"c13","t":"Fermer une ligne","d":"Ton pion est un mur.","ty":"cut","caps":["Un pion posé sur la ligne de l'adversaire la coupe net.","On se place pile sur sa route.","Chaque ligne fermée lui retire jusqu'à trois cases."],"demo":{"c":"1211201121122211212121121","p":[[20,16],[4,10]],"j":[1,1],"b":8,"sol":[1,11,0],"best":7},"ex":{"c":"1211112111112101211021121","p":[[20,12],[2,8]],"j":[0,1],"b":8,"sol":[1,7,0],"best":9}},{"id":"c14","t":"Poser un mur","d":"Couper le plateau en deux.","ty":"cut","caps":["Bien placé, un pion sépare le plateau en deux zones.","On coupe le passage vers la grande zone.","Laisse-lui la petite zone, garde la grande."],"demo":{"c":"0121111211212210011010211","p":[[18,12],[6,2]],"j":[1,1],"b":3,"sol":[1,7,0],"best":6},"ex":{"c":"0221111111112112111112221","p":[[13,19],[11,7]],"j":[1,0],"b":1,"sol":[0,12,0],"best":10}},{"id":"c15","t":"Couper et respirer","d":"Attaquer sans s'enfermer.","ty":"diff","caps":["Le meilleur coup réduit ses cases ET garde les tiennes.","Ce coup gagne sur les deux tableaux.","Compte toujours la différence : tes cases moins les siennes."],"demo":{"c":"1111112121111110202011011","p":[[10,13],[5,2]],"j":[0,0],"b":4,"sol":[0,11,0],"best":1},"ex":{"c":"1121112121212121212111211","p":[[10,9],[1,5]],"j":[1,1],"b":0,"sol":[1,6,0],"best":5}},{"id":"c16","t":"Le coup qui enferme","d":"Bloquer en un coup.","ty":"win1","caps":["Quand l'adversaire n'a plus que quelques sorties, un seul coup peut tout fermer.","Ce coup ferme la dernière sortie.","Plus aucun déplacement : manche gagnée."],"demo":{"c":"1120100100111021020110210","p":[[10,22],[23,17]],"j":[0,0],"b":3,"sol":[0,12,0],"n":1,"line":[[0,0,12,0]]},"ex":{"c":"0220010101010010101111221","p":[[24,2],[9,1]],"j":[1,0],"b":1,"sol":[0,14,0],"n":1,"line":[[0,0,14,0]]}},{"id":"c17","t":"Le piège à deux pions","d":"Bloquer ses deux pions d'un coup.","ty":"win1","caps":["Ses deux pions partagent parfois la même sortie.","Une seule case les bloque tous les deux.","Deux pions, un seul coup : efficace."],"demo":{"c":"0012111000001000202111010","p":[[6,18],[2,5]],"j":[1,0],"b":6,"sol":[1,3,1],"n":1,"line":[[0,1,3,1]]},"ex":{"c":"1111010012101001000010200","p":[[5,2],[20,12]],"j":[1,0],"b":1,"sol":[0,15,0],"n":1,"line":[[0,0,15,0]]}},{"id":"c18","t":"Garder une sortie","d":"Ne jamais finir sans issue.","ty":"surv1","caps":["Avant de bouger, demande-toi : après sa réponse, pourrai-je encore jouer ?","Ce coup garde une sortie quoi qu'il fasse.","Il a répondu, et tu peux encore bouger."],"demo":{"c":"1120112120212010211111201","p":[[8,19],[6,17]],"j":[0,0],"b":0,"sol":[0,7,0],"n":1,"line":[[0,0,7,0],[1,1,12,0]]},"ex":{"c":"1011111010100010100011011","p":[[23,5],[21,3]],"j":[0,1],"b":4,"sol":[0,24,0],"n":1,"line":[[0,0,24,0],[1,0,6,1]]}},{"id":"c19","t":"Fuir vers l'espace","d":"Courir vers la grande zone.","ty":"surv2","caps":["Quand ça se referme, file vers l'endroit où il reste le plus de cases.","Premier pas vers l'espace…","Deux tours plus tard, tu respires encore."],"demo":{"c":"1011110000011001111111101","p":[[17,5],[11,19]],"j":[0,1],"b":4,"sol":[0,16,0],"n":2,"line":[[0,0,16,0],[1,0,21,1],[0,0,15,0],[1,0,20,0]]},"ex":{"c":"0121120000101021101211111","p":[[21,5],[1,10]],"j":[0,1],"b":1,"sol":[0,22,0],"n":2,"line":[[0,0,22,0],[1,0,16,1],[0,0,23,0],[1,0,15,0]]}},{"id":"c20","t":"Le saut de secours","d":"S'évader en sautant.","ty":"jsurv","caps":["Parfois, le seul moyen de survivre est de passer par-dessus.","Le saut te sort de la zone qui se referme.","Sans le saut, c'était perdu."],"demo":{"c":"1010101110201020211110101","p":[[16,7],[6,17]],"j":[1,1],"b":0,"sol":[0,19,1],"n":2,"line":[[0,0,19,1],[1,0,8,1],[0,0,14,0],[1,1,12,0]]},"ex":{"c":"1010121010011002011110111","p":[[4,8],[6,17]],"j":[1,0],"b":7,"sol":[1,18,1],"n":2,"line":[[0,1,18,1],[1,0,11,0],[0,1,23,0],[1,1,22,0]]}},{"id":"c21","t":"Sauter pour attaquer","d":"Le saut comme arme.","ty":"jwin1","caps":["Le saut peut aussi servir à attaquer : il atteint des cases inaccessibles autrement.","Un saut, et la porte se ferme.","Un saut bien placé vaut une victoire."],"demo":{"c":"1010001002101012021011001","p":[[9,17],[21,20]],"j":[1,0],"b":9,"sol":[1,15,1],"n":1,"line":[[0,1,15,1]]},"ex":{"c":"1101101011010001210011001","p":[[16,9],[17,11]],"j":[1,0],"b":5,"sol":[1,6,1],"n":1,"line":[[0,1,6,1]]}},{"id":"c22","t":"Deux coups d'avance","d":"Calculer sa réponse.","ty":"win2","caps":["Gagner en deux coups, c'est prévoir la réponse de l'adversaire.","Premier coup : il réduit ses options.","Le second coup ferme tout."],"demo":{"c":"0120000001202112001101110","p":[[23,19],[21,1]],"j":[0,0],"b":1,"sol":[0,22,0],"n":2,"line":[[0,0,22,0],[1,1,2,0],[0,1,14,0]]},"ex":{"c":"1011111011001100000111101","p":[[13,5],[2,19]],"j":[1,0],"b":4,"sol":[0,3,0],"n":2,"line":[[0,0,3,0],[1,1,24,0],[0,0,8,0]]}},{"id":"c23","t":"L'étau","d":"Serrer des deux côtés.","ty":"win2","caps":["Tes deux pions peuvent travailler ensemble comme un étau.","Un pion serre d'un côté…","…l'autre ferme de l'autre côté."],"demo":{"c":"1011002011000111100000001","p":[[13,15],[3,0]],"j":[0,0],"b":6,"sol":[0,8,0],"n":2,"line":[[0,0,8,0],[1,0,2,0],[0,0,9,0]]},"ex":{"c":"1110111200011011011011110","p":[[12,18],[14,20]],"j":[1,0],"b":9,"sol":[0,22,0],"n":2,"line":[[0,0,22,0],[1,1,15,0],[0,0,17,0]]}},{"id":"c24","t":"Défense de maître","d":"Survivre trois tours, encore.","ty":"surv3","caps":["Ici, presque tous les coups perdent. Trouve celui qui tient.","Le bon coup garde une sortie à chaque tour.","Une défense de champion."],"demo":{"c":"1010001101100221110011201","p":[[7,17],[9,15]],"j":[0,1],"b":3,"sol":[1,22,0],"n":3,"line":[[0,1,22,0],[1,0,6,1],[0,0,2,0],[1,1,20,0],[0,1,21,0]]},"ex":{"c":"1010001100100221100011201","p":[[7,22],[14,15]],"j":[0,1],"b":3,"sol":[1,20,0],"n":3,"line":[[0,1,20,0],[1,0,24,1],[0,0,2,0],[1,1,10,0],[0,1,21,0]]}},{"id":"c25","t":"L'examen final","d":"Prouve que tu es très fort.","ty":"win3","caps":["Dernier cours : une victoire en trois coups contre la meilleure défense.","Le chemin commence ici.","Bravo : tu fais partie des très forts."],"demo":{"c":"1121101010110111002101111","p":[[21,13],[15,1]],"j":[1,0],"b":0,"sol":[0,11,1],"n":3,"line":[[0,0,11,1],[1,0,10,0],[0,1,3,0],[1,1,6,0],[0,1,8,0]]},"ex":{"c":"1011101121102011212101201","p":[[7,15],[21,17]],"j":[1,0],"b":0,"sol":[1,18,1],"n":3,"line":[[0,1,18,1],[1,0,16,0],[0,0,2,0],[1,1,12,0],[0,0,3,0]]}}];
+const EX_TXT={mob:'Joue le coup qui te laisse le plus de déplacements possibles.', cut:'Joue le coup qui laisse le moins de déplacements à l\'adversaire.', diff:'Trouve le coup qui donne le plus grand écart : tes déplacements moins les siens.',
+  win1:'Gagne en 1 coup.', win2:'Gagne en 2 coups. L\'ordinateur défend au mieux.', win3:'Gagne en 3 coups. L\'ordinateur défend au mieux.', jwin1:'Gagne en 1 coup.',
+  surv1:'Survis 1 tour : après la réponse de l\'ordinateur, tu dois encore pouvoir bouger.', surv2:'Survis 2 tours face à l\'ordinateur.', surv3:'Survis 3 tours face à l\'ordinateur.', jsurv:'Survis 2 tours. Tout se referme…'};
+const EX_WHY={mob:'Ce coup ouvre de nouvelles lignes à tes pions : c\'est lui qui te donne le plus de cases.', cut:'Ton pion se pose sur ses lignes et lui retire le plus de sorties.', diff:'Ce coup fait les deux à la fois : il t\'ouvre des cases et en ferme chez lui.',
+  win:'Chaque coup lui retirait des sorties, jusqu\'à la dernière.', surv:'Tu as choisi des cases qui gardaient toujours une sortie après sa réponse.', jsurv:'Seul le saut permettait de quitter la zone qui se refermait.', jwin1:'Le saut atteint la seule case qui ferme sa dernière sortie.'};
+function buildLesson(g){
+  const ty=g.ty, z=g.demo, x=g.ex, surv=/surv/.test(ty) ? (ty==='jsurv'?2:+ty.slice(-1)) : 0, win=/win/.test(ty) ? +ty.slice(-1) : 0;
+  let steps;
+  if (['mob','cut','diff'].includes(ty)) steps=[{cap:g.caps[0]},{cap:g.caps[1], mv:[0,...z.sol]},{cap:g.caps[2]}];
+  else steps=[{cap:g.caps[0]}, ...z.line.map((mv,i)=>({cap: i===0 ? g.caps[1] : i===z.line.length-1 ? g.caps[2] : mv[0]===1 ? 'L\'adversaire se défend au mieux…' : 'On continue…', line:i}))];
+  const ex={z:x, text:EX_TXT[ty]};
+  if (ty==='mob') Object.assign(ex,{max:1, opp:'none', ok:()=>aiMob(G.cells,G.pawns,0)>=x.best, why:EX_WHY.mob});
+  else if (ty==='cut') Object.assign(ex,{max:1, opp:'none', ok:()=>aiMob(G.cells,G.pawns,1)<=x.best, why:EX_WHY.cut});
+  else if (ty==='diff') Object.assign(ex,{max:1, opp:'none', ok:()=>aiMob(G.cells,G.pawns,0)-aiMob(G.cells,G.pawns,1)>=x.best, why:EX_WHY.diff});
+  else if (surv) Object.assign(ex,{max:surv+1, opp:'ai', surv, ok:()=>G.over && G.winner===0, why: ty==='jsurv'?EX_WHY.jsurv:EX_WHY.surv});
+  else Object.assign(ex,{max:win, opp:'ai', ok:()=>G.over && G.winner===0, why: ty==='jwin1'?EX_WHY.jwin1:EX_WHY.win});
+  return {id:g.id, p:1, t:g.t, d:g.d, demo:{z, line:z.line, steps}, ex};
+}
+LESSONS.push(...LESSONS_GEN.map(buildLesson));
+const CHAPTERS=['Les bases','Stratégie','Mobilité et murs','Attaque et défense','Saut et calcul'];
+
 
 function trBase(cells, pawns, J, bid, oppName){
   leaveOnline(); vsAI=null; training=false; premove=null;
@@ -1973,9 +2004,20 @@ function trBase(cells, pawns, J, bid, oppName){
   G=newRound(); G.cells=cells.slice(); G.pawns=pawns.map(x=>x.slice()); G.J=(J||[1,1]).slice(); G.turn=0; G.noClock=true; G.bid=bid||0; G.msg='';
   lastSkinKey='';
 }
-function startPuzzle(cat, idx){
-  const z=PUZ[cat][idx]; if (!z) return;
-  TR={kind:'puzzle', cat, idx, z, my:0, state:'play'};
+const PZ_FREE=10;
+function hash32(str){ let h=2166136261; for (const ch of str){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+const rot90 = i => (i%5)*5 + (4-((i/5)|0));   // quart de tour, sens horaire
+function rotZ(z, q){
+  if (!q) return z; let c=cellsFrom(z.c), p=z.p.map(x=>x.slice()), sol=z.sol.slice();
+  for (let k=0;k<q;k++){ const c2=Array(25); c.forEach((v,i)=>c2[rot90(i)]=v); c=c2; p=p.map(x=>x.map(rot90)); sol=[sol[0],rot90(sol[1]),sol[2]]; }
+  return {...z, c:c.join(''), p, sol};
+}
+const pzRot = key => hash32(P.uid+':'+key)%4;
+function startPuzzle(cat, idx, rush){
+  const z0=PUZ[cat][idx]; if (!z0) return;
+  const n=pzIndex(cat,idx); if (!rush && n>=PZ_FREE && !P.premium){ sheet={type:'locked', what:'premiumpz'}; render(); return; }
+  const z=rotZ(z0, pzRot(cat+idx));
+  TR={kind:'puzzle', cat, idx, z, my:0, state:'play', rush:!!rush};
   trBase(cellsFrom(z.c), z.p, z.j, z.b);
   startTurn(); G.msg=''; render();
 }
@@ -2010,6 +2052,7 @@ function trRestart(){
 }
 function trDone(ok, why){
   const tr=TR; tr.state=ok?'win':'fail'; tr.why=why||'';
+  if (tr.rush){ sfx[ok?'move':'round'](); render(); rushAfter(ok); return; }
   if (ok){
     if (tr.kind==='puzzle'){ P.puz=P.puz||{}; const key=tr.cat+tr.idx, first=!P.puz[key]; P.puz[key]=1;
       if (first){ P.coins=(P.coins||0)+5; toast('+5 pièces'); if (!(P.stat.pzTried||{})[key]) P.stat.first=(P.stat.first||0)+1; } saveP(); puzBadges(); }
@@ -2057,11 +2100,13 @@ function trOppReply(){
     const om=await ask('choose',{st:stateOf(),level:'expert'});
     if (TR!==tr || G!==g || G.ver!==ver || !om) return;
     G.pick=om[0]; render(); await sleep(380);
-    if (TR===tr && G===g && G.ver===ver){ doMove(om); if (TR===tr && G.over && G.winner===1) trDone(false,'L\'adversaire t\'a bloqué. Réessaie !'); }
+    if (TR===tr && G===g && G.ver===ver){ doMove(om); if (TR===tr && G.over && G.winner===1) trDone(false,'L\'adversaire t\'a bloqué. Réessaie !');
+      else if (TR===tr && tr.kind==='lesson' && tr.L.ex.surv && tr.my>=tr.L.ex.surv && !G.over) trDone(true, tr.L.ex.why); }
   }, 450);
 }
 function trTitle(){
   if (!TR) return '';
+  if (TR.rush && RUSH) return `${RUSH_MODES[RUSH.mode].n} · ${RUSH.score} réussi${RUSH.score>1?'s':''}${RUSH.mode==='serie'?` · ${RUSH.err}/3 erreurs`:''}`;
   if (TR.kind==='puzzle'){ const c=PUZ_CATS.find(x=>x.k===TR.cat); return `${c.t} · ${TR.idx+1}/${PUZ[TR.cat].length}`; }
   return `Cours ${TR.i+1} · ${TR.L.t}`;
 }
@@ -2070,11 +2115,11 @@ function trStatus(){
   if (tr.kind==='lesson' && tr.phase==='demo'){ const steps=tr.L.demo.steps, n=Math.max(0,tr.step), st=steps[n]; return `<span class="demo-cap">${n+1}/${steps.length}</span><b>${esc(st?st.cap:'')}</b>`; }
   if (tr.kind==='lesson' && tr.phase==='ready') return 'Démonstration terminée. À toi de jouer !';
   if (tr.state==='win') return '<b>Réussi !</b>';
-  if (tr.state==='fail') return 'Raté. Réessaie ou regarde la solution.';
+  if (tr.state==='fail') return tr.kind==='puzzle' ? 'Raté.' : 'Raté. Réessaie ou regarde la solution.';
   if (tr.state==='check') return 'Analyse de ton coup…';
   if (G.turn!==0) return 'L\'adversaire réfléchit…';
   const txt = tr.kind==='puzzle' ? (PUZ_CATS.find(x=>x.k===tr.cat).d) : tr.L.ex.text;
-  const left = tr.kind==='puzzle' ? (tr.cat==='adv'?1:tr.z.n)-tr.my : tr.L.ex.max-tr.my;
+  const left = tr.kind==='puzzle' ? (tr.cat==='adv'?1:tr.z.n)-tr.my : (tr.L.ex.surv||tr.L.ex.max)-tr.my;
   return `${esc(txt)} <b>${left} coup${left>1?'s':''} restant${left>1?'s':''}.</b>`;
 }
 function renderTrActions(){
@@ -2087,9 +2132,10 @@ function renderTrActions(){
     a.push(btn('tr-skip','', 'Passer',{cls:'primary'})); }
   else if (tr.kind==='lesson' && tr.phase==='ready'){ a.push(btn('demo-prev','back','Revoir la fin')); a.push(btn('tr-replay','undo','Revoir tout')); a.push(btn('tr-go','', 'À toi !',{cls:'primary'})); }
   else if (tr.state==='win'){ a.push(btn('tr-restart','undo','Rejouer')); a.push(btn('tr-next','', 'Suivant',{cls:'primary'})); }
-  else if (tr.state==='fail'){ a.push(btn('tr-sol',P.premium?'bulb':'lock','Solution')); a.push(btn('tr-restart','', 'Réessayer',{cls:'primary'})); }
-  else { a.push(btn('tr-hint',P.premium?'bulb':'lock','Indice',{dis:G.turn!==0})); a.push(btn('tr-restart','undo','Recommencer')); }
-  a.push(btn('tr-quit','list','Quitter'));
+  else if (tr.rush){ a.push(btn('rush-stop','flag','Arrêter le défi')); }
+  else if (tr.state==='fail'){ if (tr.kind!=='puzzle') a.push(btn('tr-sol',P.premium?'bulb':'lock','Solution')); a.push(btn('tr-restart','', 'Réessayer',{cls:'primary'})); }
+  else { if (tr.kind!=='puzzle') a.push(btn('tr-hint',P.premium?'bulb':'lock','Indice',{dis:G.turn!==0})); a.push(btn('tr-restart','undo','Recommencer')); }
+  if (!tr.rush) a.push(btn('tr-quit','list','Quitter'));
   $('#actions').innerHTML=a.join('');
 }
 function trNext(){
@@ -2129,7 +2175,7 @@ function renderLearn(){
 }
 function lessonsList(){
   const done=P.lessons||{};
-  return `<div class="lessons">${LESSONS.map((L,i)=>`<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span>${L.p?`<span class="tag">${P.premium?'Premium ✓':'Premium'}</span>`:'<span></span>'}</button>`).join('')}
+  return `<div class="lessons">${LESSONS.map((L,i)=>`${i%5===0?`<b class="sub" style="margin-top:${i?10:0}px">Chapitre ${i/5+1} · ${CHAPTERS[i/5]||''}</b>`:''}<button type="button" class="lesson${done[L.id]?' done':''}" data-act="lesson" data-v="${i}"><span class="no">${done[L.id]?'✓':i+1}</span><span><b>${esc(L.t)}</b><small>${esc(L.d)}</small></span>${L.p?`<span class="tag">${P.premium?'Premium ✓':'Premium'}</span>`:'<span></span>'}</button>`).join('')}
   ${LOCKED_LESSONS.map((t,i)=>`<button type="button" class="lesson" disabled><span class="no">${LESSONS.length+i+1}</span><span><b>${esc(t)}</b><small>Bientôt : il faut d'abord des parties de vrais champions</small></span><span class="tag">Premium</span></button>`).join('')}</div>`;
 }
 function puzzlesHTML(){
@@ -2141,9 +2187,10 @@ function puzzlesHTML(){
 function trSheetHTML(){
   const tr=TR; if (!tr) return '';
   const win=tr.state==='win';
+  const pz=tr.kind==='puzzle';
   return `<h2>${win?'Réussi !':'Pas encore…'}</h2>
-    <p class="tr-explain">${tr.why||''}</p>
-    <div class="row">${win?`<button class="primary" type="button" data-act="tr-next">Suivant</button>`:`<button class="primary" type="button" data-act="tr-restart">Réessayer</button><button class="secondary" type="button" data-act="tr-sol">${P.premium?'Voir la solution':'Solution · Premium'}</button>`}</div>
+    ${!pz&&tr.why?`<p class="tr-explain">${tr.why}</p>`:''}
+    <div class="row">${win?`<button class="primary" type="button" data-act="tr-next">Suivant</button>`:`<button class="primary" type="button" data-act="tr-restart">Réessayer</button>${pz?'':`<button class="secondary" type="button" data-act="tr-sol">${P.premium?'Voir la solution':'Solution · Premium'}</button>`}`}</div>
     <button class="secondary" type="button" data-act="tr-quit">${tr.kind==='puzzle'?'Retour au parcours':'Retour à la liste'}</button>`;
 }
 
@@ -2452,6 +2499,56 @@ const pzKey = q => q.cat+q.i;
 const pzDone = () => PUZ_LIST.filter(q=>(P.puz||{})[pzKey(q)]).length;
 const pzIndex = (cat,i) => PUZ_LIST.findIndex(q=>q.cat===cat && q.i===i);
 const pzOpen = n => n===0 || !!(P.puz||{})[pzKey(PUZ_LIST[n-1])] || !!(P.puz||{})[pzKey(PUZ_LIST[n])];
+/* ---------- Défis chrono ---------- */
+const RUSH_UNLOCK=10, RUSH_FREE=3;
+const RUSH_MODES={easyL:{n:'Facile · 1 min', per:60000, pool:['win1','adv']}, easyS:{n:'Facile · 30 s', per:30000, pool:['win1','adv']},
+  hardL:{n:'Difficile · 1 min', per:60000, pool:['win2','win3']}, hardS:{n:'Difficile · 30 s', per:30000, pool:['win2','win3']},
+  serie:{n:'Série · 3 min', total:180000, pool:['win1','adv','win2','win3']}};
+let RUSH=null, RUSH_LAST='easyL';
+const rushLeft = () => !RUSH ? 0 : Math.max(0, RUSH.mode==='serie' ? RUSH.total : RUSH.left);
+function rushTodayLeft(){ const d=dayKey(), r=P.rushDay||{}; return P.premium ? Infinity : Math.max(0, RUSH_FREE-(r.d===d?r.n:0)); }
+function startRush(mode){
+  if (!RUSH_MODES[mode]) return;
+  if (pzDone()<RUSH_UNLOCK) return;
+  if (rushTodayLeft()<=0){ sheet={type:'locked', what:'rushday'}; render(); return; }
+  if (!P.premium){ const d=dayKey(), r=P.rushDay||{}; P.rushDay={d, n:(r.d===d?r.n:0)+1}; saveP(); }
+  RUSH_LAST=mode; const M0=RUSH_MODES[mode];
+  RUSH={mode, score:0, err:0, total:M0.total||0, left:M0.per||0, last:''};
+  sheet=null; rushNext();
+}
+function rushNext(){
+  const M0=RUSH_MODES[RUSH.mode];
+  const pool=PUZ_LIST.filter(q=>M0.pool.includes(q.cat) && pzKey(q)!==RUSH.last);
+  const q=pool[Math.floor(Math.random()*pool.length)]; RUSH.last=pzKey(q);
+  if (M0.per) RUSH.left=M0.per;
+  startPuzzle(q.cat, q.i, true);
+}
+function rushTick(dt){
+  if (!TR || TR.state!=='play' || G.turn!==0 || document.hidden) { if (!(RUSH.mode==='serie' && TR && TR.state==='play')) return; }
+  dt=Math.min(dt,1000);
+  if (RUSH.mode==='serie') RUSH.total-=dt; else RUSH.left-=dt;
+  const el=document.getElementById('clk0'); if (el){ el.textContent=fmt(rushLeft()); el.classList.toggle('low', rushLeft()<10000); }
+  if (rushLeft()<=0){ toast('Temps écoulé !'); rushEnd(); }
+}
+function rushAfter(ok){
+  if (ok) RUSH.score++; else RUSH.err++;
+  if (RUSH.mode!=='serie' && !ok) return setTimeout(rushEnd, 700);
+  if (RUSH.mode==='serie' && RUSH.err>=3) return setTimeout(rushEnd, 700);
+  const r=RUSH; setTimeout(()=>{ if (RUSH===r) rushNext(); }, 650);
+}
+function rushEnd(){
+  if (!RUSH) return; const r=RUSH; P.rush=P.rush||{}; const best=P.rush[r.mode]||0, rec=r.score>best;
+  if (rec) P.rush[r.mode]=r.score; if (r.score) P.coins=(P.coins||0)+r.score*2; saveP();
+  if (TR) trClear(TR); TR=null; G=null; M=null; musicStop();
+  view='puzzles'; sheet={type:'rush', r, rec, best:Math.max(best,r.score)}; RUSH=null; render();
+}
+function rushHTML(){
+  const done=pzDone(), on=done>=RUSH_UNLOCK, left=rushTodayLeft();
+  if (!on) return `<div class="unit"><b>Défis chrono</b><small>Réussis ${RUSH_UNLOCK} puzzles pour débloquer les défis chrono (encore ${RUSH_UNLOCK-done}).</small></div>`;
+  return `<div class="unit"><b>Défis chrono</b><small>${P.premium?'Sans limite avec Premium.':`${left} essai${left>1?'s':''} restant${left>1?'s':''} aujourd'hui.`} Une erreur ou le temps écoulé termine le défi, sauf en Série (3 erreurs permises).</small></div>
+  <div class="cad">${['easyL','easyS','hardL'].map(k=>`<button type="button" class="item" style="flex-direction:column;gap:2px;padding:12px 6px;font-size:.9rem" data-act="rush" data-v="${k}">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>
+  <div class="cad" style="grid-template-columns:1fr 2fr">${['hardS','serie'].map(k=>`<button type="button" class="item" style="flex-direction:column;gap:2px;padding:12px 6px;font-size:.9rem" data-act="rush" data-v="${k}">${RUSH_MODES[k].n}<small class="note">record ${(P.rush||{})[k]||0}</small></button>`).join('')}</div>`;
+}
 function renderPuzzles(){
   const ok=P.puz||{}, done=pzDone(), cur=PUZ_LIST.findIndex(q=>!ok[pzKey(q)]);
   const fr=P.friends.filter(f=>f.pz!=null);
@@ -2462,14 +2559,16 @@ function renderPuzzles(){
     PUZ[c.k].forEach((_,i)=>{
       const k=n++, d=ok[c.k+i], open=pzOpen(k), isCur=k===cur, x=Math.round(Math.sin(k*0.95)*72);
       const here=fr.filter(f=>Math.min(f.pz, PUZ_LIST.length-1)===k);
-      html+=`<button type="button" class="node${d?' done':''}${isCur?' cur':''}" style="--x:${x}px" data-act="puzzle" data-k="${c.k}" data-v="${i}" ${open?'':'disabled'} aria-label="Puzzle ${k+1}, ${esc(c.t)}${d?', réussi':open?'':', verrouillé'}">${d?'★':open?k+1:ic('lock')}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}${here.length?`<span class="frs">${here.slice(0,3).map(f=>`<span title="${esc(f.name)}">${pawnSVG(cleanSkin(f.sk))}</span>`).join('')}</span>`:''}</button>`;
+      const prem=k>=PZ_FREE && !P.premium;
+      html+=`<button type="button" class="node${d?' done':''}${isCur&&!prem?' cur':''}" style="--x:${x}px" data-act="puzzle" data-k="${c.k}" data-v="${i}" ${open?'':'disabled'} aria-label="Puzzle ${k+1}, ${esc(c.t)}${d?', réussi':prem?', Premium':open?'':', verrouillé'}">${d?'★':!open?ic('lock'):prem?ic('gem'):k+1}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}${here.length?`<span class="frs">${here.slice(0,3).map(f=>`<span title="${esc(f.name)}">${pawnSVG(cleanSkin(f.sk))}</span>`).join('')}</span>`:''}</button>`;
     });
   });
   return `<div class="top"><button class="iconbtn" type="button" data-act="tab" data-v="learn" aria-label="Retour">${ic('back')}</button><h1 class="logo" style="flex:1">Puzzles</h1>${topRight()}</div>
   <div class="pzhead"><div class="prog" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="${PUZ_LIST.length}" aria-valuenow="${done}"><i style="width:${done/PUZ_LIST.length*100}%"></i></div>
   <p class="sub">${done}/${PUZ_LIST.length} réussis · ${fr.length?`<b>${myRank}${myRank===1?'er':'e'}</b> sur ${ranked.length} parmi tes amis`:'ajoute des amis pour voir où ils en sont'} · classement national bientôt</p>
-  <p class="note">${P.premium?'Premium : indices et solutions disponibles.':'Sans Premium, pas d\'indice : cherche par toi-même, c\'est comme ça qu\'on progresse.'}</p></div>
-  <div class="ppath">${html}</div>`;
+  <p class="note">Aucun indice : juste la consigne. Chaque joueur voit le plateau sous son propre angle.${P.premium?'':` Puzzles ${PZ_FREE+1} à ${PUZ_LIST.length} : Premium.`}</p></div>
+  ${rushHTML()}
+  <div class="ppath">${html}<div class="unit" style="text-align:center"><b>Saison 1</b><small>De nouveaux puzzles et cours arriveront avec la Saison 1.</small></div></div>`;
 }
 
 /* ---------- Écrans : éléments communs ---------- */
