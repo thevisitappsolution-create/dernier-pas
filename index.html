@@ -2646,7 +2646,6 @@ async function makePoster(){
   });
   txt('Classement national : bientôt',W/2,1180,`600 30px ${MO}`,'#c9c2f0',0);
   txt('Bientôt sur l\'App Store et Google Play',W/2,1240,`800 40px ${F}`,'#ffffff',12);
-  txt(SITE_URL().replace(/^https?:\/\//,'').replace(/\/$/,''),W/2,1298,`600 30px ${MO}`,'#2ef2ff',14);
   return cv;
 }
 async function openPoster(){
@@ -2659,7 +2658,7 @@ const posterName = () => `lastep-${P.name.replace(/[^\w-]+/g,'_')}.png`;
 async function posterShare(){
   if (!POSTER || !POSTER.blob) return;
   const file=new File([POSTER.blob], posterName(), {type:'image/png'});
-  const text=`Viens me défier sur Lastep ! Mon code ami : ${fmtUid(P.uid)} · ${SITE_URL()}`;
+  const text=`Viens me défier sur Lastep ! Mon code ami : ${fmtUid(P.uid)}`;
   try { if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Lastep', text}); return; } } catch(e){ return; }
   posterDownload();
 }
