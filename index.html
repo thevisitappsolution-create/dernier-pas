@@ -630,9 +630,9 @@ html.calm .code{color:var(--accent)}
 .fc.add .ic{width:34px;height:34px;stroke:var(--accent)}
 .hhead{display:flex;align-items:baseline;justify-content:space-between}
 .playbar{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:11;pointer-events:none}
-.playbar .in{max-width:520px;margin:0 auto;padding:0 16px 10px;pointer-events:auto}
+.playbar .in{max-width:520px;margin:0 auto;padding:0 16px 23px;pointer-events:auto}
 .playbar .big{font-size:1.4rem;padding:16px}
-.spacer{height:84px;flex:none}
+.spacer{height:96px;flex:none}
 .pagehead{display:grid;grid-template-columns:40px 1fr 40px;align-items:center}
 .pagehead h1{text-align:center}
 .bigpawn{width:90px;margin:0 auto}
@@ -675,6 +675,10 @@ html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-co
 .lbar .big{flex:1}
 .lmenu{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 html.calm .bub{box-shadow:none} html.calm .lnode{box-shadow:inset 0 -7px 0 #0004}
+html.homefix,html.homefix body{height:100%;overflow:hidden}
+html.homefix #app{height:100%;box-sizing:border-box;overflow:hidden}
+@media (max-height:700px){html.homefix .screen{gap:9px}.hcard{min-height:96px!important}.hcard .primary{padding:8px 16px}.fc .secondary{padding:6px}.h2{font-size:.95rem}}
+@media (max-height:760px){.hcard{min-height:118px;padding:12px}.hcard h3{font-size:1.15rem}.tile{padding:8px 6px}.tile .em{font-size:1.1rem}.fc{padding:8px 6px;width:118px}.fc .av{width:42px}.fc small{min-height:0}.playbar .big{padding:13px}}
 </style>
 
 </head>
@@ -1831,6 +1835,7 @@ function render(){
   const inGame = view==='game' && M && G;
   $('#app').classList.toggle('ingame', !!inGame);
   document.documentElement.classList.toggle('lock', !!inGame);
+  document.documentElement.classList.toggle('homefix', !inGame && view==='home');
   $('#game').hidden=!inGame; $('#screen').hidden=!!inGame; $('#tabs').hidden=!!inGame;
   if (inGame) renderGame();
   else {
