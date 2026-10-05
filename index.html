@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060f">
-<meta name="description" content="Dernier Pas : le jeu de stratégie où les cases s'usent. Bloque ton adversaire, garde toujours un pas d'avance.">
+<meta name="description" content="Lastep : le jeu de stratégie où les cases s'usent. Bloque ton adversaire, garde toujours un pas d'avance.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Dernier Pas">
-<meta property="og:title" content="Dernier Pas">
+<meta name="apple-mobile-web-app-title" content="Lastep">
+<meta property="og:title" content="Lastep">
 <meta property="og:description" content="Le jeu de stratégie où les cases s'usent. Défie tes amis.">
 <meta property="og:image" content="og.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Dernier Pas</title>
+<title>Lastep</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -1276,8 +1276,8 @@ function newCode(){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let s=''; for (
 const canAct = () => !online() || net.seat===0 || net.seat===1;
 const inviteURL = () => net ? `${location.origin}${location.pathname}?join=${net.code}` : '';
 async function shareInvite(btn){
-  const url=inviteURL(), text=`Viens me défier sur Dernier Pas. Code : ${net.code.toUpperCase()}`;
-  try { if (navigator.share){ await navigator.share({title:'Dernier Pas', text, url}); return; } } catch(e){ return; }
+  const url=inviteURL(), text=`Viens me défier sur Lastep. Code : ${net.code.toUpperCase()}`;
+  try { if (navigator.share){ await navigator.share({title:'Lastep', text, url}); return; } } catch(e){ return; }
   try { await navigator.clipboard.writeText(`${text}\n${url}`); if (btn) btn.textContent='Lien copié'; } catch(e){ if (btn) btn.textContent='Copie impossible'; }
 }
 
@@ -1478,7 +1478,7 @@ function sparkline(h){
 }
 function renderHome(){
   const t=tierOf(P.elo.r), wr=P.elo.g?Math.round(P.elo.w/P.elo.g*100):0, rg=realGames();
-  return `<div class="top"><h1 class="logo">Dernier <span>Pas</span></h1>${topRight()}</div>
+  return `<div class="top"><h1 class="logo">La<span>step</span></h1>${topRight()}</div>
   <div class="hero" style="--tc:${t[2]}"><div class="avatar adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div style="min-width:0">
     <div class="nm">${esc(P.name)} ${P.premium?'<span class="pill premok">Premium</span>':''}</div><div><span class="elo">${P.elo.r}</span> <small class="sub">steps</small> <span class="tier">${t[1]}</span></div>
     ${sparkline(P.elo.hist)}<p class="sub">${P.elo.g ? `${P.elo.w} victoires · ${P.elo.g} matchs · ${wr} %` : 'Joue contre l\'ordinateur pour lancer ton classement.'}</p></div></div>
@@ -1540,7 +1540,7 @@ function renderProfile(){
   ${sec('badges',`Badges · ${nb}/${BADGES.length}`, badgesHTML())}
   ${sec('friends',`Amis · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}Ajouter</button><button type="button" data-act="contacts">${ic('contacts')}Répertoire</button><button type="button" data-act="poster">${ic('image')}Mon poster</button></div>`)}
   ${sec('set','Réglages', settingsBody())}
-  ${sec('about','À propos', `${installCard()}<p class="note">Dernier Pas · <a href="privacy.html" style="color:inherit">Confidentialité</a> · <a href="site/" style="color:inherit">Site</a> · contact : ${esc(CONFIG.contact)}</p>`)}`;
+  ${sec('about','À propos', `${installCard()}<p class="note">Lastep · <a href="privacy.html" style="color:inherit">Confidentialité</a> · <a href="site/" style="color:inherit">Site</a> · contact : ${esc(CONFIG.contact)}</p>`)}`;
 }
 function renderTabs(){
   const t=[['home','home','Accueil'],['play','play','Jouer'],['learn','coach','Apprendre'],['shop','shop','Boutique'],['profile','user','Profil']];
@@ -2292,12 +2292,12 @@ function presData(c, d){
   }
 }
 async function shareText(text, url){
-  try { if (navigator.share){ await navigator.share({title:'Dernier Pas', text, url}); return; } } catch(e){ return; }
+  try { if (navigator.share){ await navigator.share({title:'Lastep', text, url}); return; } } catch(e){ return; }
   try { await navigator.clipboard.writeText(`${text}\n${url}`); toast('Lien copié'); } catch(e){ toast('Copie impossible'); }
 }
-const shareFriendLink = () => shareText(`Ajoute-moi sur Dernier Pas ! Mon code ami : ${fmtUid(P.uid)}`, friendLink());
+const shareFriendLink = () => shareText(`Ajoute-moi sur Lastep ! Mon code ami : ${fmtUid(P.uid)}`, friendLink());
 async function fromContacts(){
-  const text=`Rejoins-moi sur Dernier Pas ! Ajoute-moi en ami : ${friendLink()}`;
+  const text=`Rejoins-moi sur Lastep ! Ajoute-moi en ami : ${friendLink()}`;
   if (navigator.contacts && navigator.contacts.select){
     try { const r=await navigator.contacts.select(['name','tel'],{multiple:false}); const c=r && r[0];
       if (c && c.tel && c.tel[0]){ location.href=`sms:${c.tel[0].replace(/\s/g,'')}?&body=${encodeURIComponent(text)}`; return; } } catch(e){}
@@ -2369,8 +2369,8 @@ async function makePoster(){
   for (let i=0;i<=W;i+=54){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,H); x.stroke(); }
   for (let j=0;j<=H;j+=54){ x.beginPath(); x.moveTo(0,j); x.lineTo(W,j); x.stroke(); }
   const txt=(s,X,Y,font,col,blur,align)=>{ x.font=font; x.textAlign=align||'center'; x.textBaseline='alphabetic'; x.shadowColor=col; x.shadowBlur=blur||0; x.fillStyle=col; x.fillText(s,X,Y); x.shadowBlur=0; };
-  x.font=`800 112px ${F}`; const w1=x.measureText('DERNIER ').width, w2=x.measureText('PAS').width, sx=(W-w1-w2)/2;
-  txt('DERNIER ',sx,170,`800 112px ${F}`,'#ffffff',30,'left'); txt('PAS',sx+w1,170,`800 112px ${F}`,'#ff3dd8',40,'left');
+  x.font=`800 112px ${F}`; const w1=x.measureText('LA').width, w2=x.measureText('STEP').width, sx=(W-w1-w2)/2;
+  txt('LA',sx,170,`800 112px ${F}`,'#ffffff',30,'left'); txt('STEP',sx+w1,170,`800 112px ${F}`,'#ff3dd8',40,'left');
   txt('LE JEU DE STRATÉGIE OÙ LES CASES S\'USENT',W/2,226,`600 30px ${MO}`,'#2ef2ff',14);
   const hex=COLORS[P.skin.color].hex;
   const svg=pawnSVG(P.skin).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" ');
@@ -2396,12 +2396,12 @@ async function openPoster(){
   catch(e){ POSTER={err:true}; }
   if (sheet && sheet.type==='poster') render();
 }
-const posterName = () => `dernier-pas-${P.name.replace(/[^\w-]+/g,'_')}.png`;
+const posterName = () => `lastep-${P.name.replace(/[^\w-]+/g,'_')}.png`;
 async function posterShare(){
   if (!POSTER || !POSTER.blob) return;
   const file=new File([POSTER.blob], posterName(), {type:'image/png'});
-  const text=`Viens me défier sur Dernier Pas ! Mon code ami : ${fmtUid(P.uid)} · ${SITE_URL()}`;
-  try { if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Dernier Pas', text}); return; } } catch(e){ return; }
+  const text=`Viens me défier sur Lastep ! Mon code ami : ${fmtUid(P.uid)} · ${SITE_URL()}`;
+  try { if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Lastep', text}); return; } } catch(e){ return; }
   posterDownload();
 }
 function posterDownload(){ if (!POSTER || !POSTER.url) return; const a=document.createElement('a'); a.href=POSTER.url; a.download=posterName(); document.body.appendChild(a); a.click(); a.remove(); toast('Poster enregistré'); }

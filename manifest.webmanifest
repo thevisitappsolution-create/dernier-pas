@@ -1,6 +1,6 @@
 {
-  "name": "Dernier Pas",
-  "short_name": "Dernier Pas",
+  "name": "Lastep",
+  "short_name": "Lastep",
   "description": "Le jeu de stratégie où les cases s'usent. Bloque ton adversaire, garde toujours un pas d'avance.",
   "lang": "fr",
   "id": "./",
@@ -8,8 +8,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#141b18",
-  "theme_color": "#141b18",
+  "background_color": "#07060f",
+  "theme_color": "#07060f",
   "categories": ["games", "board", "strategy"],
   "icons": [
     {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
