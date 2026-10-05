@@ -37,13 +37,15 @@ body{min-height:100vh;min-height:100dvh}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input{-webkit-user-select:text;user-select:text}
 html.lock,html.lock body{height:100%;overflow:hidden}
-html.lock #app{height:100dvh;box-sizing:border-box;overflow:hidden}
+html.lock{min-height:0}
+html.lock body{padding-top:0}
+html.lock #app{height:var(--apph,100dvh);box-sizing:border-box;overflow:hidden}
 html{-webkit-text-size-adjust:100%}
 body{-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
 body{background:var(--felt);color:var(--ink);font-family:var(--display);font-size:15px;line-height:1.45}
 button{font:inherit;color:inherit}
 #app{max-width:520px;margin:0 auto;padding-inline:16px;padding-block:12px calc(84px + env(safe-area-inset-bottom,0px))}
-#app.ingame{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-top:8px}
+#app.ingame{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-top:calc(8px + env(safe-area-inset-top,0px))}
 #game{position:relative}
 #bubbleTop,#bubbleBot{position:absolute;z-index:6;max-width:80%;pointer-events:none}
 #bubbleTop{right:0;top:150px}
@@ -680,6 +682,13 @@ html.homefix #app{height:100%;box-sizing:border-box;overflow:hidden}
 @media (max-height:700px){html.homefix .screen{gap:9px}.hcard{min-height:96px!important}.hcard .primary{padding:8px 16px}.fc .secondary{padding:6px}.h2{font-size:.95rem}}
 @media (max-height:760px){.hcard{min-height:118px;padding:12px}.hcard h3{font-size:1.15rem}.tile{padding:8px 6px}.tile .em{font-size:1.1rem}.fc{padding:8px 6px;width:118px}.fc .av{width:42px}.fc small{min-height:0}.playbar .big{padding:13px}}
 .logo .brand{color:#fff;background:linear-gradient(90deg,#ffffff 0%,#2ef2ff 45%,#ff3dd8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;animation:none;filter:drop-shadow(0 0 8px #ff3dd888) drop-shadow(0 0 18px #2ef2ff55)}
+.jsq{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;border:2px solid var(--line);background:#0c0a1c;flex:none}
+.jsq svg{width:20px;height:20px;fill:none;stroke:#5c5a70;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.jsq.on{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 22%,#0c0a1c);box-shadow:0 0 10px var(--pc),inset 0 0 8px color-mix(in srgb,var(--pc) 50%,transparent)}
+.jsq.on svg{stroke:#fff;filter:drop-shadow(0 0 4px var(--pc))}
+.jsq:not(.on){opacity:.55}
+.jsq.sm{width:24px;height:24px;border-radius:6px}.jsq.sm svg{width:15px;height:15px}
+.strip .meta{align-items:center}
 </style>
 
 </head>
@@ -1489,8 +1498,7 @@ function strip(side){
 }
 function jumpTag(side){
   const j=G?G.J[side]:1, big=!!TR || humanSeat()===null || side===bottomSide();
-  if (big) return `<span class="jbig ${j?'on':'off'}" role="status" aria-label="${j?'Saut disponible':'Saut déjà utilisé'}">↷ ${j?'Saut dispo':'Saut utilisé'}</span>`;
-  return `<span class="jp${j?' on':''}" aria-label="Saut adverse ${j?'disponible':'utilisé'}">↷ ${j}</span>`;
+  return `<span class="jsq${j?' on':''}${big?'':' sm'}" role="img" aria-label="${j?'Saut disponible':'Saut déjà utilisé'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c2-8 12-11 16-4"/><path d="M20 8v5h-5"/></svg></span>`;
 }
 function renderGame(){
   const key=JSON.stringify(S.map(s=>[s.skin,s.hex,s.name]));
@@ -1559,10 +1567,13 @@ function fitBoard(){
   const g=$('#game'), b=$('#board'); if (!g || g.hidden || !b) return;
   let other=0, n=0; for (const el of g.children){ if (el===b || el.hidden || getComputedStyle(el).position==='absolute') continue; other+=el.offsetHeight; n++; }
   const app=getComputedStyle($('#app')), top=parseFloat(getComputedStyle(document.body).paddingTop)||0;
-  const avail=window.innerHeight - other - 8*n - parseFloat(app.paddingTop) - parseFloat(app.paddingBottom) - top - 4;
+  const avail=$('#app').clientHeight - other - 8*n - parseFloat(app.paddingTop) - parseFloat(app.paddingBottom) - 6;
   b.style.maxWidth=Math.max(220, Math.min(g.clientWidth, avail))+'px';
 }
-window.addEventListener('resize', ()=>{ if (view==='game') fitBoard(); });
+function setAppH(){ const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight; document.documentElement.style.setProperty('--apph', Math.round(h)+'px'); }
+setAppH();
+window.addEventListener('resize', ()=>{ setAppH(); if (view==='game') fitBoard(); });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', ()=>{ setAppH(); if (view==='game') fitBoard(); });
 function renderActions(){
   if (view!=='game' || !G) return;
   if (TR) return renderTrActions();
