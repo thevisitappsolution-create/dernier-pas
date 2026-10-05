@@ -723,6 +723,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: 'contact@exemple.fr',
+  version: 28,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2767,7 +2768,8 @@ function settingsBody(){
   ${CONFIG.themeChoice?`<label class="toggle"><span>Thème calme<small class="note">Moins lumineux, plus reposant pour les yeux.</small></span><input type="checkbox" id="o-calm" ${P.calm?'checked':''}></label>`:''}
   <label class="toggle"><span>Afficher les messages de l'adversaire</span><input type="checkbox" id="o-chat" ${P.chat?'checked':''}></label>
   <label class="toggle${P.premium?'':' off'}"><span>Bloquer wizz, toc toc et haha${P.premium?'':' · Premium'}<small class="note">${P.premium?'Tu ne les reçois plus, mais tu ne peux plus en envoyer.':'Réservé à Premium. Sinon, coupe les sons : les animations restent.'}</small></span><input type="checkbox" id="o-block" ${myBlock()?'checked':''} ${P.premium?'':'disabled'}></label>
-  <button class="secondary" type="button" data-act="rules">Règles du jeu</button>`;
+  <button class="secondary" type="button" data-act="rules">Règles du jeu</button>
+  <p class="note" style="text-align:center">Lastep · version ${CONFIG.version}</p>`;
 }
 const OPEN=new Set(['perso']);
 document.addEventListener('toggle', e=>{ const d=e.target; if (d && d.matches && d.matches('details[data-sec]')){ if (d.open) OPEN.add(d.dataset.sec); else OPEN.delete(d.dataset.sec); } }, true);
@@ -3057,7 +3059,10 @@ if (QS.get('ami')){ const id=QS.get('ami'), ok=addFriend(id, QS.get('n')); histo
   else if (QS.get('dj')){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); setTimeout(startDJ, 400); } }
 setTimeout(presStart, 600);
 if (joinCode && /^[a-z0-9]{5}$/i.test(joinCode)){ history.replaceState(null,'',location.pathname); P.rules=true; goOnline(joinCode.toLowerCase(), false); }
-if ('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+if ('serviceWorker' in navigator && location.protocol==='https:'){
+  navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(r=>{ r.update(); document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) r.update(); }); }).catch(()=>{});
+  let reloaded=false; navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if (reloaded || (M && G && !M.done)) return; reloaded=true; location.reload(); });
+}
 </script>
 </body>
 </html>
