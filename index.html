@@ -1723,8 +1723,8 @@ document.addEventListener('click', e=>{
     case 'puzzle': if (pzOpen(pzIndex(a.dataset.k,+v))) startPuzzle(a.dataset.k, +v); break;
     case 'tr-skip': if (TR){ trClear(TR); TR.phase='ready'; render(); } break;
     case 'demo-prev': if (TR) demoGo((TR.step||0)-1); break;
-    case 'demo-next': if (TR) demoGo((TR.step||0)+1); break;
-    case 'demo-pause': if (TR){ TR.paused=!TR.paused; demoGo(TR.step||0); } break;
+    case 'demo-next': if (TR){ if ((TR.step||0)>=TR.L.demo.steps.length-1){ trClear(TR); startExercise(); } else demoGo((TR.step||0)+1); } break;
+    case 'demo-replay': if (TR) demoGo(TR.step||0); break;
     case 'tr-replay': if (TR) startLesson(TR.i); break;
     case 'tr-go': startExercise(); break;
     case 'tr-restart': sheet=null; trRestart(); break;
@@ -2034,7 +2034,7 @@ function demoMove(p,k,to,jump){
   look(p,k,from,to); G.last={p,from,to,jump}; const fell=G.cells[from]===0; fx(from,to,p,fell); sfx.move(); if (fell) setTimeout(sfx.fall,200); if (jump) sfx.jump();
   G.turn=1-p; G.pick=null;
 }
-function playDemo(){ TR.paused=false; demoGo(0); }
+function playDemo(){ demoGo(0); }
 function startExercise(){
   const tr=TR, ex=tr.L.ex;
   if (ex.z) { G.cells=cellsFrom(ex.z.c); G.pawns=ex.z.p.map(x=>x.slice()); G.J=ex.z.j.slice(); G.bid=ex.z.b; }
@@ -2127,9 +2127,10 @@ function renderTrActions(){
   const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.dis?'disabled':''} style="--pc:#2ef2ff">${icon?ic(icon):''}${label}</button>`;
   if (tr.kind==='lesson' && tr.phase==='demo'){ const n=tr.step||0;
     a.push(btn('demo-prev','back','Précédent',{dis:n<=0}).replace('<button','<button aria-label="Explication précédente"'));
-    a.push(btn('demo-pause', tr.paused?'playi':'pause', tr.paused?'Lecture':'Pause'));
-    a.push(btn('demo-next','fwd','Suivant',{dis:n>=tr.L.demo.steps.length-1}).replace('<button','<button aria-label="Explication suivante"'));
-    a.push(btn('tr-skip','', 'Passer',{cls:'primary'})); }
+    const last=n>=tr.L.demo.steps.length-1, hasMv=!!(tr.L.demo.steps[Math.max(0,n)] && stepMove(tr.L, tr.L.demo.steps[Math.max(0,n)]));
+    a.push(btn('demo-replay','undo','Revoir',{dis:!hasMv}).replace('<button','<button aria-label="Revoir le déplacement"'));
+    a.push(btn('tr-skip','', 'Passer'));
+    a.push(btn('demo-next', last?'':'fwd', last?'À l\'exercice':'Suivant', {cls:'primary'}).replace('<button','<button aria-label="Explication suivante"')); }
   else if (tr.kind==='lesson' && tr.phase==='ready'){ a.push(btn('demo-prev','back','Revoir la fin')); a.push(btn('tr-replay','undo','Revoir tout')); a.push(btn('tr-go','', 'À toi !',{cls:'primary'})); }
   else if (tr.state==='win'){ a.push(btn('tr-restart','undo','Rejouer')); a.push(btn('tr-next','', 'Suivant',{cls:'primary'})); }
   else if (tr.rush){ a.push(btn('rush-stop','flag','Arrêter le défi')); }
@@ -2615,8 +2616,7 @@ function demoGo(n){
   demoReset(tr); for (let j=0;j<n;j++){ const mv=stepMove(tr.L, steps[j]); if (mv) demoApply(mv); }
   render();
   const mv=stepMove(tr.L, steps[n]);
-  if (mv) trLater(tr, ()=>{ G.pick=mv[1]; G.turn=mv[0]; render(); trLater(tr, ()=>{ demoMove(...mv); render(); }, 500); }, 700);
-  if (!tr.paused) trLater(tr, ()=>demoGo(n+1), DEMO_MS);
+  if (mv) trLater(tr, ()=>{ G.pick=mv[1]; G.turn=mv[0]; render(); trLater(tr, ()=>{ demoMove(...mv); render(); }, 600); }, 1100);
 }
 
 /* ---------- Fermeture des fenêtres ---------- */
