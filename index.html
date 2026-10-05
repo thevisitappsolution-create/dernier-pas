@@ -1325,7 +1325,7 @@ function onNetData(d){
   if (d.t==='hello'){
     const rc={}; if (d.rc && typeof d.rc==='object') for (const t of TIMES){ const v=+d.rc[t]; if (v>0 && v<4000) rc[t]=Math.round(v); }
     PEERS[other]={nm:cleanName(d.nm), sk:cleanSkin(d.sk), rc, uid: typeof d.uid==='string' && /^[a-z0-9]{8}$/.test(d.uid) ? d.uid : '', nb:!!d.nb}; net.opp=true; if (net.timer){ clearTimeout(net.timer); net.timer=null; } S=sides();
-    if (net.seat===0 && !M) startMatch(); else render();
+    if (net.seat===0 && !M){ startMatch(); if (net.mm) toast(`Adversaire trouvé : ${PEERS[other].nm} · ${tLabel(P.time)}`); } else render();
     if (net.seat===0 && M) commit();
     return;
   }
@@ -1742,7 +1742,8 @@ function sheetHTML(){
     const err=s.err||(net&&net.err);
     if (err) return `<h2>Jeu en ligne</h2><p>${esc(err)}</p><div class="row"><button class="primary" type="button" data-act="match">Réessayer</button><button class="secondary" type="button" data-act="time-sheet">Changer de cadence</button></div>`;
     return `<h2>Recherche d'un adversaire…</h2><div class="radar" aria-hidden="true"><div class="av">${pawnSVG(P.skin)}</div></div>
-      <p>Cadence ${P.time} min · plateau 5×5. La partie démarre dès qu'un autre joueur cherche en même temps que toi. Garde cet écran ouvert.</p>
+      <p>La partie démarre dès qu'un autre joueur cherche en même temps que toi. Garde cet écran ouvert.</p>
+      <p class="note" style="text-align:center">${esc((net&&net.stage)||'Connexion au service en ligne…')}</p>
       ${net&&net.waitLong?`<div class="demo">Personne d'autre ne cherche à cette cadence pour l'instant.<button class="primary" type="button" data-act="mm-bot" style="width:100%;margin-top:8px">Jouer contre ${BOTS[P.level].name} (l'ordinateur) en attendant</button></div>`:''}
       <button class="secondary" type="button" data-act="mm-cancel">Annuler la recherche</button>
       <p class="note">Il n'y a pas encore de serveur de jeu : seuls les joueurs connectés au même moment se trouvent. Partage le jeu pour qu'il y ait du monde !</p>`;
@@ -2559,7 +2560,7 @@ async function fromContacts(){
 
 /* ---------- Recherche d'adversaire en ligne (sans serveur de jeu) ---------- */
 const MM_SLOTS=6;
-const mmSlot = i => `dp-q-v1-${P.time}-${i}`;
+const mmSlot = i => `lastep-q-v2-${i}`;   // une seule file pour toutes les cadences : la cadence du premier arrivé s'applique
 function goMatch(i){
   i=i||0;
   if (!peerOK()){ sheet={type:'friend'}; render(); return; }
@@ -2570,7 +2571,7 @@ function goMatch(i){
   if (i===0) setTimeout(()=>{ if (net===me && !me.opp){ me.waitLong=true; render(); } }, 15000);
   let peer; try { peer=new Peer(mmSlot(i)); } catch(e){ me.err='Connexion impossible pour le moment.'; render(); return; }
   me.peer=peer;
-  peer.on('open', ()=>{ if (net===me) render(); });
+  peer.on('open', ()=>{ if (net===me){ me.stage=`En attente d'un joueur (file ${i+1})`; render(); } });
   peer.on('connection', conn=>{
     if (net!==me){ conn.close(); return; }
     if (me.conn && me.conn.open){ conn.on('open',()=>{ conn.send({t:'full'}); setTimeout(()=>conn.close(),300); }); return; }
@@ -2580,7 +2581,7 @@ function goMatch(i){
   peer.on('error', err=>{
     if (net!==me) return;
     const t=err && err.type;
-    if (t==='unavailable-id'){ try { peer.destroy(); } catch(e){} mmGuest(i, me); return; }
+    if (t==='unavailable-id'){ try { peer.destroy(); } catch(e){} me.stage=`Un joueur attend : connexion… (file ${i+1})`; render(); mmGuest(i, me); return; }
     if (me.matched || me.opp) return;
     me.err='Connexion au service en ligne impossible. Vérifie ta connexion internet.'; render();
   });
@@ -2591,7 +2592,7 @@ function mmGuest(i, me){
   try { peer=new Peer(); } catch(e){ net=null; goMatch(i+1); return; }
   me.peer=peer;
   const fail=()=>{ if (net!==me || me.opp) return; try { peer.destroy(); } catch(e){} net=null; goMatch(i+1); };
-  me.timer=setTimeout(fail, 7000);
+  me.timer=setTimeout(fail, 6000);
   peer.on('open', ()=>{ if (net!==me) return; wireConn(peer.connect(mmSlot(i), {reliable:true})); });
   peer.on('error', ()=>{ if (net===me && !me.opp) fail(); });
 }
