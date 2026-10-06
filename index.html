@@ -723,7 +723,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: 'contact@exemple.fr',
-  version: 30,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 31,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -987,41 +987,26 @@ const sfx={
   },
   jump:()=>{ tone(300,.18,'triangle',.12,0,900); },
 };
-/* Musique d'ambiance générée (aucun fichier à charger) */
-const MUSIC={timer:null, bus:null, step:0, next:0};
-const mtof = m => 440*Math.pow(2,(m-69)/12);
-const CHORDS=[[45,[57,60,64]],[45,[57,60,64]],[41,[57,60,65]],[43,[55,59,62]]];
+/* Musique du jeu : le thème officiel de Lastep (music.mp3), en boucle pendant les parties */
+const MUSIC={el:null, gain:null, on:false};
 function musicStart(){
-  if (!P.music || MUSIC.timer) return;
+  if (!P.music || MUSIC.on) return;
   const c=ac(); if (!c) return;
-  const bus=c.createGain(), lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2200;
-  bus.gain.setValueAtTime(0,c.currentTime); bus.gain.linearRampToValueAtTime(.55,c.currentTime+2);
-  bus.connect(lp).connect(c.destination); MUSIC.bus=bus; MUSIC.step=0; MUSIC.next=c.currentTime+.1;
-  const eighth=60/140/2;
-  const nlen=Math.floor(c.sampleRate*.05), nbuf=c.createBuffer(1,nlen,c.sampleRate), nd=nbuf.getChannelData(0); for (let i=0;i<nlen;i++) nd[i]=(Math.random()*2-1)*Math.pow(1-i/nlen,6);
-  const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6000; hp.connect(c.destination); MUSIC.hp=hp;
-  const hat=(t,v)=>{ const s=c.createBufferSource(), g=c.createGain(); s.buffer=nbuf; g.gain.value=v*(P.music?1:0); s.connect(g).connect(hp); s.start(t); };
-  const kick=t=>{ const o=c.createOscillator(), g=c.createGain(); o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(45,t+.12); g.gain.setValueAtTime(.16,t); g.gain.exponentialRampToValueAtTime(.001,t+.16); o.connect(g).connect(bus); o.start(t); o.stop(t+.17); };
-  const note=(f,t,d,type,v)=>{ const o=c.createOscillator(), g=c.createGain(); o.type=type; o.frequency.value=f;
-    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+Math.min(.04,d/4)); g.gain.exponentialRampToValueAtTime(.0008,t+d);
-    o.connect(g).connect(bus); o.start(t); o.stop(t+d+.05); };
-  MUSIC.timer=setInterval(()=>{
-    while (MUSIC.next < c.currentTime+.25){
-      const s=MUSIC.step, t=MUSIC.next, [root,tri]=CHORDS[Math.floor(s/16)%4], pos=s%16;
-      if (pos===0) tri.forEach(m=>note(mtof(m),t,eighth*15,'triangle',.014));
-      if (pos%2===0) kick(t);
-      hat(t, pos%2 ? .05 : .025);
-      note(mtof(root+(pos%2?12:0)),t,eighth*.9,'sawtooth',.035);
-      const arp=[0,1,2,1,2,0,2,1][pos%8]; note(mtof(tri[arp]+12),t,eighth*.8,'square',.012);
-      MUSIC.step++; MUSIC.next+=eighth;
-    }
-  },60);
+  if (!MUSIC.el){
+    const el=new Audio('music.mp3'); el.loop=true; el.preload='auto';
+    MUSIC.el=el; MUSIC.gain=c.createGain(); MUSIC.gain.gain.value=0;
+    try { c.createMediaElementSource(el).connect(MUSIC.gain).connect(c.destination); } catch(e){}
+  }
+  const g=MUSIC.gain.gain; g.cancelScheduledValues(c.currentTime); g.setValueAtTime(g.value,c.currentTime); g.linearRampToValueAtTime(.4,c.currentTime+1.5);
+  MUSIC.on=true; MUSIC.el.play().catch(()=>{ MUSIC.on=false; });
 }
 function musicStop(){
-  if (!MUSIC.timer) return; clearInterval(MUSIC.timer); MUSIC.timer=null;
-  const c=AC, bus=MUSIC.bus; if (c && bus){ try { bus.gain.cancelScheduledValues(c.currentTime); bus.gain.setValueAtTime(bus.gain.value,c.currentTime); bus.gain.linearRampToValueAtTime(0,c.currentTime+.6); setTimeout(()=>bus.disconnect(),800); } catch(e){} }
-  MUSIC.bus=null; if (MUSIC.hp){ try { MUSIC.hp.disconnect(); } catch(e){} MUSIC.hp=null; }
+  if (!MUSIC.on) return; MUSIC.on=false;
+  const c=AC, g=MUSIC.gain&&MUSIC.gain.gain;
+  if (c && g){ try { g.cancelScheduledValues(c.currentTime); g.setValueAtTime(g.value,c.currentTime); g.linearRampToValueAtTime(0,c.currentTime+.6); } catch(e){} }
+  setTimeout(()=>{ if (!MUSIC.on && MUSIC.el) MUSIC.el.pause(); }, 700);
 }
+document.addEventListener('visibilitychange', ()=>{ if (!MUSIC.el) return; if (document.hidden) MUSIC.el.pause(); else if (MUSIC.on) MUSIC.el.play().catch(()=>{}); });
 const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
 document.addEventListener('pointerdown', () => ac(), {once:true});
 document.addEventListener('gesturestart', e => e.preventDefault());
