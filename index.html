@@ -261,8 +261,9 @@ button{font:inherit;color:inherit}
 .primary{padding:14px 16px;border-radius:10px;border:0;background:var(--accent);color:#231a08;font-weight:800;cursor:pointer}
 .secondary{padding:13px 16px;border-radius:10px;border:1px solid var(--line);background:none;font-weight:600;cursor:pointer}
 .danger{padding:13px 16px;border-radius:10px;border:1px solid var(--alert);background:none;color:var(--alert);font-weight:600;cursor:pointer}
-.bots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.bots .card .pv{width:70px}
+.bots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bots .card .pv{width:52px}
+.bots .card small{font-size:.72rem}
 .timegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .timegrid button{padding:16px 6px;border-radius:10px;border:2px solid transparent;background:var(--raise);font-weight:800;font-size:1.1rem;cursor:pointer}
 .timegrid button[aria-pressed="true"]{border-color:var(--accent)}
@@ -723,7 +724,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: 'contact@exemple.fr',
-  version: 31,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 32,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -741,10 +742,13 @@ const BOARDS=[
  ['Colonnes','21212 21212 21212 21212 21212'],
 ].map(([name,rows])=>({name, cells:[...rows.replace(/ /g,'')].map(Number)}));
 const LEVELS={
-  easy:{label:'Facile',elo:800,random:.35,maxDepth:1,budget:120},
-  medium:{label:'Moyen',elo:1100,random:0,maxDepth:3,budget:400},
-  hard:{label:'Difficile',elo:1400,random:0,maxDepth:30,budget:1200},
-  expert:{label:'Expert',elo:1750,random:0,maxDepth:40,budget:3000},
+  easy:{label:'Débutant',elo:600,random:.5,maxDepth:1,budget:100},
+  lumi:{label:'Facile',elo:800,random:.3,maxDepth:1,budget:150},
+  braise:{label:'Facile +',elo:1000,random:.15,maxDepth:2,budget:250},
+  medium:{label:'Moyen',elo:1200,random:.05,maxDepth:3,budget:400},
+  prof:{label:'Moyen +',elo:1400,random:0,maxDepth:5,budget:700},
+  hard:{label:'Difficile',elo:1600,random:0,maxDepth:30,budget:1200},
+  expert:{label:'Expert',elo:1800,random:0,maxDepth:40,budget:3000},
 };
 const AI_TIMEOUT={};
 function aiGen(cells,P,J,t){
@@ -860,6 +864,12 @@ const DEF2={color:'azur',fur:'lisse',eyes:'ronds',acc:'aucun'};
 const BOTS={
   easy:{name:'Pépin', skin:{color:'menthe',fur:'lisse',eyes:'joyeux',acc:'noeud'},
     taunt:['Oh, c\'est moi qui mène ?','Je joue au hasard et je te tiens.','Tu veux un indice ?'], win:['Hihi, gagné !','Même moi je te bats.'], lose:['Bien joué… je retourne réviser.'], hit:['Aïe, mes oreilles !','Hé, doucement !'], chat:['Hihi.','Concentre-toi plutôt.','Tu tapes plus vite que tu joues.']},
+  lumi:{name:'Lumi', skin:{color:'rose',fur:'lisse',eyes:'joyeux',acc:'aureole'},
+    taunt:['Je suis peut-être une princesse, mais je joue.','Attention à tes cases !','Oups, c\'était ma case préférée.'], win:['Merci pour la partie !','Hihi, j\'ai gagné.'], lose:['Bien joué ! Tu m\'apprends ?'], hit:['Hé, pas de wizz !','Doucement…'], chat:['Courage !','On joue ?','Joli coup.']},
+  braise:{name:'Braise', skin:{color:'corail',fur:'pointes',eyes:'colere',acc:'aucun'},
+    taunt:['Je te colle.','Tu ne m\'échapperas pas.','Ça chauffe, hein ?'], win:['Brûlé.','Trop facile.'], lose:['Grr… revanche.'], hit:['Ça m\'énerve encore plus.','Tu joues avec le feu.'], chat:['Grr.','Avance.','Tu trembles ?']},
+  prof:{name:'Le Prof', skin:{color:'or',fur:'lisse',eyes:'joyeux',acc:'lunettes'},
+    taunt:['Un pas après l\'autre.','Compte tes cases.','Garde ton saut pour la fin.'], win:['Leçon du jour : la patience.','On revoit ça ensemble ?'], lose:['Excellent. Tu progresses.'], hit:['Concentre-toi plutôt.','Un wizz n\'est pas un coup.'], chat:['Réfléchis.','Bonne idée.','Regarde ses sorties.']},
   medium:{name:'Bastion', skin:{color:'nuit',fur:'cube',eyes:'colere',acc:'casquette'},
     taunt:['Tes cases fondent.','Je vois tes deux pions… et leur fin.','Trop lent.'], win:['Rien ne passe.','Mur porteur : moi.'], lose:['Tu as trouvé la faille. Pas deux fois.'], hit:['Toc toc ? Personne.','Ça ne me fait rien.'], chat:['Parle moins, joue mieux.','Hm.','On verra au prochain coup.']},
   hard:{name:'Vortex', skin:{color:'lavande',fur:'pointes',eyes:'etoiles',acc:'cornes'},
@@ -990,7 +1000,11 @@ const sfx={
 /* Musique du jeu : le thème officiel de Lastep (music.mp3), en boucle pendant les parties */
 const MUSIC={el:null, gain:null, on:false};
 function musicStart(){
-  if (!P.music || MUSIC.on) return;
+  if (!P.music) return;
+  const mid=M&&M.id;
+  if (MUSIC.el && mid && MUSIC.mid!==mid){ try { MUSIC.el.currentTime=0; } catch(e){} }
+  if (mid) MUSIC.mid=mid;
+  if (MUSIC.on) return;
   const c=ac(); if (!c) return;
   if (!MUSIC.el){
     const el=new Audio('music.mp3'); el.loop=true; el.preload='auto';
@@ -1058,7 +1072,8 @@ const who = p => `<span class="who" style="--pc:${S[p].hex}"><i></i>${esc(S[p].n
 /* ---------- Règles ---------- */
 const stateOf = () => ({cells:G.cells, pawns:G.pawns, jumps:G.J, turn:G.turn});
 const movesFor = t => aiGen(G.cells, G.pawns, G.J, t);
-const boardSum = () => G.cells.reduce((a,v)=>a+v,0);
+// Somme des chiffres visibles : les cases sous les pions ne comptent pas (on ne les voit pas)
+const boardSum = () => G.cells.reduce((a,v,i)=>a+(G.pawns.some(p=>p.includes(i))?0:v),0);
 function newRound(){
   const bid=M.order[(M.round-1)%M.order.length];
   return {round:M.round, bid, cells:BOARDS[bid].cells.slice(), pawns:START.map(p=>[...p]), J:[1,1], turn:M.starter, pick:null, jumpOn:false,
@@ -1685,7 +1700,7 @@ function sheetHTML(){
   if (s.type==='time') return `<h2>Cadence</h2><p>Temps par joueur et par manche. Éclair : une seule manche d'une minute.</p><div class="timegrid">${TIMES.map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>`;
   if (s.type==='ai'){
     return `<h2>${s.coach?'Jouer avec l\'entraîneur':'Choisis ton adversaire'}</h2>
-    <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.label} · ${l.elo}</small></button>`).join('')}</div>
+    <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
     <label class="toggle"><span>Partie piégée 💣<small class="note">Une bombe cachée chacun, active 3 coups.</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>
     <button class="primary" type="button" data-act="${s.coach?'go-coach':'go-ai'}">Jouer · ${tLabel(P.time)}</button>`;
   }
@@ -1794,7 +1809,7 @@ function sheetHTML(){
       <li><span>2</span><div><b>À ton tour</b>, bouge un pion de 1, 2 ou 3 cases en ligne droite.</div></li>
       <li><span>3</span><div><b>Obstacles.</b> Jamais sur un pion ni par-dessus. Un trou bloque la ligne.</div></li>
       <li><span>4</span><div><b>Saut ↷.</b> Une fois par manche, ton pion peut passer par-dessus trous et pions. Les cases marquées ↷ l'utilisent automatiquement. Le badge « Saut dispo » sous ton nom te dit s'il te reste.</div></li>
-      <li><span>★</span><div><b>Points.</b> Gagner une manche rapporte 10 points, plus la somme des chiffres des cases restantes. Si cette somme est inférieure à 10, le perdant marque la différence, 5 points au maximum (il reste 5 : 15 à 5 ; il reste 2 : 12 à 5).</div></li>
+      <li><span>★</span><div><b>Points.</b> Gagner une manche rapporte 10 points, plus la somme des chiffres encore visibles sur le plateau (les cases sous les pions ne comptent pas). Si cette somme est inférieure à 10, le perdant marque la différence, 5 points au maximum (il reste 5 : 15 à 5 ; il reste 2 : 12 à 5).</div></li>
       <li><span>5</span><div><b>Les cases s'usent.</b> Le chiffre dit combien de fois on peut encore la quitter. À 0, elle tombe.</div></li>
       <li><span>6</span><div><b>Tu perds la manche</b> quand aucun de tes pions ne peut bouger, ou quand ta pendule tombe à 0:00. Chacun a sa pendule : il y a toujours un gagnant.</div></li>
       <li><span>⚡</span><div><b>En ligne.</b> Chacun doit jouer son premier coup en 15 s, sinon la partie est annulée sans perte de points. Ensuite, quitter l'appli plus de 15 s fait perdre la partie.</div></li>
