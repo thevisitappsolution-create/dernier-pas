@@ -267,6 +267,7 @@ button{font:inherit;color:inherit}
 .timegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .timegrid button{padding:16px 6px;border-radius:10px;border:2px solid transparent;background:var(--raise);font-weight:800;font-size:1.1rem;cursor:pointer}
 .timegrid button[aria-pressed="true"]{border-color:var(--accent)}
+.timegrid.t3{grid-template-columns:repeat(3,1fr)}.timegrid.t3 button{padding:12px 4px;font-size:.95rem}
 .joinrow{display:flex;gap:8px}
 .code-input{flex:1;min-width:0;font-family:var(--mono);font-size:1.1rem;letter-spacing:.3em;text-transform:uppercase;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--felt);color:var(--ink)}
 .code{font-family:var(--mono);font-weight:600;font-size:2.4rem;letter-spacing:.3em;color:var(--accent);text-align:center;user-select:all}
@@ -742,7 +743,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 39,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 40,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1738,8 +1739,9 @@ function sheetHTML(){
   if (s.type==='friend'){
     if (!net){
       if (!peerOK()) return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Le module en ligne n'a pas pu se charger. Vérifie ta connexion internet et relance l'appli.")}</p>`;
-      return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Crée une partie et dis le code à ton ami, ou tape le code qu'il t'a donné. Cadence :")} ${P.time} min.</p>
-      <button class="primary" type="button" data-act="host">${T("Créer une partie")}</button>
+      return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Choisis la cadence, crée la partie et dis le code à ton ami. Ou tape le code qu'il t'a donné : c'est sa cadence qui compte.")}</p>
+      <div class="timegrid t3">${TIMES.map(t=>`<button type="button" data-act="ftime" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>
+      <button class="primary" type="button" data-act="host" style="margin-top:10px">${T("Créer une partie")} · ${tLabel(P.time)}</button>
       <form class="joinrow" id="joinform" autocomplete="off"><input class="code-input" id="code" maxlength="5" inputmode="numeric" placeholder="• • • •" aria-label="${T("Code de la partie")}" autocapitalize="characters"><button type="submit" class="secondary">${T("Rejoindre")}</button></form>
       <p class="note" id="join-err" hidden>${T("Le code fait 4 chiffres.")}</p>`;
     }
@@ -1951,6 +1953,7 @@ document.addEventListener('click', e=>{
     case 'more': playMore=!playMore; render(); break;
     case 'time-sheet': sheet={type:'time'}; render(); break;
     case 'time': P.time=+v; syncElo(); saveP(); sheet=null; render(); break;
+    case 'ftime': P.time=+v; syncElo(); saveP(); render(); break;
     case 'quick': startAI(P.level,false); break;
     case 'ai-sheet': sheet={type:'ai'}; render(); break;
     case 'coach': sheet={type:'ai',coach:true}; render(); break;
