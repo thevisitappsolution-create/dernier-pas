@@ -723,7 +723,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: 'contact@exemple.fr',
-  version: 28,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 29,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1508,7 +1508,7 @@ function renderGame(){
   const bot=bottomSide();
   $('#stripTop').innerHTML=strip(1-bot); $('#stripBot').innerHTML=strip(bot);
   $('#scorebar').hidden=!!TR; $('#coach').hidden=!TR; $('#app').classList.toggle('tr', !!TR); gbtnSet();
-  if (TR){ $('#coach').innerHTML=`<div class="av">${coachSVG()}</div><div class="bub"><b>${esc(trHead())}</b><p>${trStatus()}</p></div>`; }
+  if (TR){ $('#coach').innerHTML=`<div class="av">${coachSVG()}</div><div class="bub"><b>${esc(trHead())}</b>${['win','fail'].includes(TR.state)?'':`<p>${trStatus()}</p>`}</div>`; }
   else { const a=bot, b=1-bot, pts=matchPts();
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
       `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b><small>manches · plateau ${boardSum()}</small></div>`+
