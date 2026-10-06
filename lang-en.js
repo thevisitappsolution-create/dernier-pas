@@ -402,7 +402,7 @@ window.EN_DICT={
 "Recherche d'un adversaire…": "Looking for an opponent…",
 "La partie démarre dès qu'un autre joueur cherche en même temps que toi. Garde cet écran ouvert.": "The game starts as soon as another player searches at the same time. Keep this screen open.",
 "Annuler la recherche": "Cancel search",
-"Il n'y a pas encore de serveur de jeu : seuls les joueurs connectés au même moment se trouvent. Partage le jeu pour qu'il y ait du monde !": "There's no game server yet: only players online at the same moment can meet. Share the game to bring more players!",
+"Seuls les joueurs qui cherchent en même temps que toi se trouvent. Partage le jeu pour qu'il y ait du monde !": "Only players searching at the same time as you can meet. Share the game to bring more players!",
 "réussi": "solved",
 "pour valider": "to clear",
 "Lastep du jour": "Daily Lastep",
