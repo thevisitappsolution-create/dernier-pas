@@ -742,7 +742,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 38,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 39,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1423,7 +1423,8 @@ function goOnline(code, host, fid){
   peer.on('disconnected', ()=>{ try { peer.reconnect(); } catch(e){} });
 }
 function leaveOnline(){ if (net){ if (net.timer) clearTimeout(net.timer); clearInterval(net.hb); try { net.conn && net.conn.close(); } catch(e){} try { net.peer && net.peer.destroy(); } catch(e){} } net=null; PEERS={}; }
-function newCode(){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let s=''; for (let i=0;i<5;i++) s+=abc[Math.floor(Math.random()*abc.length)]; return s; }
+// Code de partie : 4 chiffres, facile à dire à voix haute (les anciens codes à 5 caractères restent acceptés)
+function newCode(){ return String(1000+Math.floor(Math.random()*9000)); }
 const canAct = () => !online() || net.seat===0 || net.seat===1;
 const inviteURL = () => net ? `${location.origin}${location.pathname}${T("?join=")}${net.code}` : '';
 async function shareInvite(btn){
@@ -1737,13 +1738,13 @@ function sheetHTML(){
   if (s.type==='friend'){
     if (!net){
       if (!peerOK()) return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Le module en ligne n'a pas pu se charger. Vérifie ta connexion internet et relance l'appli.")}</p>`;
-      return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Crée une partie et envoie le lien à ton ami, ou entre le code qu'il t'a envoyé. Cadence :")} ${P.time} min.</p>
+      return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Crée une partie et dis le code à ton ami, ou tape le code qu'il t'a donné. Cadence :")} ${P.time} min.</p>
       <button class="primary" type="button" data-act="host">${T("Créer une partie")}</button>
-      <form class="joinrow" id="joinform" autocomplete="off"><input class="code-input" id="code" maxlength="5" placeholder="${T("CODE")}" aria-label="${T("Code de la partie")}" autocapitalize="characters"><button type="submit" class="secondary">${T("Rejoindre")}</button></form>
-      <p class="note" id="join-err" hidden>${T("Le code fait 5 caractères.")}</p>`;
+      <form class="joinrow" id="joinform" autocomplete="off"><input class="code-input" id="code" maxlength="5" inputmode="numeric" placeholder="• • • •" aria-label="${T("Code de la partie")}" autocapitalize="characters"><button type="submit" class="secondary">${T("Rejoindre")}</button></form>
+      <p class="note" id="join-err" hidden>${T("Le code fait 4 chiffres.")}</p>`;
     }
     if (net.err) return `<h2>${T("Partie en ligne")}</h2><p>${esc(net.err)}</p><button class="secondary" type="button" data-act="leave">${T("Retour")}</button>`;
-    if (net.seat===0) return `<h2>${T("Partie créée ·")} ${P.time} min</h2>${net.fid?`<p>${T("Défi envoyé à")} <b>${esc((friendById(net.fid)||{}).name||(T("ton ami")))}</b>. ${T("En attente de sa réponse…")}</p>`:''}<p>${net.peer && net.peer.open ? (T("Envoie le lien à ton ami et garde cet écran ouvert. La partie démarre dès qu'il arrive.")) : (T("Connexion au service en ligne…"))}</p><div class="code">${esc(net.code.toUpperCase())}</div><div class="row"><button class="primary" type="button" data-act="share">${T("Envoyer l'invitation")}</button><button class="secondary" type="button" data-act="leave">${T("Annuler")}</button></div>`;
+    if (net.seat===0) return `<h2>${T("Partie créée ·")} ${P.time} min</h2>${net.fid?`<p>${T("Défi envoyé à")} <b>${esc((friendById(net.fid)||{}).name||(T("ton ami")))}</b>. ${T("En attente de sa réponse…")}</p>`:''}<p>${net.peer && net.peer.open ? (T("Dis ce code à ton ami et garde cet écran ouvert. S'il est loin, copie le code ou partage le lien.")) : (T("Connexion au service en ligne…"))}</p><div class="code">${esc(net.code.toUpperCase())}</div><div class="row"><button class="secondary" type="button" data-act="copycode">${T("Copier le code")}</button><button class="primary" type="button" data-act="share">${T("Partager le lien")}</button></div><button class="linkbtn" type="button" data-act="leave" style="display:block;margin:12px auto 0">${T("Annuler")}</button>`;
     return `<h2>${T("Connexion à la partie")} ${esc(net.code.toUpperCase())}…</h2><p>${T("Ton ami doit garder l'écran de la partie ouvert.")}</p><button class="secondary" type="button" data-act="leave">${T("Annuler")}</button>`;
   }
   if (s.type==='locked'){
@@ -1962,6 +1963,7 @@ document.addEventListener('click', e=>{
     case 'host': goOnline(newCode(),true); break;
     case 'leave': leaveOnline(); sheet={type:'friend'}; render(); break;
     case 'share': shareInvite(a); break;
+    case 'copycode': if (net && net.code) navigator.clipboard.writeText(net.code).then(()=>toast(T('Code copié')),()=>toast(T('Copie impossible'))); break;
     case 'install': doInstall(); break;
     case 'daily': startDaily(); break;
     case 'support': if (CONFIG.supportUrl) window.open(CONFIG.supportUrl,'_blank','noopener'); break;
@@ -2034,7 +2036,7 @@ document.addEventListener('change', e=>{
 });
 document.addEventListener('submit', e=>{
   e.preventDefault();
-  if (e.target.id==='joinform'){ const v=($('#code').value||'').trim().toLowerCase(); if (!/^[a-z0-9]{5}$/.test(v)){ $('#join-err').hidden=false; return; } goOnline(v,false); }
+  if (e.target.id==='joinform'){ const v=($('#code').value||'').trim().toLowerCase(); if (!/^([0-9]{4}|[a-z0-9]{5})$/.test(v)){ $('#join-err').hidden=false; return; } goOnline(v,false); }
   if (e.target.id==='adminform'){ const v=($('#admcode').value||'').trim(); if (v==='2026'){ P.premium=true; saveP(); sheet=null; toast((T("Premium débloqué (administrateur)"))); render(); } else { $('#adm-err').hidden=false; $('#admcode').value=''; } }
   if (e.target.id==='frform'){ const v=($('#frcode').value||'').toLowerCase().replace(/[^a-z0-9]/g,''); if (v.length!==8 || v===P.uid){ $('#fr-err').hidden=false; return; } if (addFriend(v)){ sheet=null; toast((T("Ami ajouté. Il apparaîtra en ligne dès qu'il ouvre le jeu."))); render(); } else { sheet=null; toast((T("Cet ami est déjà dans ta liste."))); render(); } }
   
@@ -2599,7 +2601,7 @@ function presData(c, d){
   }
   const id=c._fid, f=id && friendById(id); if (!f) return;
   if (d.t==='defi'){
-    const code=String(d.code||''); if (!/^[a-z0-9]{5}$/.test(code)) return;
+    const code=String(d.code||''); if (!/^([0-9]{4}|[a-z0-9]{5})$/.test(code)) return;
     if ((M && G && !M.done) || TR || net){ try { c.send({t:'busy'}); } catch(e){} return; }
     sheet={type:'defi', fid:id, nm:f.name, code, tm:TIMES.includes(+d.tm)?+d.tm:5}; sfx.msg(); vibrate([60,40,60]); if (view==='game') view='home'; render(); return;
   }
@@ -3098,6 +3100,8 @@ const streakNow = () => { const st=P.streak||{}, y=new Date(); y.setDate(y.getDa
 initWorker();
 if (!P.rules && !new URLSearchParams(location.search).get('join') && !new URLSearchParams(location.search).get('pz') && !new URLSearchParams(location.search).get('dj')){ P.rules=true; saveP(); }
 render();
+// Code tapé : on rejoint dès le 4e chiffre
+document.addEventListener('input', e=>{ if (e.target.id!=='code') return; const v=e.target.value.trim(); if (/^[0-9]{4}$/.test(v) && !net){ e.target.blur(); goOnline(v,false); } });
 const QS=new URLSearchParams(location.search), joinCode = QS.get('join');
 if (QS.get('ami')){ const id=QS.get('ami'), ok=addFriend(id, QS.get('n')); history.replaceState(null,'',location.pathname);
   if (ok){ toast(`${cleanName(QS.get('n')||(T("Ton ami")))} ${T("ajouté à tes amis")}`); if (!P.refBy){ P.refBy=String(id).toLowerCase(); P.coins=(P.coins||0)+100; saveP(); toast((T("Bienvenue : +100 pièces grâce à ton ami"))); } } }
@@ -3106,7 +3110,7 @@ if (QS.get('ami')){ const id=QS.get('ami'), ok=addFriend(id, QS.get('n')); histo
   else if (QS.get('dj')){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); view='home'; render(); } }
 setTimeout(presStart, 600);
 { const r4=QS.get('r4'); if (r4 && /^([0-9]{4}|[a-z0-9]{5})$/i.test(r4)){ history.replaceState(null,'',location.pathname); P.rules=true; setTimeout(()=>window.Party&&Party.joinCode(r4.toLowerCase()),300); } }
-if (joinCode && /^[a-z0-9]{5}$/i.test(joinCode)){ history.replaceState(null,'',location.pathname); P.rules=true; goOnline(joinCode.toLowerCase(), false); }
+if (joinCode && /^([0-9]{4}|[a-z0-9]{5})$/i.test(joinCode)){ history.replaceState(null,'',location.pathname); P.rules=true; goOnline(joinCode.toLowerCase(), false); }
 if ('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(r=>{ r.update(); document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) r.update(); }); }).catch(()=>{});
   let reloaded=false; navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if (reloaded || (M && G && !M.done)) return; reloaded=true; location.reload(); });
