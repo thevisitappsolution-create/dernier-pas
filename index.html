@@ -742,7 +742,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 36,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 37,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1455,7 +1455,7 @@ const I={
   shop:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
   trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/>',
-  friends:'<circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.5 0 5 1.5 6 4.5"/>',
+  party:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.8"/><circle cx="16" cy="8" r="1.8"/><circle cx="8" cy="16" r="1.8"/><circle cx="16" cy="16" r="1.8"/>', friends:'<circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.5 0 5 1.5 6 4.5"/>',
   bot:'<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12h.01M15 12h.01M9 16h6"/>',
   coach:'<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c2.5 2 7.5 2 10 0v-5M21 9v6"/>',
   phone:'<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
@@ -1663,7 +1663,7 @@ function renderPlay(){
   <button class="timebtn" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} <span aria-hidden="true">▾</span></button>
   <button class="big" type="button" data-act="match">${T("Commencer la partie")}</button>
   <button class="item" type="button" data-act="friend">${ic('friends')}${T("Jouer avec un ami")}</button>
-  <button class="item" type="button" data-act="party">${ic('friends')}${T("Partie à 4")} <span class="newtag">${T("NOUVEAU")}</span></button>
+  <button class="item" type="button" data-act="party">${ic('party')}${T("Partie à 4")}</button>
   <button class="item" type="button" data-act="ai-sheet">${ic('bot')}${T("Jouer contre l'ordinateur")}</button>
   <button class="item" type="button" data-act="coach">${ic('coach')}${T("Jouer avec l'entraîneur")}</button>
   <button class="more" type="button" data-act="more" aria-expanded="${playMore}">${T("Plus")} ${playMore?'▴':'▾'}</button>
