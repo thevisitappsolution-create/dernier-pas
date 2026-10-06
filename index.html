@@ -742,7 +742,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 37,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 38,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -3105,7 +3105,7 @@ if (QS.get('ami')){ const id=QS.get('ami'), ok=addFriend(id, QS.get('n')); histo
   if (pz && PUZ[pz[1]][+pz[2]]){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); sheet={type:'chalin', c:{cat:pz[1], i:+pz[2], t:tt, n:cleanName(QS.get('n')||(T("Ton ami")))}}; view='home'; render(); }
   else if (QS.get('dj')){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); view='home'; render(); } }
 setTimeout(presStart, 600);
-{ const r4=QS.get('r4'); if (r4 && /^[a-z0-9]{5}$/i.test(r4)){ history.replaceState(null,'',location.pathname); P.rules=true; setTimeout(()=>window.Party&&Party.joinCode(r4.toLowerCase()),300); } }
+{ const r4=QS.get('r4'); if (r4 && /^([0-9]{4}|[a-z0-9]{5})$/i.test(r4)){ history.replaceState(null,'',location.pathname); P.rules=true; setTimeout(()=>window.Party&&Party.joinCode(r4.toLowerCase()),300); } }
 if (joinCode && /^[a-z0-9]{5}$/i.test(joinCode)){ history.replaceState(null,'',location.pathname); P.rules=true; goOnline(joinCode.toLowerCase(), false); }
 if ('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(r=>{ r.update(); document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) r.update(); }); }).catch(()=>{});

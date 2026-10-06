@@ -974,3 +974,4 @@ Object.assign(window.EN_DICT,{
 "Viens jouer à 4 sur Lastep ! Code de la salle :": "Come play 4-player Lastep! Room code:"
 });
 Object.assign(window.EN_DICT,{"choisis un pion": "pick a pawn", "touche une case marquée": "tap a marked tile"});
+Object.assign(window.EN_DICT,{"Tape le code que ton ami t'a donné.": "Type the code your friend gave you.", "Créer une salle": "Create a room", "Tu donnes le code à tes amis, ils le tapent, tu lances.": "Give the code to your friends, they type it, you start.", "Dis ce code à tes amis : ils le tapent dans Partie à 4.": "Tell your friends this code: they type it in 4-player game.", "Copier le code": "Copy the code", "Partager le lien": "Share the link", "Code copié": "Code copied"});

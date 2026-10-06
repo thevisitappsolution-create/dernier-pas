@@ -18,6 +18,7 @@
   const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
   const BOTKEYS = ['easy', 'lumi', 'braise', 'medium', 'prof', 'hard', 'expert'];
   const RANKPTS = [null, 5, 2, 0], RANKCOINS = [10, 5, 2, 0];
+  const roomCode = () => String(1000 + Math.floor(Math.random() * 9000)); // 4 chiffres : se dit à voix haute
   const rid = (n = 5) => { const a = 'abcdefghjkmnpqrstuvwxyz23456789'; let s = ''; for (let i = 0; i < n; i++) s += a[Math.floor(Math.random() * a.length)]; return s; };
   const esc4 = (s) => (typeof esc === 'function' ? esc(s) : String(s));
   const tr = (s) => (typeof T === 'function' ? T(s) : s);
@@ -188,7 +189,7 @@
     peer.on('open', () => { if (NET === me) { me.ready = true; draw(); } });
     peer.on('error', (err) => {
       if (NET !== me) return;
-      if (err && err.type === 'unavailable-id') { try { peer.destroy(); } catch (e) {} if (quick) joinRoom(id, true, slot); else hostRoom(rid(), false); return; }
+      if (err && err.type === 'unavailable-id') { try { peer.destroy(); } catch (e) {} if (quick) joinRoom(id, true, slot); else hostRoom(roomCode(), false); return; }
       if (!me.started) { UI.err = tr('Connexion au service en ligne impossible. Vérifie ta connexion internet.'); draw(); }
     });
     peer.on('connection', (c) => {
@@ -328,7 +329,7 @@
 #pt4 .seat{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:2px solid var(--sc);background:#15112d;margin-top:8px}
 #pt4 .seat .av{width:40px;flex:none}#pt4 .seat b{flex:1}
 #pt4 .seat select{font:inherit;padding:7px;border-radius:10px;background:#0d0b1f;color:inherit;border:1px solid #2c2558}
-#pt4 .code{font-family:var(--mono,monospace);font-size:2rem;letter-spacing:.2em;text-align:center;margin:8px 0;color:#2ef2ff;text-shadow:0 0 12px #2ef2ff}
+#pt4 .code{font-family:var(--mono,monospace);font-size:3.4rem;letter-spacing:.25em;text-align:center;margin:8px 0;color:#2ef2ff;text-shadow:0 0 12px #2ef2ff}
 #pt4 input.ci{font:inherit;font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase;padding:10px;border-radius:12px;border:1px solid #2c2558;background:#0d0b1f;color:inherit;width:9ch;text-align:center}
 #pt4 .err{color:#ff8a70;text-align:center}
 #pt4 .podium{list-style:none;padding:0;margin:8px 0}#pt4 .podium li{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;background:#15112d;margin-top:6px;border-left:4px solid var(--sc)}
@@ -336,6 +337,9 @@
 #pt4 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}
 #pt4 .chips button{padding:7px 11px;border-radius:999px;border:1px solid #2c2558;background:#15112d;color:inherit;font:inherit;font-size:.82rem}
 #pt4 .note{color:#a39cd0;font-size:.85rem;text-align:center}
+#pt4 .join4{margin-top:12px;padding:14px;border-radius:16px;border:2px solid #2ef2ff;background:#15112d;box-shadow:0 0 16px #2ef2ff44;text-align:center}
+#pt4 .join4 b{display:block;font-size:1.1rem}#pt4 .join4 small{color:#a39cd0}
+#pt4 .join4 input{display:block;margin:10px auto 0;width:100%;max-width:260px;font-family:var(--mono,monospace);font-size:2.4rem;letter-spacing:.4em;text-align:center;padding:10px;border-radius:14px;border:1px solid #2c2558;background:#0d0b1f;color:#2ef2ff;text-shadow:0 0 10px #2ef2ff}
 #toast,.toast{z-index:90!important}
 `;
   function mount() {
@@ -345,6 +349,7 @@
     document.body.appendChild(root);
     root.addEventListener('click', onClick);
     root.addEventListener('change', onChange);
+    root.addEventListener('input', onInput);
     clearInterval(tick); tick = setInterval(onTick, 250);
     return root;
   }
@@ -394,8 +399,9 @@
     const seatRow = (i) => `<div class="seat" style="--sc:${SEATC[i]}">${av(UI.seats[i].skin || P.skin)}<b>${i === 0 ? esc4(P.name) : UI.seats[i].kind === 'human' ? tr('Joueur') + ' ' + (i + 1) : UI.seats[i].kind === 'ai' ? esc4(UI.seats[i].name) : '—'}</b>${i === 0 ? `<span class="note">${tr('Toi')}</span>` : `<select data-seat="${i}">${opt(i, 'human', tr('Humain'))}${opt(i, 'ai', tr('Ordinateur'))}${opt(i, 'off', tr('Vide'))}</select>`}</div>`;
     return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Retour')}">✕</button><h2>${tr('Partie à 4')}</h2></div>
       <p class="note">${tr('Jusqu\'à 4 joueurs sur un plateau 6×6, un pion et deux sauts chacun. Bloqué à ton tour : éliminé. Le dernier debout gagne.')}</p>
-      <button class="big" data-a="room"><span class="e">👥</span><div><b>${tr('Créer une salle pour mes amis')}</b><small>${tr('Envoie le lien, lance quand tout le monde est là.')}</small></div></button>
-      <div class="big" style="flex-wrap:wrap"><span class="e">🔑</span><b style="flex:1">${tr('Rejoindre une salle')}</b><div style="display:flex;gap:8px;width:100%"><input class="ci" id="pt4code" maxlength="5" placeholder="CODE" autocomplete="off" style="flex:1;min-width:0"><button class="btn pr" data-a="join">${tr('Rejoindre')}</button></div></div>
+      <div class="join4"><b>🔑 ${tr('Rejoindre une salle')}</b><small>${tr('Tape le code que ton ami t\'a donné.')}</small>
+        <input id="pt4code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="• • • •" autocomplete="off" aria-label="${tr('Code de la salle')}"></div>
+      <button class="big" data-a="room"><span class="e">👥</span><div><b>${tr('Créer une salle')}</b><small>${tr('Tu donnes le code à tes amis, ils le tapent, tu lances.')}</small></div></button>
       <h3 style="margin:18px 0 0">📱 ${tr('Sur ce téléphone')}</h3>
       ${[0, 1, 2, 3].map(seatRow).join('')}
       <button class="btn pr" style="width:100%;margin-top:12px" data-a="local">${tr('Lancer la partie')}</button>`;
@@ -411,7 +417,7 @@
     const n = (seats || []).filter(Boolean).length;
     return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Retour')}">✕</button><h2>${quick ? tr('Partie rapide') : tr('Salle privée')}</h2></div>
       ${UI.err ? `<p class="err">${esc4(UI.err)}</p>` : ''}
-      ${!quick && code ? `<p class="note">${tr('Code de la salle')}</p><div class="code">${esc4(String(code).toUpperCase())}</div><div class="acts"><button class="btn" data-a="share">${tr('Envoyer l\'invitation')}</button></div>` : ''}
+      ${!quick && code ? `<p class="note">${host ? tr('Dis ce code à tes amis : ils le tapent dans Partie à 4.') : tr('Code de la salle')}</p><div class="code">${esc4(String(code).toUpperCase())}</div>${host ? `<div class="acts"><button class="btn" data-a="copy">${tr('Copier le code')}</button><button class="btn" data-a="share">${tr('Partager le lien')}</button></div>` : ''}` : ''}
       ${quick ? `<p class="note" data-wait="1">${tr('Recherche de joueurs…')} ${Math.ceil(wait / 1000)} s · ${tr('ensuite, des ordinateurs complètent la table.')}</p>` : ''}
       ${rows}
       ${host && !quick ? `<button class="btn pr" style="width:100%;margin-top:12px" data-a="start" ${n < 2 ? 'disabled' : ''}>${tr('Lancer la partie')} (${n}/4)</button><p class="note">${tr('Les places vides seront jouées par l\'ordinateur.')}</p>` : ''}
@@ -453,13 +459,22 @@
     if (a === 'local') { leaveNet(); const seats = UI.seats.map((s, i) => s.kind === 'human' ? { kind: 'human', name: i === 0 ? P.name : tr('Joueur') + ' ' + (i + 1), skin: i === 0 ? P.skin : { ...P.skin, color: ['azur', 'corail', 'rose', 'or'][i] } } : s.kind === 'ai' ? { kind: 'ai', ...botSeat(i) } : { kind: 'off' });
       if (seats.filter(s => s.kind !== 'off').length < 2) { toast(tr('Il faut au moins 2 joueurs.')); return; } newGame(seats); return; }
     if (a === 'quick') return quickMatch(0);
-    if (a === 'room') return hostRoom(rid(), false);
-    if (a === 'join') { const v = (root.querySelector('#pt4code') || {}).value || ''; const code = v.toLowerCase().replace(/[^a-z0-9]/g, ''); if (code.length !== 5) { toast(tr('Le code fait 5 caractères.')); return; } return joinRoom('lastep-r4-' + code, false); }
+    if (a === 'room') return hostRoom(roomCode(), false);
+    if (a === 'copy') return copyCode();
     if (a === 'start') return startOnline();
     if (a === 'share') return share();
     if (a === 'again') { if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats); } else if (!NET) newGame(PT.seats.map(s => ({ ...s }))); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
     if (a === 'say') return sendPhrase(b.dataset.v);
+  }
+  function onInput(e) {
+    if (e.target.id !== 'pt4code') return;
+    const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 4); e.target.value = v;
+    if (v.length === 4) { e.target.blur(); joinRoom('lastep-r4-' + v, false); }
+  }
+  async function copyCode() {
+    if (!NET || !NET.code) return;
+    try { await navigator.clipboard.writeText(NET.code); toast(tr('Code copié')); } catch (e) { toast(tr('Copie impossible')); }
   }
   function onChange(e) {
     const s = e.target.closest('[data-seat]'); if (!s) return;
@@ -469,7 +484,7 @@
   }
   async function share() {
     if (!NET || !NET.code) return;
-    const url = `${location.origin}${location.pathname}?r4=${NET.code}`, text = `${tr('Viens jouer à 4 sur Lastep ! Code de la salle :')} ${NET.code.toUpperCase()}`;
+    const url = `${location.origin}${location.pathname}?r4=${NET.code}`, text = `${tr('Viens jouer à 4 sur Lastep ! Code de la salle :')} ${NET.code}`;
     try { if (navigator.share) { await navigator.share({ title: 'Lastep', text, url }); return; } } catch (e) { return; }
     try { await navigator.clipboard.writeText(`${text}\n${url}`); toast(tr('Lien copié')); } catch (e) { toast(tr('Copie impossible')); }
   }
@@ -486,7 +501,7 @@
   }
   window.Party = {
     open, close,
-    joinCode(code) { open('lobby'); joinRoom('lastep-r4-' + code, false); },
+    joinCode(code) { open('lobby'); joinRoom('lastep-r4-' + String(code).toLowerCase(), false); },
     get state() { return PT; }, get net() { return NET; },
     _gen: gen, _ai: aiPick,
   };
