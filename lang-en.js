@@ -941,3 +941,36 @@ window.EN_DICT={
 "Langue": "Language",
 "Fin de partie": "Game over"
 };
+// Partie à 4
+Object.assign(window.EN_DICT,{
+"Partie à 4": "4-player game",
+"NOUVEAU": "NEW",
+"est éliminé (absent).": "is out (away).",
+"est bloqué : éliminé !": "is blocked: out!",
+"fait le dernier pas !": "takes the last step!",
+"a quitté : l'ordinateur le remplace.": "left: the computer takes over.",
+"L'hôte a quitté la partie.": "The host left the game.",
+"Cette salle est complète ou la partie a déjà commencé.": "This room is full or the game has already started.",
+"Éliminé": "Out",
+"Jusqu'à 4 joueurs sur un plateau 6×6, un pion et deux sauts chacun. Bloqué à ton tour : éliminé. Le dernier debout gagne.": "Up to 4 players on a 6×6 board, one pawn and two jumps each. Blocked on your turn: you're out. Last one standing wins.",
+"Partie rapide en ligne": "Quick online game",
+"Avec d'autres joueurs. S'il en manque, des ordinateurs complètent la table.": "With other players. If some are missing, computers fill the table.",
+"Créer une salle pour mes amis": "Create a room for my friends",
+"Envoie le lien, lance quand tout le monde est là.": "Send the link, start when everyone's in.",
+"Rejoindre une salle": "Join a room",
+"Sur ce téléphone": "On this phone",
+"Humain": "Human",
+"Vide": "Empty",
+"Lancer la partie": "Start the game",
+"En attente…": "Waiting…",
+"Partie rapide": "Quick game",
+"Salle privée": "Private room",
+"Code de la salle": "Room code",
+"Recherche de joueurs…": "Looking for players…",
+"ensuite, des ordinateurs complètent la table.": "then computers fill the table.",
+"Les places vides seront jouées par l'ordinateur.": "Empty seats will be played by the computer.",
+"L'hôte lance la partie quand tout le monde est là.": "The host starts the game when everyone's in.",
+"Il faut au moins 2 joueurs.": "You need at least 2 players.",
+"Viens jouer à 4 sur Lastep ! Code de la salle :": "Come play 4-player Lastep! Room code:"
+});
+Object.assign(window.EN_DICT,{"choisis un pion": "pick a pawn", "touche une case marquée": "tap a marked tile"});
