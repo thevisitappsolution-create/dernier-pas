@@ -723,7 +723,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: 'contact@exemple.fr',
-  version: 29,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 30,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1682,7 +1682,7 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
-  w.classList.toggle('center', ['ldone','limit'].includes(sheet.type));
+  w.classList.toggle('center', ['ldone','limit','chalin'].includes(sheet.type));
   w.hidden=false;
   if (sheet.type==='chat' && sheetKey==='chat'){ updateChatLog(); return; }
   const html='<div class="grab" aria-hidden="true"></div><button class="xclose" type="button" data-act="sheet-close" aria-label="Fermer">✕</button>'+sheetHTML();
@@ -1780,6 +1780,7 @@ function sheetHTML(){
   if (s.type==='ldone') return `<div class="modicon">🎓</div><h2 style="padding:0">Leçon terminée !</h2><p>Bien joué, ${esc(P.name)}. Tu as maîtrisé <b>${esc(TR&&TR.L?TR.L.t:'')}</b>.</p><button class="primary" type="button" data-act="tr-quit">Terminer</button>`;
   if (s.type==='limit') return `<div class="modicon">${s.pz?'🧩':'🎓'}</div><span class="limtag">${s.prem?'COURS PREMIUM':'LIMITE QUOTIDIENNE ATTEINTE'}</span><h2 style="padding:0">${s.pz?'Des puzzles illimités':'Des cours illimités'}</h2><p>${s.prem?'Ce cours fait partie de Premium.':s.pz?`Tes ${PZ_DAY} puzzles du jour sont faits. Reviens demain, ou passe Premium.`:'Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium.'}</p><button class="primary" type="button" data-act="go-shop">Passer Premium</button>`;
   if (s.type==='badges') return `<h2>Badges</h2>${badgesHTML()}`;
+  if (s.type==='chalin') return `<div class="modicon">🧩</div><h2 style="padding:0">${esc(s.c.n)} te défie !</h2><p>Il a résolu ce puzzle en ${s.c.t} s. Fais mieux ?</p><button class="primary" type="button" data-act="chal-go">Relever le défi</button>`;
   if (s.type==='info') return `<h2>${esc(s.t)}</h2><p>${esc(s.p)}</p><button class="primary" type="button" data-act="sheet-close">D'accord</button>`;
   if (s.type==='games'){
     const f=s.f||'all', list=realGames().filter(g=>f==='all'||g.src===f).reverse();
@@ -1891,6 +1892,7 @@ document.addEventListener('click', e=>{
     case 'pz-stop': if (TR && TR.state==='play') trDone(false); break;
     case 'pz-chal': if (TR && TR.ms) shareChallenge(TR.cat, TR.idx, Math.max(1,Math.round(TR.ms/1000))); break;
     case 'chal-back': if (sheet && sheet.c) shareChallenge(sheet.c.cat, sheet.c.i, sheet.s); break;
+    case 'chal-go': { const c=sheet&&sheet.c; sheet=null; if (c) startChal(c); } break;
     case 'chal-retry': if (sheet && sheet.c){ const c=sheet.c; sheet=null; startChal(c); } break;
     case 'clip': openClip(); break;
     case 'clip-share': clipShare(); break;
@@ -3049,14 +3051,14 @@ function markActive(){
 const streakNow = () => { const st=P.streak||{}, y=new Date(); y.setDate(y.getDate()-1); return st.last===dayKey()||st.last===dayKey(y) ? st.n||0 : 0; };
 
 initWorker();
-if (!P.rules && !new URLSearchParams(location.search).get('join') && !new URLSearchParams(location.search).get('pz') && !new URLSearchParams(location.search).get('dj')){ P.rules=true; saveP(); TUTO=true; setTimeout(()=>startLesson(0), 300); }
+if (!P.rules && !new URLSearchParams(location.search).get('join') && !new URLSearchParams(location.search).get('pz') && !new URLSearchParams(location.search).get('dj')){ P.rules=true; saveP(); }
 render();
 const QS=new URLSearchParams(location.search), joinCode = QS.get('join');
 if (QS.get('ami')){ const id=QS.get('ami'), ok=addFriend(id, QS.get('n')); history.replaceState(null,'',location.pathname);
   if (ok){ toast(`${cleanName(QS.get('n')||'Ton ami')} ajouté à tes amis`); if (!P.refBy){ P.refBy=String(id).toLowerCase(); P.coins=(P.coins||0)+100; saveP(); toast('Bienvenue : +100 pièces grâce à ton ami'); } } }
 { const pz=/^(win1|win2|win3|adv)\.(\d{1,2})$/.exec(QS.get('pz')||''); const tt=Math.max(1,Math.min(999,+QS.get('t')||0));
-  if (pz && PUZ[pz[1]][+pz[2]]){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); setTimeout(()=>startChal({cat:pz[1], i:+pz[2], t:tt, n:cleanName(QS.get('n')||'Ton ami')}), 400); }
-  else if (QS.get('dj')){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); setTimeout(startDJ, 400); } }
+  if (pz && PUZ[pz[1]][+pz[2]]){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); sheet={type:'chalin', c:{cat:pz[1], i:+pz[2], t:tt, n:cleanName(QS.get('n')||'Ton ami')}}; view='home'; render(); }
+  else if (QS.get('dj')){ history.replaceState(null,'',location.pathname); P.rules=true; saveP(); view='home'; render(); } }
 setTimeout(presStart, 600);
 if (joinCode && /^[a-z0-9]{5}$/i.test(joinCode)){ history.replaceState(null,'',location.pathname); P.rules=true; goOnline(joinCode.toLowerCase(), false); }
 if ('serviceWorker' in navigator && location.protocol==='https:'){
