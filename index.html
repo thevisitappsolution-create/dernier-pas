@@ -274,7 +274,12 @@ button{font:inherit;color:inherit}
 .cm{max-width:80%;padding:7px 11px;border-radius:12px;background:var(--raise);font-size:.92rem;align-self:flex-start;overflow-wrap:anywhere}
 .cm.me{align-self:flex-end;background:color-mix(in srgb,var(--accent) 22%,var(--raise))}
 .cm small{display:block;font-family:var(--mono);font-size:.65rem;color:var(--muted)}
-.quick{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px}
+.phl{margin:10px 0 4px;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.phc{font-family:var(--mono);font-size:.85rem;color:var(--neon1,#2ef2ff);margin-left:6px}
+.phgrid{display:flex;flex-wrap:wrap;gap:8px;max-height:46vh;overflow-y:auto}
+.phgrid button{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:none;color:inherit;font:inherit;font-size:.85rem;text-align:left;cursor:pointer}
+.phgrid button[aria-pressed="true"]{border-color:#ff3dd8;background:#ff3dd822;box-shadow:0 0 12px #ff3dd866}
 .quick button{flex:none;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:none;font-size:.82rem;cursor:pointer}
 .chatform{display:flex;gap:8px}
 .chatform input{flex:1;min-width:0;font:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--felt);color:var(--ink)}
@@ -724,7 +729,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: 'contact@exemple.fr',
-  version: 32,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 33,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -877,7 +882,18 @@ const BOTS={
   expert:{name:'Le Sphinx', skin:{color:'or',fur:'poils',eyes:'ronds',acc:'couronne'},
     taunt:['Je vois la fin. Elle ne te plaît pas.','Intéressant. Faux, mais intéressant.','Respire, ça va bien se passer. Pour moi.'], win:['Comme prévu.','Reviens quand tu seras prêt.'], lose:['Remarquable. Je me souviendrai de toi.'], hit:['Un wizz ? Quelle audace.','Ton agitation me nourrit.'], chat:['Silence.','Joue.','Les mots ne déplacent aucun pion.']},
 };
-const QUICK=['Trop facile.','Tu es bloqué ?','Bien joué.','Revanche ?','On se calme.','Au revoir.'];
+/* Phrases toutes faites : seul l'identifiant circule en ligne (pas de texte libre entre inconnus) */
+const PHRASES={
+  pol:{n:'Politesse', l:{p1:'Salut !',p2:'Bonne partie !',p3:'GG',p4:'Bien joué.',p5:'Merci !',p6:'Au revoir.'}},
+  enc:{n:'Encouragements', l:{e1:'Joli coup !',e2:'Bravo !',e3:'Pas mal du tout.',e4:'Oups.',e5:'Revanche ?',e6:'On se calme.'}},
+  pique:{n:'Piques', l:{q1:'Trop facile.',q2:'Tu es bloqué ?',q3:'Tes cases fondent.',q4:'Le dernier pas, c\'est pour moi.',q5:'Tu cherches la sortie ?',
+    q6:'Garde ton saut, tu vas en avoir besoin.',q7:'Même Pépin joue mieux.',q8:'Je vois ta défaite d\'ici.',q9:'Respire, ça va bien se passer. Pour moi.',
+    q10:'C\'était ton plan, ça ?',q11:'Il te reste combien de cases ?',q12:'Tu sens le plateau se refermer ?',q13:'Prends ton temps… ou pas.',
+    q14:'Un seul saut. Tu l\'as gaspillé.',q15:'Tu veux un indice ?',q16:'Je t\'attends au prochain coup.',q17:'Le sol tremble sous tes pieds.',
+    q18:'Ça sent la fin.',q19:'Zéro case, zéro chance.',q20:'Bloqué. Comme prévu.'}}};
+const PH_MAX=5, PH_DEF=['q1','q2','q3','q4','q5'];
+const phText = id => { for (const g of Object.values(PHRASES)) if (g.l[id]) return g.l[id]; return null; };
+const myPiques = () => (Array.isArray(P.piques) ? P.piques.filter(id=>PHRASES.pique.l[id]) : PH_DEF).slice(0,PH_MAX);
 const SAMPLE_STARS=[{n:'Mira',e:1912,s:{color:'or',fur:'poils',eyes:'etoiles',acc:'couronne'}},{n:'Kilian',e:1868,s:{color:'nuit',fur:'pointes',eyes:'colere',acc:'cornes'}},{n:'Sacha',e:1801,s:{color:'rose',fur:'lisse',eyes:'joyeux',acc:'aureole'}},{n:'Noé',e:1755,s:{color:'menthe',fur:'cube',eyes:'ronds',acc:'lunettes'}},{n:'Lou',e:1720,s:{color:'lavande',fur:'poils',eyes:'ronds',acc:'noeud'}}];
 const SAMPLE_FRIENDS=[{n:'Yanis',e:1184,d:+42,s:{color:'corail',fur:'lisse',eyes:'colere',acc:'casquette'}},{n:'Inès',e:1312,d:+18,s:{color:'azur',fur:'poils',eyes:'joyeux',acc:'noeud'}},{n:'Théo',e:962,d:-12,s:{color:'ivoire',fur:'cube',eyes:'ronds',acc:'aucun'}}];
 
@@ -1235,11 +1251,11 @@ function addChat(side, text, mine){
   if (sheet && sheet.type==='chat') updateChatLog();
   if (view==='game') renderActions();
 }
-function sendChat(text){
-  text=String(text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,80); if (!text || !G) return;
+function sendChat(id){
+  const text=phText(id); if (!text || !G) return;
   const me=humanSeat()===null?0:humanSeat();
   addChat(me, text, true);
-  if (online()) netSend({t:'chat', text});
+  if (online()) netSend({t:'chat', id});
   if (vsAI && Math.random()<.6) setTimeout(()=>botSay('chat'), 900+Math.random()*900);
 }
 const WZ_SENT={wizz:'Wizz envoyé !', toc:'Toc toc toc envoyé !', haha:'Hahaha envoyé !'};
@@ -1353,7 +1369,7 @@ function onNetData(d){
   if (d.t==='nb'){ if (PEERS[other]) PEERS[other].nb=!!d.v; renderActions(); return; }
   if (d.t==='resign' && M && !M.done && (net.seat===0||net.seat===1)){
     forfeitWin(`${S[other].name} abandonne la partie.`); return; }
-  if (d.t==='chat') { addChat(other, String(d.text||'').slice(0,80), false); return; }
+  if (d.t==='chat') { const tx=phText(d.id); if (tx) addChat(other, tx, false); return; }
   if (d.t==='wizz' && G) { receiveWizz(['toc','haha'].includes(d.k)?d.k:'wizz', other); return; }
 }
 function wireConn(conn){
@@ -1795,8 +1811,18 @@ function sheetHTML(){
     <label class="toggle"><span>Sons</span><input type="checkbox" id="o-sound" ${P.sound?'checked':''}></label>
     <label class="toggle"><span>Musique</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
     ${M&&M.done&&!online()?`<button class="secondary" type="button" data-act="leave-game">Retour au menu</button>`:s.confirm?`<button class="danger" type="button" data-act="leave-game">${online()?'Quitter la partie':'Confirmer l\'abandon'}${vsAI&&M&&!M.train?' (compte comme une défaite)':''}</button>`:`<button class="danger" type="button" data-act="ask-leave">${online()?'Quitter':'Abandonner'}</button>`}`;
-  if (s.type==='chat') return `<h2>Messages</h2><div class="chatlog" id="chatlog"></div><div class="quick">${QUICK.map(q=>`<button type="button" data-act="quick-msg" data-v="${esc(q)}">${esc(q)}</button>`).join('')}</div>
-    <form class="chatform" id="chatform" autocomplete="off"><input id="chatin" maxlength="80" placeholder="Écris un message…" aria-label="Message"><button class="primary" type="submit">Envoyer</button></form>`;
+  if (s.type==='chat'){
+    const row=(t,ids)=>`<p class="phl">${t}</p><div class="quick">${ids.map(id=>`<button type="button" data-act="quick-msg" data-v="${id}">${esc(phText(id))}</button>`).join('')}</div>`;
+    return `<h2>Messages</h2><div class="chatlog" id="chatlog"></div>
+    ${row('Mes piques',myPiques())}${row('Politesse',Object.keys(PHRASES.pol.l))}${row('Encouragements',Object.keys(PHRASES.enc.l))}
+    <button class="secondary" type="button" data-act="piques" style="width:100%;margin-top:10px">Choisir mes ${PH_MAX} piques</button>`;
+  }
+  if (s.type==='piques'){
+    const mine=myPiques();
+    return `<h2>Mes piques <span class="phc">${mine.length}/${PH_MAX}</span></h2><p>Choisis les ${PH_MAX} phrases que tu pourras envoyer pendant tes parties.</p>
+    <div class="phgrid">${Object.entries(PHRASES.pique.l).map(([id,t])=>`<button type="button" data-act="pique-tog" data-v="${id}" aria-pressed="${mine.includes(id)}">${esc(t)}</button>`).join('')}</div>
+    <button class="primary" type="button" data-act="${G?'chat':'sheet-close'}" style="width:100%;margin-top:12px">Valider</button>`;
+  }
   if (s.type==='results'){
     const recap=M.rounds.map((r,k)=>`<li>Manche ${k+1} · ${BOARDS[r.bid].name} : <b>${esc(S[r.w].name)}</b> · +${r.pts!=null?r.pts:10+r.sum} pts (10 + ${r.sum} cases)${losePts(r.sum)?`, perdant +${losePts(r.sum)} pts`:''} · ${r.moves} coups</li>`).join('');
     let h=`<h2>${M.done?`${esc(S[mWinner()].name)} gagne ${Math.max(...M.wins)}-${Math.min(...M.wins)}`:`${esc(S[G.winner].name)} gagne la manche`}</h2><ul class="recap">${recap}</ul>`;
@@ -1955,6 +1981,8 @@ document.addEventListener('click', e=>{
     case 'undo': undo(); break;
     case 'chat': unread=0; sheet={type:'chat'}; render(); break;
     case 'quick-msg': sendChat(v); break;
+    case 'piques': sheet={type:'piques'}; render(); break;
+    case 'pique-tog': { const m=myPiques(); const i=m.indexOf(v); if (i>=0) m.splice(i,1); else if (m.length>=PH_MAX){ toast(`${PH_MAX} piques maximum : retire-en une d'abord`); break; } else m.push(v); P.piques=m; saveP(); render(); break; }
     case 'wizz': sendWizz('wizz'); break;
     case 'toc': sendWizz('toc'); break;
     case 'haha': sendWizz('haha'); break;
@@ -1993,7 +2021,7 @@ document.addEventListener('submit', e=>{
   if (e.target.id==='joinform'){ const v=($('#code').value||'').trim().toLowerCase(); if (!/^[a-z0-9]{5}$/.test(v)){ $('#join-err').hidden=false; return; } goOnline(v,false); }
   if (e.target.id==='adminform'){ const v=($('#admcode').value||'').trim(); if (v==='2026'){ P.premium=true; saveP(); sheet=null; toast('Premium débloqué (administrateur)'); render(); } else { $('#adm-err').hidden=false; $('#admcode').value=''; } }
   if (e.target.id==='frform'){ const v=($('#frcode').value||'').toLowerCase().replace(/[^a-z0-9]/g,''); if (v.length!==8 || v===P.uid){ $('#fr-err').hidden=false; return; } if (addFriend(v)){ sheet=null; toast('Ami ajouté. Il apparaîtra en ligne dès qu\'il ouvre le jeu.'); render(); } else { sheet=null; toast('Cet ami est déjà dans ta liste.'); render(); } }
-  if (e.target.id==='chatform'){ const i=$('#chatin'); sendChat(i.value); i.value=''; i.focus(); }
+  
 });
 
 /* ---------- Pendule ---------- */
