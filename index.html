@@ -556,6 +556,14 @@ details.sec>.in{display:flex;flex-direction:column;gap:10px;padding:0 14px 14px}
 .pcard .row{display:flex;gap:10px;width:100%}
 .pcard .row>*{flex:1}
 .big2{font-size:1.2rem;padding:16px}
+.rwin{width:84px;height:84px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.rwin svg{width:100%;height:100%}
+.rscore{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}
+.rscore>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:16px;background:#0006;border:2px solid var(--pc)}
+.rscore i{width:10px;height:10px;border-radius:50%;background:var(--pc)}
+.rscore b{font-size:.85rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rscore span{font-family:var(--fun);font-size:2.4rem;line-height:1;color:#fff}
+.rscore em{font-style:normal;font-size:1.6rem;opacity:.6}
 .stbig{font-size:1.5rem;letter-spacing:3px;color:#ffe14d;text-shadow:0 0 10px #ffe14d99}
 .prog{height:12px;border-radius:999px;background:#241d4a;overflow:hidden}
 .prog i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#b6ff3b,#2ef2ff);box-shadow:0 0 10px #2ef2ff}
@@ -876,7 +884,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 49,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 50,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1777,7 +1785,7 @@ function renderGame(){
   const routine = !TR && !G.bombPhase && !G.over && !G.msg && !(premove && !myTurn) && seat!==null;
   if (routine && ((P.stat && P.stat.games) || 0) >= 3) txt='';
   st.innerHTML=txt; st.classList.toggle('msg', isMsg);
-  renderActions(); fitBoard();
+  renderActions(); fitBoard(); roundAnnounce();
 }
 function fitBoard(){
   const g=$('#game'), b=$('#board'); if (!g || g.hidden || !b) return;
@@ -2189,7 +2197,7 @@ document.addEventListener('click', e=>{
     case 'haha': sendWizz('haha'); break;
     case 'analyze': analyze(M.rounds.length); break;
     case 'results': sheet={type:'results'}; render(); break;
-    case 'next': if (canAct()){ sheet=null; M.round++; M.starter=M.next; startRound(); } break;
+    case 'next': if (canAct()){ sheet=null; $('#party').hidden=true; stopConfetti(); M.round++; M.starter=M.next; startRound(); } break;
     case 'new': if (canAct()){ $('#party').hidden=true; stopConfetti(); sheet=null; const go=()=>startMatch(); (M&&M.done&&!online()?adInter():Promise.resolve()).then(go); } break;
     case 'party-close': $('#party').hidden=true; stopConfetti(); break;
     case 'party-analyze': $('#party').hidden=true; stopConfetti(); analyze(M.rounds.length); break;
@@ -2612,6 +2620,33 @@ function trSheetHTML(){
     ${win&&pz&&tr.ms?`<p style="text-align:center">${T("Réussi en")} <b>${Math.max(1,Math.round(tr.ms/1000))} s</b>.</p><button class="secondary" type="button" data-act="pz-chal">${T("Défier un ami sur ce puzzle")}</button>`:''}
     <div class="row">${win?`<button class="primary" type="button" data-act="tr-next">${T("Suivant")}</button>`:`<button class="primary" type="button" data-act="tr-restart">${T("Réessayer")}</button>${pz?'':`<button class="secondary" type="button" data-act="tr-sol">${P.premium?(T("Voir la solution")):(T("Solution · Premium"))}</button>`}`}</div>
     <button class="secondary" type="button" data-act="tr-quit">${tr.kind==='puzzle'?(T("Retour au parcours")):(T("Retour à la liste"))}</button>`;
+}
+
+/* ---------- Annonce de fin de manche (ordi, en ligne, à deux) : qui a gagné, le score, la suite ---------- */
+let RANN='';
+function roundAnnounce(){
+  const box=$('#party');
+  // l'adversaire a lancé la manche suivante : on referme l'annonce
+  if (box.dataset.kind==='round' && !box.hidden && (!G || !G.over || !M || RANN!==M.id+':'+G.round)){ box.hidden=true; stopConfetti(); box.dataset.kind=''; }
+  if (!G || !M || TR || !G.over || M.done || G.winner==null) return;
+  const key=M.id+':'+G.round; if (RANN===key) return; RANN=key;
+  setTimeout(()=>{ if (G && M && G.over && !M.done && RANN===M.id+':'+G.round) showRoundCard(); }, 900);
+}
+function showRoundCard(){
+  const box=$('#party'), w=G.winner, me=humanSeat(), iWon=me===null||me===w, opp=me===null?1-w:1-me, mine=me===null?w:me;
+  const pts=matchPts(), r=M.rounds[M.rounds.length-1]||{}, nx=M.next;
+  box.dataset.kind='round'; box.style.setProperty('--pc', S[w].hex);
+  const title = me!==null && w===me ? `${T("Tu gagnes la manche")} ${G.round} !` : `${esc(S[w].name)} ${T("remporte la manche")} ${G.round}`;
+  $('#partyCard').innerHTML=`<p class="lvtag">${T("Fin de la manche")} ${G.round}</p>
+    <div class="av rwin">${pawnSVG(S[w].skin,S[w].hex)}</div>
+    <h2 class="wtitle sm">${title}</h2>
+    ${G.msg?`<p class="sub">${esc(G.msg)}</p>`:''}
+    <div class="rscore"><div style="--pc:${S[mine].hex}"><i></i><b>${esc(S[mine].name)}</b><span>${M.wins[mine]}</span><small>${pts[mine]} pts</small></div><em>–</em><div style="--pc:${S[opp].hex}"><i></i><b>${esc(S[opp].name)}</b><span>${M.wins[opp]}</span><small>${pts[opp]} pts</small></div></div>
+    <p class="sub">${T("Points de la manche")} : +${r.pts!=null?r.pts:10} · ${T("Manche")} ${G.round+1} : <b>${esc(S[nx].name)}</b> ${T3(S[nx].name,'commence')}</p>
+    ${canAct()?`<button class="primary big2" type="button" data-act="next" style="width:100%">${T("Manche")} ${G.round+1} ▶</button>`:''}
+    <button class="secondary" type="button" data-act="party-close" style="width:100%">${T("Voir le plateau")}</button>`;
+  box.hidden=false;
+  if (iWon){ vibrate([20,40,20]); fxRun('confettis', S[w].hex, box.querySelector('canvas')); }
 }
 
 /* ---------- Célébration ---------- */

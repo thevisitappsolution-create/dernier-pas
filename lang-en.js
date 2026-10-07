@@ -1006,3 +1006,7 @@ Object.assign(window.EN_DICT, {
   "Ligue de la semaine":"Weekly league","Jour":"Day","jour":"day","Coffre de jeu":"Play chest","Ouvrir !":"Open!","Ligue":"League","Seul contre le jeu":"Solo against the game",
   "Contre de vrais joueurs":"Against real players","steps":"steps","Combattre":"Fight","Du jour":"Daily","Chrono":"Timed","Temps écoulé !":"Time's up!","Gratuit":"Free","Joueur":"Player"
 });
+Object.assign(window.EN_DICT, {
+  "Tu gagnes la manche":"You win round","remporte la manche":"wins round","Fin de la manche":"End of round",
+  "Points de la manche":"Round points","Voir le plateau":"See the board"
+});
