@@ -743,7 +743,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 40,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 41,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1665,7 +1665,7 @@ function renderPlay(){
   <button class="timebtn" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} <span aria-hidden="true">▾</span></button>
   <button class="big" type="button" data-act="match">${T("Commencer la partie")}</button>
   <button class="item" type="button" data-act="friend">${ic('friends')}${T("Jouer avec un ami")}</button>
-  <button class="item" type="button" data-act="party">${ic('party')}${T("Partie à 4")}</button>
+  <button class="item" type="button" data-act="party">${ic('party')}${T("Jouer une partie à 4")}</button>
   <button class="item" type="button" data-act="ai-sheet">${ic('bot')}${T("Jouer contre l'ordinateur")}</button>
   <button class="item" type="button" data-act="coach">${ic('coach')}${T("Jouer avec l'entraîneur")}</button>
   <button class="more" type="button" data-act="more" aria-expanded="${playMore}">${T("Plus")} ${playMore?'▴':'▾'}</button>

@@ -137,7 +137,7 @@
     const rank = [PT.winner, ...PT.place.slice().reverse().filter(x => x !== PT.winner)];
     const vs = visibleSum(PT);
     PT.rank = rank; PT.pts = {}; rank.forEach((s, i) => { PT.pts[s] = i === 0 ? 10 + vs : RANKPTS[i] ?? 0; });
-    PT.msg = `${PT.seats[PT.winner].name} ${tr('fait le dernier pas !')}`; PT.ver++;
+    PT.msg = PT.winner === mySeat() && !(!NET && PT.seats.filter(x => x.kind === 'human').length > 1) ? tr('Tu fais le dernier pas !') : `${PT.seats[PT.winner].name} ${tr('fait le dernier pas !')}`; PT.ver++;
     try { sfx.round(); } catch (e) {}
     reward(); broadcast(); draw();
   }
@@ -309,13 +309,14 @@
 #pt4 .pc .tm{position:absolute;left:8px;right:8px;bottom:3px;height:3px;border-radius:2px;background:var(--sc);transform-origin:left}
 #pt4 .bub{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 6px);background:#fff;color:#0a0718;font-weight:800;font-size:.8rem;padding:6px 10px;border-radius:12px;white-space:nowrap;z-index:3;box-shadow:0 4px 0 #0006}
 #pt4 .rows.bottom .bub{bottom:auto;top:calc(100% + 6px)}
+#pt4 *,#pt4 *::before,#pt4 *::after{box-sizing:border-box}
 #pt4 .bd{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px;margin:10px auto;width:100%;max-width:min(100%,calc(100dvh - 330px));border-radius:14px;background:linear-gradient(180deg,#120e28,#0d0b1f);box-shadow:0 0 0 1px #8f7bff55,0 0 30px #8f7bff40}
 #pt4 .cl{aspect-ratio:1;border-radius:8px;border:2px solid var(--tc);background:color-mix(in srgb,var(--tc) 14%,#0b0918);color:var(--tc);display:grid;place-items:center;font-weight:800;font-size:clamp(.8rem,4vw,1.3rem);text-shadow:0 0 8px var(--tc);box-shadow:0 0 8px color-mix(in srgb,var(--tc) 60%,transparent),inset 0 0 8px color-mix(in srgb,var(--tc) 40%,transparent);padding:0}
 #pt4 .cl.h{border-color:transparent;background:#05040a;box-shadow:none}
 #pt4 .cl.t{outline:3px solid #fff;outline-offset:-3px}
 #pt4 .cl.tj{outline:3px dashed #b6ff3b;outline-offset:-3px}
 #pt4 .cl.fr{box-shadow:0 0 0 2px #ffffff55 inset}
-#pt4 .pw{position:absolute;width:calc((100% - 12px) / 6);aspect-ratio:1;transition:left .22s,top .22s,transform .2s;pointer-events:none;display:grid;place-items:center}
+#pt4 .pw{position:absolute;width:calc((100% - 32px) / 6);aspect-ratio:1;transition:left .22s,top .22s,transform .2s;pointer-events:none;display:grid;place-items:center}
 #pt4 .pw .rg{position:absolute;inset:12%;border-radius:50%;box-shadow:0 0 0 3px var(--sc),0 0 14px var(--sc)}
 #pt4 .pw svg{width:86%;position:relative}
 #pt4 .pw.sel{transform:scale(1.15)}
@@ -373,7 +374,7 @@
     const cells = PT.cells.map((v, i) => `<button type="button" class="cl${v === 0 ? ' h' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}</button>`).join('');
     const pawns = PT.pawns.map((ps, s) => ps.map((pos, k) => {
       const r = Math.floor(pos / N), c = pos % N;
-      return `<div class="pw${my && s === PT.turn && UI.sel === k ? ' sel' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * (100% - 12px) / 6);top:calc(6px + ${r} * (100% - 12px) / 6)"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
+      return `<div class="pw${my && s === PT.turn && UI.sel === k ? ' sel' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * ((100% - 32px) / 6 + 4px));top:calc(6px + ${r} * ((100% - 32px) / 6 + 4px))"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
     }).join('')).join('');
     const turnName = PT.turn >= 0 && PT.seats[PT.turn] ? PT.seats[PT.turn].name : '';
     const many = !NET && PT.seats.filter(x => x.kind === 'human').length > 1;
