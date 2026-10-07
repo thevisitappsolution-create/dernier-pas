@@ -884,7 +884,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 50,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 51,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1205,28 +1205,48 @@ const sfx={
 };
 /* Musique du jeu : le thème officiel de Lastep (music.mp3), en boucle pendant les parties */
 const MUSIC={el:null, gain:null, on:false};
+// La musique démarre au début de chaque nouvelle partie et continue entre les manches.
+// En ligne, elle est calée sur l'heure de début de la partie (M.mt), partagée par les deux joueurs : même morceau, même moment.
+function acMusic(){ try { if (!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if (AC.state==='suspended') AC.resume(); } catch(e){ AC=null; } return AC; }
+function musicEl(){
+  if (MUSIC.el) return MUSIC.el;
+  const c=acMusic(); if (!c) return null;
+  const el=new Audio('music.mp3'); el.loop=true; el.preload='auto'; el.setAttribute('playsinline','');
+  MUSIC.el=el; MUSIC.gain=c.createGain(); MUSIC.gain.gain.value=0;
+  try { c.createMediaElementSource(el).connect(MUSIC.gain).connect(c.destination); } catch(e){}
+  return el;
+}
+function musicSync(){
+  const el=MUSIC.el; if (!el || !M) return;
+  const mt=M.mt || 0, dur=el.duration;
+  if (!mt){ if (MUSIC.mid!==M.id){ try { el.currentTime=0; } catch(e){} } MUSIC.mid=M.id; return; }
+  if (!dur || !isFinite(dur)){ el.addEventListener('loadedmetadata', musicSync, {once:true}); return; }
+  const want=Math.max(0, (Date.now()-mt)/1000) % dur;
+  if (MUSIC.mt!==mt || Math.abs(el.currentTime-want)>0.6){ try { el.currentTime=want; } catch(e){} }
+  MUSIC.mt=mt; MUSIC.mid=M.id;
+}
 function musicStart(){
   if (!P.music) return;
-  const mid=M&&M.id;
-  if (MUSIC.el && mid && MUSIC.mid!==mid){ try { MUSIC.el.currentTime=0; } catch(e){} }
-  if (mid) MUSIC.mid=mid;
-  if (MUSIC.on) return;
-  const c=ac(); if (!c) return;
-  if (!MUSIC.el){
-    const el=new Audio('music.mp3'); el.loop=true; el.preload='auto';
-    MUSIC.el=el; MUSIC.gain=c.createGain(); MUSIC.gain.gain.value=0;
-    try { c.createMediaElementSource(el).connect(MUSIC.gain).connect(c.destination); } catch(e){}
-  }
-  const g=MUSIC.gain.gain; g.cancelScheduledValues(c.currentTime); g.setValueAtTime(g.value,c.currentTime); g.linearRampToValueAtTime(.4,c.currentTime+1.5);
-  MUSIC.on=true; MUSIC.el.play().catch(()=>{ MUSIC.on=false; });
+  const el=musicEl(); if (!el) return;
+  musicSync();
+  if (MUSIC.on && !el.paused) return;
+  const c=AC, g=MUSIC.gain.gain; g.cancelScheduledValues(c.currentTime); g.setValueAtTime(g.value,c.currentTime); g.linearRampToValueAtTime(.4,c.currentTime+1.5);
+  MUSIC.on=true; el.play().then(musicSync).catch(()=>{ MUSIC.on=false; MUSIC.wait=true; });
 }
+// Les navigateurs bloquent le son tant que le joueur n'a pas touché l'écran : on « déverrouille » la musique au premier contact,
+// et si elle n'a pas pu démarrer (partie rejointe en ligne), elle démarre dès le prochain toucher.
+document.addEventListener('pointerdown', ()=>{
+  const c=acMusic(); if (!c) return;
+  if (!MUSIC.el){ const el=musicEl(); if (el){ el.muted=true; el.play().then(()=>{ if (!MUSIC.on) el.pause(); el.muted=false; }).catch(()=>{ el.muted=false; }); } }
+  if (MUSIC.wait && view==='game' && M && G && P.music){ MUSIC.wait=false; musicStart(); }
+}, true);
 function musicStop(){
   if (!MUSIC.on) return; MUSIC.on=false;
   const c=AC, g=MUSIC.gain&&MUSIC.gain.gain;
   if (c && g){ try { g.cancelScheduledValues(c.currentTime); g.setValueAtTime(g.value,c.currentTime); g.linearRampToValueAtTime(0,c.currentTime+.6); } catch(e){} }
   setTimeout(()=>{ if (!MUSIC.on && MUSIC.el) MUSIC.el.pause(); }, 700);
 }
-document.addEventListener('visibilitychange', ()=>{ if (!MUSIC.el) return; if (document.hidden) MUSIC.el.pause(); else if (MUSIC.on) MUSIC.el.play().catch(()=>{}); });
+document.addEventListener('visibilitychange', ()=>{ if (!MUSIC.el) return; if (document.hidden) MUSIC.el.pause(); else if (MUSIC.on){ musicSync(); MUSIC.el.play().catch(()=>{ MUSIC.wait=true; }); } });
 const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
 document.addEventListener('pointerdown', () => ac(), {once:true});
 document.addEventListener('gesturestart', e => e.preventDefault());
@@ -1334,7 +1354,7 @@ function look(p,k,from,to){ LOOK[p][k]={x:Math.sign(to%5-from%5), y:Math.sign(((
 /* ---------- Partie ---------- */
 function shuffled(n){ const a=[...Array(n).keys()]; for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function startMatch(){
-  M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, trap:!!(vsAI&&P.trap)};
+  M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, trap:!!(vsAI&&P.trap), mt:Date.now()};
   if (dailyNext){ M.daily=true; const db=dailyBoard(); M.order=[db, ...M.order.filter(x=>x!==db)]; dailyNext=false; }
   HIST={}; AN=null; CHAT=[]; unread=0;
   view='game'; sheet=null; S=sides(); buildBoard(); startRound();
@@ -1522,7 +1542,7 @@ function unpack(st){
   const g=st.G;
   G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
   if (!G) return;
-  if (!prevG || prevG.round!==G.round || (prevM && prevM.id!==M.id)){ premove=null; AN=null; wzLeft=3; resetLook(); playIntro(); }
+  if (!prevG || prevG.round!==G.round || (prevM && prevM.id!==M.id)){ premove=null; AN=null; wzLeft=3; resetLook(); playIntro(); musicStart(); }
   else if (G.moves===prevG.moves+1){
     const t=prevG.turn;
     for (let k=0;k<2;k++) if (prevG.pawns[t][k]!==G.pawns[t][k]){
