@@ -114,6 +114,13 @@ button{font:inherit;color:inherit}
 .card small{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
 .card small.own{color:var(--ok)}
 .card small.lk{color:var(--prem)}
+.card{position:relative}
+.card.r-rare{background:linear-gradient(180deg,#123a5c55,var(--raise) 60%);box-shadow:inset 0 0 0 1px #4fb3ff66}
+.card.r-epic{background:linear-gradient(180deg,#5a1f8a66,var(--raise) 60%);box-shadow:inset 0 0 0 1px #b36bff88,0 0 12px #b36bff33}
+.card.r-leg{background:linear-gradient(180deg,#8a5a0f77,var(--raise) 60%);box-shadow:inset 0 0 0 1px #ffd75eaa,0 0 16px #ffd75e44}
+.card .rar{position:absolute;top:6px;left:6px;font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:#0008}
+.card.r-rare .rar{color:#4fb3ff}.card.r-epic .rar{color:#c99bff}.card.r-leg .rar{color:#ffd75e}
+.card .pv{width:70px}
 .swatch{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:54px;padding:3px;border-radius:6px}
 .swatch i{aspect-ratio:1;border-radius:2px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
@@ -743,7 +750,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 42,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 43,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -877,9 +884,12 @@ const THEMES={classique:{n:(T("Néon")),p:0,t1:'#2ef2ff',t2:'#ff3dd8',x1:'#2ef2f
   lave:{n:(T("Lave")),p:2.99,t1:'#ffb02e',t2:'#ff3b3b',x1:'#ffb02e',x2:'#ff3b3b',fr:'#1a0a0a'},
   jade:{n:(T("Toxique")),p:2.99,t1:'#b6ff3b',t2:'#20f0a0',x1:'#b6ff3b',x2:'#20f0a0',fr:'#08140f'},
   neige:{n:(T("Glace")),p:2.99,t1:'#e8f6ff',t2:'#5ec8ff',x1:'#e8f6ff',x2:'#5ec8ff',fr:'#0a1220'}};
-const CAT={color:COLORS,fur:FURS,eyes:EYES,acc:ACCS,theme:THEMES};
-const KIND_N={color:(T("Couleur")),fur:(T("Fourrure")),eyes:(T("Yeux")),acc:(T("Accessoire")),theme:(T("Plateau"))};
-const DEF2={color:'azur',fur:'lisse',eyes:'ronds',acc:'aucun'};
+const FINS={mat:{n:(T("Doux")),p:0},brillant:{n:(T("Brillant")),p:1.99},metal:{n:(T("Chrome")),p:3.99},cristal:{n:(T("Cristal")),p:3.99},neon:{n:(T("Néon")),p:3.99},holo:{n:(T("Holo")),p:5.99}};
+const CAT={color:COLORS,fur:FURS,fin:FINS,eyes:EYES,acc:ACCS,theme:THEMES};
+// Rareté affichée en boutique, d'après le prix
+const rarity = p => !p ? null : p<2 ? {k:'rare',n:T('Rare')} : p<5 ? {k:'epic',n:T('Épique')} : {k:'leg',n:T('Légendaire')};
+const KIND_N={color:(T("Couleur")),fur:(T("Fourrure")),fin:(T("Finition")),eyes:(T("Yeux")),acc:(T("Accessoire")),theme:(T("Plateau"))};
+const DEF2={color:'azur',fur:'lisse',eyes:'ronds',acc:'aucun',fin:'mat'};
 const BOTS={
   easy:{name:(T("Pépin")), skin:{color:'menthe',fur:'lisse',eyes:'joyeux',acc:'noeud'},
     taunt:[(T("Oh, c'est moi qui mène ?")),(T("Je joue au hasard et je te tiens.")),(T("Tu veux un indice ?"))], win:[(T("Hihi, gagné !")),(T("Même moi je te bats."))], lose:[(T("Bien joué… je retourne réviser."))], hit:[(T("Aïe, mes oreilles !")),(T("Hé, doucement !"))], chat:[(T("Hihi.")),(T("Concentre-toi plutôt.")),(T("Tu tapes plus vite que tu joues."))]},
@@ -964,23 +974,53 @@ const CALM_T={t1:'#d8cba6',t2:'#c79b6f',x1:'#3a2c10',x2:'#3a1d08',fr:'#22262d'};
 function applyTheme(){ const calm=!!P.calm && CONFIG.themeChoice, t=calm?CALM_T:THEMES[P.theme], r=document.documentElement.style; document.documentElement.classList.toggle('calm',calm); const mt=document.querySelector('meta[name=theme-color]'); if (mt) mt.content=calm?'#16181d':'#07060f'; r.setProperty('--t1',t.t1); r.setProperty('--t2',t.t2); r.setProperty('--x1',t.x1); r.setProperty('--x2',t.x2); r.setProperty('--bframe',t.fr); }
 
 /* ---------- Pions dessinés ---------- */
+/* Les dégradés des pions sont aussi copiés dans un SVG global placé en tête de page :
+   un dégradé défini dans un élément masqué (display:none) ne s'affiche pas ailleurs (pion noir). */
+const PWD=new Set();
+function pwDefs(id, defs){
+  if (PWD.has(id) || typeof document==='undefined' || !document.body) return; PWD.add(id);
+  let g=document.getElementById('pwdefs');
+  if (!g){ g=document.createElementNS('http://www.w3.org/2000/svg','svg'); g.id='pwdefs'; g.setAttribute('width','0'); g.setAttribute('height','0'); g.setAttribute('aria-hidden','true'); g.style.cssText='position:absolute;width:0;height:0;overflow:hidden'; document.body.prepend(g); }
+  g.insertAdjacentHTML('beforeend', '<defs>'+defs+'</defs>');
+}
 function pawnSVG(sk, hex){
   sk = sk || DEF2; hex = hex || (COLORS[sk.color]||COLORS.ivoire).hex;
-  const ink='#14201c'; let body='';
+  const ink='#14201c', fin=FINS[sk.fin]?sk.fin:'mat';
+  // couleurs dérivées : plus clair pour la lumière, plus sombre pour l'ombre
+  const mix=(h,t,a)=>{ const p=x=>parseInt(h.slice(x,x+2),16), q=x=>parseInt(t.slice(x,x+2),16); return '#'+[1,3,5].map(i=>Math.round(p(i)+(q(i)-p(i))*a).toString(16).padStart(2,'0')).join(''); };
+  const hi=mix(hex,'#ffffff',.45), lo=mix(hex,'#000000',.38), id='pw'+hex.slice(1)+fin;
+  let defs, fill='url(#'+id+')', extra='', bodyAttr='';
+  if (fin==='metal') defs=`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mix(hex,'#ffffff',.8)}"/><stop offset=".28" stop-color="${lo}"/><stop offset=".5" stop-color="${mix(hex,'#ffffff',.6)}"/><stop offset=".72" stop-color="${mix(hex,'#000000',.55)}"/><stop offset="1" stop-color="${hi}"/></linearGradient>`;
+  else if (fin==='holo') defs=`<radialGradient id="${id}" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="${hi}"/><stop offset=".6" stop-color="${hex}"/><stop offset="1" stop-color="${lo}"/></radialGradient><linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3dd8"/><stop offset=".25" stop-color="#ffd75e"/><stop offset=".5" stop-color="#5dffa0"/><stop offset=".75" stop-color="#2ef2ff"/><stop offset="1" stop-color="#b36bff"/><animateTransform attributeName="gradientTransform" type="rotate" from="0 .5 .5" to="360 .5 .5" dur="5s" repeatCount="indefinite"/></linearGradient>`;
+  else if (fin==='neon') { defs=`<radialGradient id="${id}" cx=".5" cy=".55" r=".7"><stop offset="0" stop-color="${mix(hex,'#0b0918',.55)}"/><stop offset="1" stop-color="#0b0918"/></radialGradient><filter id="${id}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`; bodyAttr=` stroke="${hi}" stroke-width="3.2" filter="url(#${id}g)"`; }
+  else if (fin==='cristal') { defs=`<radialGradient id="${id}" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".45" stop-color="${hi}" stop-opacity=".7"/><stop offset="1" stop-color="${hex}" stop-opacity=".55"/></radialGradient>`; bodyAttr=` stroke="#ffffffcc" stroke-width="1.6"`; }
+  else if (fin==='brillant') defs=`<radialGradient id="${id}" cx=".34" cy=".28" r=".8"><stop offset="0" stop-color="${mix(hex,'#ffffff',.7)}"/><stop offset=".35" stop-color="${hex}"/><stop offset=".85" stop-color="${mix(hex,'#000000',.45)}"/><stop offset="1" stop-color="${mix(hex,'#ffffff',.25)}"/></radialGradient>`;
+  else defs=`<radialGradient id="${id}" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="${hi}"/><stop offset=".55" stop-color="${hex}"/><stop offset="1" stop-color="${lo}"/></radialGradient>`;
+  pwDefs(id, defs);
+  let body='', shapeD='';
   if (sk.fur==='poils' || sk.fur==='pointes'){
     const n = sk.fur==='poils' ? 32 : 18, r1 = sk.fur==='poils' ? 37 : 32, r2 = sk.fur==='poils' ? 44 : 46; let d='';
     for (let a=0;a<n;a++){ const ang=a/n*Math.PI*2-Math.PI/2, r=a%2?r2:r1; d+=(a?'L':'M')+(50+r*Math.cos(ang)).toFixed(1)+' '+(54+r*Math.sin(ang)).toFixed(1); }
-    body=`<path d="${d}Z" fill="${hex}" stroke="${hex}" stroke-width="${sk.fur==='poils'?6:2}" stroke-linejoin="round"/>`;
-  } else if (sk.fur==='cube') body=`<rect x="13" y="17" width="74" height="74" rx="16" fill="${hex}"/>`;
-  else body=`<circle cx="50" cy="54" r="39" fill="${hex}"/>`;
-  const shade=`<ellipse cx="50" cy="80" rx="27" ry="8" fill="#000" opacity=".12"/>`;
-  const hl=`<ellipse cx="35" cy="36" rx="11" ry="6.5" fill="#fff" opacity=".38" transform="rotate(-25 35 36)"/>`;
+    shapeD=d+'Z';
+    body=`<path d="${shapeD}" fill="${fill}" stroke="${fin==='neon'?hi:hex}" stroke-width="${fin==='neon'?3.2:sk.fur==='poils'?6:2}" stroke-linejoin="round"${fin==='neon'?` filter="url(#${id}g)"`:''}/>`;
+  } else if (sk.fur==='cube') { shapeD='M29 17h42a16 16 0 0 1 16 16v42a16 16 0 0 1-16 16H29a16 16 0 0 1-16-16V33a16 16 0 0 1 16-16Z'; body=`<path d="${shapeD}" fill="${fill}"${bodyAttr}/>`; }
+  else { shapeD='M50 15a39 39 0 1 1 0 78a39 39 0 1 1 0-78Z'; body=`<path d="${shapeD}" fill="${fill}"${bodyAttr}/>`; }
+  if (fin==='holo') extra+=`<path d="${shapeD}" fill="url(#${id}h)" opacity=".62" style="mix-blend-mode:overlay"/>`;
+  if (fin==='brillant') extra+=`<path d="${shapeD}" fill="none" stroke="#ffffff70" stroke-width="1.6"/>`;
+  if (fin==='metal') extra+=`<path d="${shapeD}" fill="none" stroke="#ffffff66" stroke-width="1.4"/>`;
+  if (fin==='cristal') extra+=`<path d="M30 40l14-12M58 30l14 14M34 70l18 12" stroke="#ffffffaa" stroke-width="1.6" stroke-linecap="round"/>`;
+  // ombre portée au sol, puis reflets
+  const ground=`<ellipse cx="50" cy="96" rx="30" ry="5" fill="#000" opacity=".28"/>`;
+  const shade=fin==='neon'?'':`<ellipse cx="50" cy="80" rx="27" ry="8" fill="#000" opacity=".12"/>`;
+  const hl=`<ellipse cx="35" cy="36" rx="11" ry="6.5" fill="#fff" opacity="${fin==='brillant'||fin==='cristal'?'.75':fin==='neon'?'.18':'.42'}" transform="rotate(-25 35 36)"/>${fin==='brillant'||fin==='metal'?'<circle cx="28" cy="46" r="2.6" fill="#fff" opacity=".8"/><ellipse cx="66" cy="78" rx="9" ry="3" fill="#fff" opacity=".22"/>':''}`;
   const star=(cx,cy)=>{ let pts=''; for(let i=0;i<10;i++){ const a=i/10*Math.PI*2-Math.PI/2, r=i%2?3.6:8.5; pts+=`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)} `; } return `<polygon points="${pts}" fill="#ffd75e" stroke="${ink}" stroke-width="1.6" stroke-linejoin="round"/>`; };
+  const ink2 = fin==='neon' ? hi : ink;
   let eyes;
   if (sk.eyes==='joyeux') eyes=`<path d="M31 56q7-9 14 0M55 56q7-9 14 0" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
   else if (sk.eyes==='colere') eyes=`<ellipse cx="38" cy="57" rx="5.5" ry="7" fill="${ink}"/><ellipse cx="62" cy="57" rx="5.5" ry="7" fill="${ink}"/><path d="M28 43l17 7M72 43l-17 7" stroke="${ink}" stroke-width="4.5" stroke-linecap="round"/>`;
   else if (sk.eyes==='etoiles') eyes=star(38,54)+star(62,54);
   else eyes=`<ellipse cx="38" cy="54" rx="6" ry="8.5" fill="${ink}"/><ellipse cx="62" cy="54" rx="6" ry="8.5" fill="${ink}"/><circle cx="40" cy="50.5" r="2" fill="#fff"/><circle cx="64" cy="50.5" r="2" fill="#fff"/>`;
+  if (fin==='neon') eyes=eyes.split(ink).join(ink2);
   const A={
     couronne:`<path d="M28 24L33 5L42 16L50 0L58 16L67 5L72 24Z" fill="#ffd75e" stroke="#b8902a" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="12" r="2.8" fill="#ff8a70"/>`,
     casquette:`<path d="M20 32Q50-4 80 32Z" fill="#e0452d"/><path d="M72 29Q94 28 98 35L72 35Z" fill="#b8341f"/><circle cx="50" cy="12" r="3" fill="#b8341f"/>`,
@@ -988,9 +1028,9 @@ function pawnSVG(sk, hex){
     cornes:`<path d="M28 27Q16 10 25-2Q30 14 39 21Z" fill="#e0452d"/><path d="M72 27Q84 10 75-2Q70 14 61 21Z" fill="#e0452d"/>`,
     noeud:`<g transform="translate(72 21) rotate(18)"><path d="M0 0L-15-10L-15 10ZM0 0L15-10L15 10Z" fill="#f39ac2"/><circle r="4.5" fill="#d9679b"/></g>`,
     aureole:`<ellipse cx="50" cy="1" rx="23" ry="6" fill="none" stroke="#ffd75e" stroke-width="4.5"/>`};
-  return `<svg viewBox="-6 -10 112 112" aria-hidden="true">${body}${shade}${hl}<g class="look"><g class="eyes">${eyes}</g></g>${A[sk.acc]||''}</svg>`;
+  return `<svg viewBox="-6 -10 112 112" aria-hidden="true"><defs>${defs}</defs>${ground}${body}${extra}${shade}${hl}<g class="look"><g class="eyes">${eyes}</g></g>${A[sk.acc]||''}</svg>`;
 }
-const cleanSkin = s => ({color:COLORS[s&&s.color]?s.color:'azur', fur:FURS[s&&s.fur]?s.fur:'lisse', eyes:EYES[s&&s.eyes]?s.eyes:'ronds', acc:ACCS[s&&s.acc]?s.acc:'aucun'});
+const cleanSkin = s => ({color:COLORS[s&&s.color]?s.color:'azur', fur:FURS[s&&s.fur]?s.fur:'lisse', eyes:EYES[s&&s.eyes]?s.eyes:'ronds', acc:ACCS[s&&s.acc]?s.acc:'aucun', fin:FINS[s&&s.fin]?s.fin:'mat'});
 const cleanName = n => (String(n||'').replace(/[\u0000-\u001f]/g,'').trim().slice(0,16)) || (T("Adversaire"));
 
 /* ---------- Sons (synthétisés) ---------- */
@@ -1677,13 +1717,14 @@ function card(kind,id,o={}){
   if (kind==='theme') pv=`<div class="swatch" style="background:${it.fr}">${[1,2,1,2,1,2,1,2,1].map(v=>`<i style="background:${v===1?it.t1:it.t2}"></i>`).join('')}</div>`;
   else pv=`<div class="pv">${pawnSVG({...P.skin,[kind]:id})}</div>`;
   const status = eq ? (T("Équipé")) : own ? (it.p===0 ? (T("Gratuit")) : (T("Possédé"))) : `${ic('coin',(T("ic sm")))} ${cost(it.p)}`;
-  return `<button type="button" class="card" data-act="${o.shop?'buy':'equip'}" data-k="${kind}" data-v="${id}" aria-pressed="${!o.shop&&eq}">${pv}<b>${it.n}</b><small class="${own?'own':'lk'}">${!own?'🔒 ':''}${status}</small></button>`;
+  const rr=rarity(it.p);
+  return `<button type="button" class="card${rr?' r-'+rr.k:''}" data-act="${o.shop?'buy':'equip'}" data-k="${kind}" data-v="${id}" aria-pressed="${!o.shop&&eq}">${rr&&o.shop?`<span class="rar">${rr.n}</span>`:''}${pv}<b>${it.n}</b><small class="${own?'own':'lk'}">${!own?'🔒 ':''}${status}</small></button>`;
 }
 function renderShop(){
   return `<div class="top"><h1 class="logo">${T("Boutique")}</h1>${topRight()}</div>
   <div class="wallet">${ic('coin')}<div><b>${P.coins} ${T("pièces")}</b><small>${T("Plus tu joues, plus tu en gagnes : 2 par minute de jeu, 10 par victoire, 3 par partie terminée, et des bonus pour les cours, puzzles et badges.")}</small></div></div>
   <p class="demo">${T("Toute la personnalisation s'achète avec tes pièces. Touche un objet pour l'acheter ou l'équiper.")}</p>
-  ${['color','fur','eyes','acc','theme'].map(k=>`<h2 class="h2">${k==='theme'?(T("Plateaux")):k==='eyes'?(T("Yeux")):KIND_N[k]+'s'}</h2><div class="grid">${Object.keys(CAT[k]).filter(id=>CAT[k][id].p>0).map(id=>card(k,id,{shop:1})).join('')}</div>`).join('')}
+  ${['color','fur','fin','eyes','acc','theme'].map(k=>`<h2 class="h2">${k==='theme'?(T("Plateaux")):k==='eyes'?(T("Yeux")):k==='fin'?(T("Finitions")):KIND_N[k]+'s'}</h2><div class="grid">${Object.keys(CAT[k]).filter(id=>CAT[k][id].p>0).map(id=>card(k,id,{shop:1})).join('')}</div>`).join('')}
   <div class="premium"><svg class="gem" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">${I.gem}</svg>
     <h3>${T("Premium")}</h3><p>${T("Pour devenir meilleur, pas pour la déco :")}</p><ul><li>${T("Cours avancés")}</li><li>${T("Indices et solutions des puzzles et des cours")}</li><li>${T("Analyses de parties illimitées")}</li><li>${T("Bloquer wizz, toc toc et haha")}</li></ul>
     <p>${P.premium?("<b>"+T("Premium est actif sur cet appareil.")+"</b>"):(T("Bientôt disponible en abonnement."))}</p>
@@ -1695,7 +1736,7 @@ function renderProfile(){
   return `<div class="top"><h1 class="logo">${T("Profil")}</h1>${topRight()}</div>
   <div class="phead"><div class="avatar" style="width:88px;flex:none">${pawnSVG(P.skin)}</div><div class="field" style="flex:1;min-width:0"><label for="pname" class="sub">${T("Pseudo")}</label><input id="pname" maxlength="16" value="${esc(P.name)}" autocomplete="off"></div></div>
   <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?(" "+T("· Premium actif")):''}</p>
-  ${sec('perso',(T("Personnalisation")), ['color','fur','eyes','acc','theme'].map(k=>`<b class="sub">${KIND_N[k]}</b><div class="chips">${Object.keys(CAT[k]).map(id=>card(k,id)).join('')}</div>`).join(''))}
+  ${sec('perso',(T("Personnalisation")), ['color','fur','fin','eyes','acc','theme'].map(k=>`<b class="sub">${KIND_N[k]}</b><div class="chips">${Object.keys(CAT[k]).map(id=>card(k,id)).join('')}</div>`).join(''))}
   ${sec('rank',(T("Classements par cadence · 5×5")), `${cadHTML()}<p class="note">${T("Chaque cadence a son propre classement. Classement national : bientôt, avec le serveur de comptes.")}</p>`)}
   ${sec('games',`${T("Parties contre de vrais joueurs ·")} ${realGames().length}`, realGames().length?`<div class="list">${realGames().slice(-5).reverse().map(gameRow).join('')}</div><button class="linkbtn" type="button" data-act="games">${T("Tout voir ›")}</button>`:("<p class=\"sub\">"+T("Tes parties en ligne et contre tes amis apparaîtront ici.")+"</p>"))}
   ${sec('stats',(T("Statistiques")), `<div class="stats"><div><b style="color:${t[2]}">${P.elo.r}</b><small>${T("steps ·")} ${t[1]}</small></div><div><b>${P.elo.g}</b><small>${T("matchs classés")}</small></div><div><b>${P.premium?'∞':left}</b><small>${P.premium?'analyses':left<3?`${T("analyses · +1 dans")} ${anRenewH()} h`:(T("analyses cette semaine"))}</small></div><div><b>${pzDone()}</b><small>${T("puzzles réussis")}</small></div><div><b>${P.stat.fell||0}</b><small>${T("cases détruites")}</small></div><div><b>${P.stat.games||0}</b><small>${T("parties jouées")}</small></div></div>`)}
