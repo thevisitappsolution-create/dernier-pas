@@ -990,3 +990,19 @@ Object.assign(window.EN_DICT, {
   "4 défis · 1 essai":"4 challenges · 1 try",
   "3 puzzles et 1 parcours · un seul essai chacun · le même pour tout le monde":"3 puzzles and 1 path · one try each · the same for everyone"
 });
+Object.assign(window.EN_DICT, {
+  "Zéro publicité":"Zero ads","Aventure":"Adventure","Arène":"Arena","Déjà récupéré. Reviens demain !":"Already claimed. Come back tomorrow!",
+  "Coffre déjà ouvert. Nouvelle barre dans":"Chest already opened. New bar in","Joue encore":"Play","pour ouvrir le coffre":"more to open the chest",
+  "Équipé !":"Equipped!","Parfait !":"Perfect!","Génial !":"Awesome!","Bloqué !":"Stuck!","Niveau":"Level","×2 pièces":"×2 coins","+20 secondes":"+20 seconds",
+  "Publicité":"Ad","Emplacement de test : la vraie publicité arrivera avec l'appli des stores.":"Test slot: real ads will come with the store app.",
+  "Récupérer la récompense":"Claim reward","Passer dans":"Skip in","Passer":"Skip","Fermer sans récompense":"Close without reward",
+  "Coffre en bois":"Wooden chest","Coffre d'argent":"Silver chest","Coffre d'or":"Gold chest","Ouvrir le coffre":"Open the chest","Touche pour ouvrir":"Tap to open",
+  "Gagné !":"You won!","Équiper":"Equip","Super !":"Great!","Cadeau du jour":"Daily gift","🧰 Coffre de jeu prêt ! Ouvre-le à l'accueil.":"🧰 Play chest ready! Open it on the home screen.",
+  "30 minutes de jeu":"30 minutes of play","Roue de la chance":"Lucky wheel","Tourner":"Spin","gratuit":"free","Tourner encore":"Spin again",
+  "Reviens demain pour un nouveau tour gratuit.":"Come back tomorrow for a free spin.","Fin de la ligue dans":"League ends in","Top 10":"Top 10",
+  "Classement par steps, sur les 30 derniers jours.":"Ranked by steps over the last 30 days.","Classement":"Leaderboard","Chargement…":"Loading…","toi":"you",
+  "Hors ligne : seuls toi et les personnages du jeu sont affichés.":"Offline: only you and the game characters are shown.",
+  "XP : 10 par étoile, 5 par puzzle réussi, 5 par victoire contre l'ordi.":"XP: 10 per star, 5 per solved puzzle, 5 per win against the computer.",
+  "Ligue de la semaine":"Weekly league","Jour":"Day","jour":"day","Coffre de jeu":"Play chest","Ouvrir !":"Open!","Ligue":"League","Seul contre le jeu":"Solo against the game",
+  "Contre de vrais joueurs":"Against real players","steps":"steps","Combattre":"Fight","Du jour":"Daily","Chrono":"Timed","Temps écoulé !":"Time's up!","Gratuit":"Free","Joueur":"Player"
+});
