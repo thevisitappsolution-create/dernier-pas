@@ -768,7 +768,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 46,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 47,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1845,7 +1845,8 @@ function sheetHTML(){
   if (s.type==='admin') return `<h2>${T("Accès administrateur")}</h2><p>${P.premium?(T("Premium est actif sur cet appareil.")):(T("Entre le code pour débloquer Premium sur cet appareil."))}</p>
     <form class="joinrow" id="adminform" autocomplete="off"><input class="code-input" id="admcode" inputmode="numeric" maxlength="8" placeholder="${T("CODE")}" aria-label="${T("Code administrateur")}"><button type="submit" class="primary">${T("Valider")}</button></form>
     <p class="note" id="adm-err" hidden>${T("Code incorrect.")}</p>
-    <div class="row">${P.premium?`<button class="secondary" type="button" data-act="unprem">${T("Désactiver Premium")}</button>`:''}<button class="secondary" type="button" data-act="admin-coins">${T("+500 pièces (test)")}</button></div>`;
+    <div class="row">${P.premium?`<button class="secondary" type="button" data-act="unprem">${T("Désactiver Premium")}</button>`:''}<button class="secondary" type="button" data-act="admin-coins">${T("+500 pièces (test)")}</button></div>
+    ${P.premium?`<div class="row"><button class="primary" type="button" data-act="admin-all">${T("Tout débloquer (test)")}</button><button class="secondary" type="button" data-act="admin-lock">${T("Tout reverrouiller")}</button></div>`:''}`;
   if (s.type==='addfriend') return `<h2>${T("Ajouter un ami")}</h2>
     <p>${T("Ton code ami")}</p><div class="code" style="font-size:1.8rem;letter-spacing:.12em">${fmtUid(P.uid)}</div>
     <form class="joinrow" id="frform" autocomplete="off"><input class="code-input" id="frcode" maxlength="9" placeholder="${T("CODE AMI")}" aria-label="${T("Code ami de ton ami")}" autocapitalize="characters" style="letter-spacing:.12em"><button type="submit" class="secondary">${T("Ajouter")}</button></form>
@@ -2071,6 +2072,8 @@ document.addEventListener('click', e=>{
     case 'games': sheet={type:'games'}; render(); break;
     case 'games-f': sheet={type:'games', f:v}; render(); break;
     case 'admin-coins': addCoins(500); render(); break;
+    case 'admin-all': P.owned=[...new Set([...P.owned, ...Object.entries(CAT).flatMap(([k,c])=>Object.keys(c).filter(id=>c[id].p>0).map(id=>k+':'+id))])]; saveP(); toast(T('Toute la boutique est débloquée')); sheet=null; view='shop'; render(); break;
+    case 'admin-lock': P.owned=[]; P.skin={...DEF2, color:P.skin.color&&COLORS[P.skin.color]&&!COLORS[P.skin.color].p?P.skin.color:'ivoire'}; P.theme='classique'; saveP(); presBroadcast(); toast(T('Boutique reverrouillée')); sheet=null; render(); break;
     case 'add-opp': { const op=online()&&PEERS[1-net.seat]; if (op && op.uid && addFriend(op.uid, op.nm)){ toast(`${op.nm} ${T("ajouté à tes amis")}`); a.remove(); } } break;
     case 'menu': sheet={type:'menu'}; render(); break;
     case 'ask-leave': sheet={type:'menu',confirm:true}; render(); break;
