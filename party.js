@@ -374,6 +374,13 @@
 #pt4 .cl.t{outline:3px solid #fff;outline-offset:-3px}
 #pt4 .cl.tj{outline:3px dashed #b6ff3b;outline-offset:-3px}
 #pt4 .cl.fr{box-shadow:0 0 0 2px #ffffff55 inset}
+#pt4 .bd.spot .cl:not(.t):not(.tj):not(.me){filter:brightness(.32) saturate(.5);transition:filter .25s}
+#pt4 .bd.spot .pw:not(.mine){filter:brightness(.4) saturate(.6)}
+#pt4 .bd.spot .cl.t,#pt4 .bd.spot .cl.tj{box-shadow:0 0 16px var(--tc),inset 0 0 12px var(--tc);animation:p4glow 1.1s ease-in-out infinite alternate}
+#pt4 .pw.mine .rg{animation:p4ring 1s ease-in-out infinite alternate}
+@keyframes p4glow{from{filter:brightness(1)}to{filter:brightness(1.45)}}
+@keyframes p4ring{from{box-shadow:0 0 0 3px var(--sc),0 0 10px var(--sc)}to{box-shadow:0 0 0 5px var(--sc),0 0 26px var(--sc)}}
+@media (prefers-reduced-motion:reduce){#pt4 .bd.spot .cl.t,#pt4 .bd.spot .cl.tj,#pt4 .pw.mine .rg{animation:none}}
 #pt4 .pw{position:absolute;width:calc((100% - 32px) / 6);aspect-ratio:1;transition:left .22s,top .22s,transform .2s;pointer-events:none;display:grid;place-items:center}
 #pt4 .pw .rg{position:absolute;inset:12%;border-radius:50%;box-shadow:0 0 0 3px var(--sc),0 0 14px var(--sc)}
 #pt4 .pw svg{width:86%;position:relative}
@@ -428,13 +435,21 @@
     if (NET) return NET.seat === PT.turn;
     return s.kind === 'human';
   }
+  // Le plateau est tourné pour que TON coin soit toujours en bas à gauche (comme à Ludo King)
+  const rotCCW = (i) => { const r = Math.floor(i / N), c = i % N; return (N - 1 - c) * N + r; };
+  const rotCW = (i) => { const r = Math.floor(i / N), c = i % N; return c * N + (N - 1 - r); };
+  function viewRot() { const m = mySeat(); return m == null || m < 0 ? 0 : m; }
+  const toView = (i, k) => { for (let n = 0; n < k; n++) i = rotCCW(i); return i; };
+  const fromView = (d, k) => { for (let n = 0; n < k; n++) d = rotCW(d); return d; };
   function drawGame() {
-    const my = canAct(), ms = my ? gen(PT, PT.turn) : [];
-    const tg = new Map(); if (my && UI.sel != null) ms.filter(m => m[0] === UI.sel).forEach(m => tg.set(m[1], m[2]));
-    const cells = PT.cells.map((v, i) => `<button type="button" class="cl${v === 0 ? ' h' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}</button>`).join('');
+    const my = canAct(), ms = my ? gen(PT, PT.turn) : [], rot = viewRot();
+    const sel = UI.sel != null ? UI.sel : (my && PT.pawns[PT.turn] && PT.pawns[PT.turn].length === 1 ? 0 : null);
+    const tg = new Map(); if (my && sel != null) ms.filter(m => m[0] === sel).forEach(m => tg.set(m[1], m[2]));
+    const mine = new Set(my ? PT.pawns[PT.turn] : []);
+    const cells = Array.from({ length: N * N }, (_, d) => fromView(d, rot)).map((i) => { const v = PT.cells[i]; return `<button type="button" class="cl${v === 0 ? ' h' : ''}${mine.has(i) ? ' me' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}</button>`; }).join('');
     const pawns = PT.pawns.map((ps, s) => ps.map((pos, k) => {
-      const r = Math.floor(pos / N), c = pos % N;
-      return `<div class="pw${my && s === PT.turn && UI.sel === k ? ' sel' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * ((100% - 32px) / 6 + 4px));top:calc(6px + ${r} * ((100% - 32px) / 6 + 4px))"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
+      const vp = toView(pos, rot), r = Math.floor(vp / N), c = vp % N;
+      return `<div class="pw${my && s === PT.turn && sel === k ? ' sel' : ''}${my && s === PT.turn ? ' mine' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * ((100% - 32px) / 6 + 4px));top:calc(6px + ${r} * ((100% - 32px) / 6 + 4px))"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
     }).join('')).join('');
     const turnName = PT.turn >= 0 && PT.seats[PT.turn] ? PT.seats[PT.turn].name : '';
     const many = !NET && PT.seats.filter(x => x.kind === 'human').length > 1;
@@ -448,9 +463,9 @@
     const chat = NET && !PT.over ? `<button class="btn" data-a="chat">💬 ${tr('Chat')}</button>` : '';
     const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';
     return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Quitter')}">✕</button><h2>${tr('Partie à 4')}</h2></div>
-      <div class="rows">${seatCard(1)}${seatCard(2)}</div>
-      <div class="bd" id="pt4bd">${cells}${pawns}</div>
-      <div class="rows bottom">${seatCard(0)}${seatCard(3)}</div>
+      <div class="rows">${seatCard((rot + 1) % 4)}${seatCard((rot + 2) % 4)}</div>
+      <div class="bd${my && !PT.over ? ' spot' : ''}" id="pt4bd">${cells}${pawns}</div>
+      <div class="rows bottom">${seatCard(rot)}${seatCard((rot + 3) % 4)}</div>
       <p class="st">${PT.msg ? `<b>${esc4(PT.msg)}</b><br>` : ''}${status}</p>
       ${end}${PT.over ? '' : `<div class="acts">${chat}</div>${chips}`}`;
   }
@@ -507,6 +522,7 @@
     const s = PT.turn, ms = gen(PT, s);
     const k = PT.pawns[s].indexOf(i);
     if (k >= 0 && ms.some(m => m[0] === k)) { UI.sel = k; draw(); return; }
+    if (UI.sel == null && PT.pawns[s].length === 1) UI.sel = 0;
     if (UI.sel == null) return;
     const m = ms.find(x => x[0] === UI.sel && x[1] === i); if (!m) return;
     if (NET && !NET.host) { try { NET.conn.send({ t: 'mv', m }); } catch (e) {} UI.sel = null; return; }
