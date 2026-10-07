@@ -121,6 +121,16 @@ button{font:inherit;color:inherit}
 .card .rar{position:absolute;top:6px;left:6px;font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:#0008}
 .card.r-rare .rar{color:#4fb3ff}.card.r-epic .rar{color:#c99bff}.card.r-leg .rar{color:#ffd75e}
 .card .pv{width:70px}
+.fxpv{display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#2c2558,#0d0b1f 70%);box-shadow:inset 0 0 0 1px #ffffff1a}
+.fxpv span{font-size:2rem;filter:drop-shadow(0 0 8px #fff8)}
+.card.r-leg .fxpv span,.card.r-epic .fxpv span{animation:fxpulse 1.6s ease-in-out infinite}
+@keyframes fxpulse{50%{transform:scale(1.18) rotate(-8deg)}}
+.fx.tr{display:grid;place-items:center;overflow:visible}
+.fx.tr i{position:absolute;left:50%;top:50%;width:var(--s,10px);height:var(--s,10px);border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);translate:calc(-50% + var(--dx,0px)) calc(-50% + var(--dy,0px));animation:trp .75s ease-out forwards}
+.fx.tr.flammes i{border-radius:50% 50% 50% 0;rotate:-45deg;animation:trf .8s ease-out forwards}
+.fx.tr.galaxie i{border-radius:2px;rotate:45deg;width:calc(var(--s) * .7);height:calc(var(--s) * .7)}
+@keyframes trp{from{opacity:1;scale:1}to{opacity:0;scale:.2}}
+@keyframes trf{from{opacity:1;scale:1}to{opacity:0;scale:.3;translate:calc(-50% + var(--dx,0px)) calc(-50% + var(--dy,0px) - 26px)}}
 .swatch{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:54px;padding:3px;border-radius:6px}
 .swatch i{aspect-ratio:1;border-radius:2px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
@@ -285,6 +295,13 @@ button{font:inherit;color:inherit}
 .quick{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px}
 .langsel{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--felt,#15112d);color:inherit}
 .newtag{margin-left:auto;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;padding:3px 7px;border-radius:999px;background:#ff3dd8;color:#0a0718;box-shadow:0 0 10px #ff3dd8}
+.seg{display:flex;gap:6px;padding:4px;border-radius:14px;background:#0d0b1f;margin:6px 0 10px}
+.seg button{flex:1;padding:10px;border-radius:10px;border:0;background:none;color:var(--muted);font:inherit;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--ink);box-shadow:0 0 0 1px var(--accent)}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qgrid button{padding:13px 12px;border-radius:14px;border:1px solid var(--line);background:var(--raise);color:inherit;font:inherit;font-size:.9rem;text-align:left;line-height:1.2;min-height:52px}
+.qgrid button:active{transform:scale(.97);border-color:var(--accent)}
+.lastmsg{margin:0 0 4px;padding:10px 12px;border-radius:12px;background:#0d0b1f;font-size:.95rem}.lastmsg small{display:block;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
 .phl{margin:10px 0 4px;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .phc{font-family:var(--mono);font-size:.85rem;color:var(--neon1,#2ef2ff);margin-left:6px}
 .phgrid{display:flex;flex-wrap:wrap;gap:8px;max-height:46vh;overflow-y:auto}
@@ -750,7 +767,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 43,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 44,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -885,11 +902,13 @@ const THEMES={classique:{n:(T("Néon")),p:0,t1:'#2ef2ff',t2:'#ff3dd8',x1:'#2ef2f
   jade:{n:(T("Toxique")),p:2.99,t1:'#b6ff3b',t2:'#20f0a0',x1:'#b6ff3b',x2:'#20f0a0',fr:'#08140f'},
   neige:{n:(T("Glace")),p:2.99,t1:'#e8f6ff',t2:'#5ec8ff',x1:'#e8f6ff',x2:'#5ec8ff',fr:'#0a1220'}};
 const FINS={mat:{n:(T("Doux")),p:0},brillant:{n:(T("Brillant")),p:1.99},metal:{n:(T("Chrome")),p:3.99},cristal:{n:(T("Cristal")),p:3.99},neon:{n:(T("Néon")),p:3.99},holo:{n:(T("Holo")),p:5.99}};
-const CAT={color:COLORS,fur:FURS,fin:FINS,eyes:EYES,acc:ACCS,theme:THEMES};
+const TRAILS={aucune:{n:(T("Aucune")),p:0,e:'—'},etincelles:{n:(T("Étincelles")),p:1.99,e:'✨'},flammes:{n:(T("Flammes")),p:3.99,e:'🔥'},arcenciel:{n:(T("Arc-en-ciel")),p:3.99,e:'🌈'},galaxie:{n:(T("Galaxie")),p:5.99,e:'🌌'}};
+const WINS={confettis:{n:(T("Confettis")),p:0,e:'🎉'},feux:{n:(T("Feu d'artifice")),p:1.99,e:'🎆'},etoiles:{n:(T("Pluie d'étoiles")),p:3.99,e:'⭐'},pluie:{n:(T("Pluie d'or")),p:3.99,e:'🪙'},couronne:{n:(T("Couronne royale")),p:5.99,e:'👑'}};
+const CAT={color:COLORS,fur:FURS,fin:FINS,eyes:EYES,acc:ACCS,trail:TRAILS,win:WINS,theme:THEMES};
 // Rareté affichée en boutique, d'après le prix
 const rarity = p => !p ? null : p<2 ? {k:'rare',n:T('Rare')} : p<5 ? {k:'epic',n:T('Épique')} : {k:'leg',n:T('Légendaire')};
-const KIND_N={color:(T("Couleur")),fur:(T("Fourrure")),fin:(T("Finition")),eyes:(T("Yeux")),acc:(T("Accessoire")),theme:(T("Plateau"))};
-const DEF2={color:'azur',fur:'lisse',eyes:'ronds',acc:'aucun',fin:'mat'};
+const KIND_N={color:(T("Couleur")),fur:(T("Fourrure")),fin:(T("Finition")),trail:(T("Traînée")),win:(T("Célébration")),eyes:(T("Yeux")),acc:(T("Accessoire")),theme:(T("Plateau"))};
+const DEF2={color:'azur',fur:'lisse',eyes:'ronds',acc:'aucun',fin:'mat',trail:'aucune',win:'confettis'};
 const BOTS={
   easy:{name:(T("Pépin")), skin:{color:'menthe',fur:'lisse',eyes:'joyeux',acc:'noeud'},
     taunt:[(T("Oh, c'est moi qui mène ?")),(T("Je joue au hasard et je te tiens.")),(T("Tu veux un indice ?"))], win:[(T("Hihi, gagné !")),(T("Même moi je te bats."))], lose:[(T("Bien joué… je retourne réviser."))], hit:[(T("Aïe, mes oreilles !")),(T("Hé, doucement !"))], chat:[(T("Hihi.")),(T("Concentre-toi plutôt.")),(T("Tu tapes plus vite que tu joues."))]},
@@ -901,9 +920,9 @@ const BOTS={
     taunt:[(T("Un pas après l'autre.")),(T("Compte tes cases.")),(T("Garde ton saut pour la fin."))], win:[(T("Leçon du jour : la patience.")),(T("On revoit ça ensemble ?"))], lose:[(T("Excellent. Tu progresses."))], hit:[(T("Concentre-toi plutôt.")),(T("Un wizz n'est pas un coup."))], chat:[(T("Réfléchis.")),(T("Bonne idée.")),(T("Regarde ses sorties."))]},
   medium:{name:(T("Bastion")), skin:{color:'nuit',fur:'cube',eyes:'colere',acc:'casquette'},
     taunt:[(T("Tes cases fondent.")),(T("Je vois tes deux pions… et leur fin.")),(T("Trop lent."))], win:[(T("Rien ne passe.")),(T("Mur porteur : moi."))], lose:[(T("Tu as trouvé la faille. Pas deux fois."))], hit:[(T("Toc toc ? Personne.")),(T("Ça ne me fait rien."))], chat:[(T("Parle moins, joue mieux.")),(T("Hm.")),(T("On verra au prochain coup."))]},
-  hard:{name:(T("Vortex")), skin:{color:'lavande',fur:'pointes',eyes:'etoiles',acc:'cornes'},
+  hard:{name:(T("Vortex")), skin:{color:'lavande',fur:'pointes',eyes:'etoiles',acc:'cornes',fin:'brillant',trail:'galaxie',win:'feux'},
     taunt:[(T("Je calcule ta défaite.")),(T("Encore trois coups et tu es coincé.")),(T("Tu sens le plateau se refermer ?"))], win:[(T("Aspiré.")),(T("Prévisible."))], lose:[(T("Bug. Revanche."))], hit:[(T("Tu crois que ça me déconcentre ?")),(T("Mes calculs continuent."))], chat:[(T("Négatif.")),(T("Calcul en cours…")),(T("Tu as déjà perdu, tu ne le sais pas encore."))]},
-  expert:{name:(T("Le Sphinx")), skin:{color:'or',fur:'poils',eyes:'ronds',acc:'couronne'},
+  expert:{name:(T("Le Sphinx")), skin:{color:'or',fur:'poils',eyes:'ronds',acc:'couronne',fin:'metal',trail:'etincelles',win:'couronne'},
     taunt:[(T("Je vois la fin. Elle ne te plaît pas.")),(T("Intéressant. Faux, mais intéressant.")),(T("Respire, ça va bien se passer. Pour moi."))], win:[(T("Comme prévu.")),(T("Reviens quand tu seras prêt."))], lose:[(T("Remarquable. Je me souviendrai de toi."))], hit:[(T("Un wizz ? Quelle audace.")),(T("Ton agitation me nourrit."))], chat:[(T("Silence.")),(T("Joue.")),(T("Les mots ne déplacent aucun pion."))]},
 };
 /* Phrases toutes faites : seul l'identifiant circule en ligne (pas de texte libre entre inconnus) */
@@ -1030,7 +1049,7 @@ function pawnSVG(sk, hex){
     aureole:`<ellipse cx="50" cy="1" rx="23" ry="6" fill="none" stroke="#ffd75e" stroke-width="4.5"/>`};
   return `<svg viewBox="-6 -10 112 112" aria-hidden="true"><defs>${defs}</defs>${ground}${body}${extra}${shade}${hl}<g class="look"><g class="eyes">${eyes}</g></g>${A[sk.acc]||''}</svg>`;
 }
-const cleanSkin = s => ({color:COLORS[s&&s.color]?s.color:'azur', fur:FURS[s&&s.fur]?s.fur:'lisse', eyes:EYES[s&&s.eyes]?s.eyes:'ronds', acc:ACCS[s&&s.acc]?s.acc:'aucun', fin:FINS[s&&s.fin]?s.fin:'mat'});
+const cleanSkin = s => ({color:COLORS[s&&s.color]?s.color:'azur', fur:FURS[s&&s.fur]?s.fur:'lisse', eyes:EYES[s&&s.eyes]?s.eyes:'ronds', acc:ACCS[s&&s.acc]?s.acc:'aucun', fin:FINS[s&&s.fin]?s.fin:'mat', trail:TRAILS[s&&s.trail]?s.trail:'aucune', win:WINS[s&&s.win]?s.win:'confettis'});
 const cleanName = n => (String(n||'').replace(/[\u0000-\u001f]/g,'').trim().slice(0,16)) || (T("Adversaire"));
 
 /* ---------- Sons (synthétisés) ---------- */
@@ -1488,6 +1507,17 @@ function fx(from,to,p,fell){
   if (!layer || REDUCED) return;
   const mk=(cls,i)=>{ const d=document.createElement('div'); d.className='fx '+cls; const di=disp(i); d.style.setProperty('--r',(di/5)|0); d.style.setProperty('--q',di%5); d.style.setProperty('--pc',S[p].hex); layer.appendChild(d); setTimeout(()=>d.remove(),700); };
   if (fell) mk('fall',from); setTimeout(()=>mk('ring',to),260);
+  trailFx(from,to,p);
+}
+// Traînée laissée par le pion entre la case de départ et d'arrivée (objet de la boutique)
+const TRAIL_COLS={etincelles:['#ffffff','#fff3b0','#2ef2ff'],flammes:['#ffd75e','#ff8a3d','#ff3b3b'],arcenciel:['#ff3dd8','#ffd75e','#5dffa0','#2ef2ff','#b36bff'],galaxie:['#b36bff','#2ef2ff','#ffffff','#6f86ff']};
+function trailFx(from,to,p){
+  const kind=S[p]&&S[p].skin&&S[p].skin.trail; const cols=TRAIL_COLS[kind]; if (!cols || !layer || REDUCED) return;
+  const a=disp(from), b=disp(to), ar=(a/5)|0, aq=a%5, br=(b/5)|0, bq=b%5, n=10;
+  for (let i=0;i<n;i++){ setTimeout(()=>{ const t=i/(n-1), d=document.createElement('div'); d.className='fx tr '+kind;
+    d.style.setProperty('--r', ar+(br-ar)*t); d.style.setProperty('--q', aq+(bq-aq)*t);
+    for (let j=0;j<3;j++){ const e=document.createElement('i'); e.style.setProperty('--c', cols[(i+j)%cols.length]); e.style.setProperty('--s', (6+Math.random()*9)+'px'); e.style.setProperty('--dx', ((Math.random()-.5)*26)+'px'); e.style.setProperty('--dy', ((Math.random()-.5)*26)+'px'); e.style.animationDelay=(j*60)+'ms'; d.appendChild(e); }
+    layer.appendChild(d); setTimeout(()=>d.remove(),1000); }, i*22); }
 }
 
 /* ---------- Icônes ---------- */
@@ -1715,6 +1745,7 @@ function card(kind,id,o={}){
   const it=CAT[kind][id], own=unlocked(kind,id), eq = kind==='theme' ? P.theme===id : P.skin[kind]===id;
   let pv;
   if (kind==='theme') pv=`<div class="swatch" style="background:${it.fr}">${[1,2,1,2,1,2,1,2,1].map(v=>`<i style="background:${v===1?it.t1:it.t2}"></i>`).join('')}</div>`;
+  else if (kind==='trail'||kind==='win') pv=`<div class="pv fxpv fx-${kind}-${id}"><span>${it.e}</span></div>`;
   else pv=`<div class="pv">${pawnSVG({...P.skin,[kind]:id})}</div>`;
   const status = eq ? (T("Équipé")) : own ? (it.p===0 ? (T("Gratuit")) : (T("Possédé"))) : `${ic('coin',(T("ic sm")))} ${cost(it.p)}`;
   const rr=rarity(it.p);
@@ -1724,7 +1755,7 @@ function renderShop(){
   return `<div class="top"><h1 class="logo">${T("Boutique")}</h1>${topRight()}</div>
   <div class="wallet">${ic('coin')}<div><b>${P.coins} ${T("pièces")}</b><small>${T("Plus tu joues, plus tu en gagnes : 2 par minute de jeu, 10 par victoire, 3 par partie terminée, et des bonus pour les cours, puzzles et badges.")}</small></div></div>
   <p class="demo">${T("Toute la personnalisation s'achète avec tes pièces. Touche un objet pour l'acheter ou l'équiper.")}</p>
-  ${['color','fur','fin','eyes','acc','theme'].map(k=>`<h2 class="h2">${k==='theme'?(T("Plateaux")):k==='eyes'?(T("Yeux")):k==='fin'?(T("Finitions")):KIND_N[k]+'s'}</h2><div class="grid">${Object.keys(CAT[k]).filter(id=>CAT[k][id].p>0).map(id=>card(k,id,{shop:1})).join('')}</div>`).join('')}
+  ${['color','fur','fin','eyes','acc','trail','win','theme'].map(k=>`<h2 class="h2">${k==='theme'?(T("Plateaux")):k==='eyes'?(T("Yeux")):k==='fin'?(T("Finitions")):k==='trail'?(T("Traînées")):k==='win'?(T("Célébrations de victoire")):KIND_N[k]+'s'}</h2><div class="grid">${Object.keys(CAT[k]).filter(id=>CAT[k][id].p>0).map(id=>card(k,id,{shop:1})).join('')}</div>`).join('')}
   <div class="premium"><svg class="gem" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">${I.gem}</svg>
     <h3>${T("Premium")}</h3><p>${T("Pour devenir meilleur, pas pour la déco :")}</p><ul><li>${T("Cours avancés")}</li><li>${T("Indices et solutions des puzzles et des cours")}</li><li>${T("Analyses de parties illimitées")}</li><li>${T("Bloquer wizz, toc toc et haha")}</li></ul>
     <p>${P.premium?("<b>"+T("Premium est actif sur cet appareil.")+"</b>"):(T("Bientôt disponible en abonnement."))}</p>
@@ -1736,7 +1767,7 @@ function renderProfile(){
   return `<div class="top"><h1 class="logo">${T("Profil")}</h1>${topRight()}</div>
   <div class="phead"><div class="avatar" style="width:88px;flex:none">${pawnSVG(P.skin)}</div><div class="field" style="flex:1;min-width:0"><label for="pname" class="sub">${T("Pseudo")}</label><input id="pname" maxlength="16" value="${esc(P.name)}" autocomplete="off"></div></div>
   <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?(" "+T("· Premium actif")):''}</p>
-  ${sec('perso',(T("Personnalisation")), ['color','fur','fin','eyes','acc','theme'].map(k=>`<b class="sub">${KIND_N[k]}</b><div class="chips">${Object.keys(CAT[k]).map(id=>card(k,id)).join('')}</div>`).join(''))}
+  ${sec('perso',(T("Personnalisation")), ['color','fur','fin','eyes','acc','trail','win','theme'].map(k=>`<b class="sub">${KIND_N[k]}</b><div class="chips">${Object.keys(CAT[k]).map(id=>card(k,id)).join('')}</div>`).join(''))}
   ${sec('rank',(T("Classements par cadence · 5×5")), `${cadHTML()}<p class="note">${T("Chaque cadence a son propre classement. Classement national : bientôt, avec le serveur de comptes.")}</p>`)}
   ${sec('games',`${T("Parties contre de vrais joueurs ·")} ${realGames().length}`, realGames().length?`<div class="list">${realGames().slice(-5).reverse().map(gameRow).join('')}</div><button class="linkbtn" type="button" data-act="games">${T("Tout voir ›")}</button>`:("<p class=\"sub\">"+T("Tes parties en ligne et contre tes amis apparaîtront ici.")+"</p>"))}
   ${sec('stats',(T("Statistiques")), `<div class="stats"><div><b style="color:${t[2]}">${P.elo.r}</b><small>${T("steps ·")} ${t[1]}</small></div><div><b>${P.elo.g}</b><small>${T("matchs classés")}</small></div><div><b>${P.premium?'∞':left}</b><small>${P.premium?'analyses':left<3?`${T("analyses · +1 dans")} ${anRenewH()} h`:(T("analyses cette semaine"))}</small></div><div><b>${pzDone()}</b><small>${T("puzzles réussis")}</small></div><div><b>${P.stat.fell||0}</b><small>${T("cases détruites")}</small></div><div><b>${P.stat.games||0}</b><small>${T("parties jouées")}</small></div></div>`)}
@@ -1757,7 +1788,6 @@ function renderSheet(){
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
   w.classList.toggle('center', ['ldone','limit','chalin'].includes(sheet.type));
   w.hidden=false;
-  if (sheet.type==='chat' && sheetKey==='chat'){ updateChatLog(); return; }
   const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>")+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
   const keep={}; $('#sheetBody').querySelectorAll('input[id]').forEach(i=>{ if (i.type!=='checkbox') keep[i.id]=i.value; });
@@ -1800,7 +1830,8 @@ function sheetHTML(){
   }
   if (s.type==='buy'){
     const it=CAT[s.k][s.v], c=cost(it.p), can=P.coins>=c;
-    return `<h2>${KIND_N[s.k]} · ${it.n}</h2><div class="card" style="cursor:default;align-self:center;width:140px">${s.k==='theme'?`<div class="swatch" style="background:${it.fr};width:100px">${[1,2,1,2,1,2,1,2,1].map(v=>`<i style="background:${v===1?it.t1:it.t2}"></i>`).join('')}</div>`:`<div class="pv" style="width:100px">${pawnSVG({...P.skin,[s.k]:s.v})}</div>`}</div>
+    if (s.k==='win') setTimeout(()=>previewWin(s.v),250);
+    return `<h2>${KIND_N[s.k]} · ${it.n}</h2><div class="card" style="cursor:default;align-self:center;width:140px">${(s.k==='trail'||s.k==='win')?`<div class="pv fxpv" style="width:100px;aspect-ratio:1"><span style="font-size:3rem">${it.e}</span></div>`:s.k==='theme'?`<div class="swatch" style="background:${it.fr};width:100px">${[1,2,1,2,1,2,1,2,1].map(v=>`<i style="background:${v===1?it.t1:it.t2}"></i>`).join('')}</div>`:`<div class="pv" style="width:100px">${pawnSVG({...P.skin,[s.k]:s.v})}</div>`}</div>
       <p>${T("Prix :")} <b>${c} ${T("pièces")}</b>. ${T("Tu en as")} ${P.coins}.</p>
       ${can?`<button class="primary" type="button" data-act="buy-ok">${T("Acheter et équiper ·")} ${c} ${T("pièces")}</button>`:`<p class="note">${T("Il te manque")} ${c-P.coins} ${T("pièces. Joue des parties, des puzzles et des cours pour en gagner.")}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`}`;
   }
@@ -1870,10 +1901,13 @@ function sheetHTML(){
     <label class="toggle"><span>${T("Musique")}</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
     ${M&&M.done&&!online()?`<button class="secondary" type="button" data-act="leave-game">${T("Retour au menu")}</button>`:s.confirm?`<button class="danger" type="button" data-act="leave-game">${online()?(T("Quitter la partie")):(T("Confirmer l'abandon"))}${vsAI&&M&&!M.train?(" "+T("(compte comme une défaite)")):''}</button>`:`<button class="danger" type="button" data-act="ask-leave">${online()?(T("Quitter")):(T("Abandonner"))}</button>`}`;
   if (s.type==='chat'){
-    const row=(t,ids)=>`<p class="phl">${t}</p><div class="quick">${ids.map(id=>`<button type="button" data-act="quick-msg" data-v="${id}">${esc(phText(id))}</button>`).join('')}</div>`;
-    return `<h2>${T("Messages")}</h2><div class="chatlog" id="chatlog"></div>
-    ${row((T("Mes piques")),myPiques())}${row((T("Politesse")),Object.keys(PHRASES.pol.l))}${row((T("Encouragements")),Object.keys(PHRASES.enc.l))}
-    <button class="secondary" type="button" data-act="piques" style="width:100%;margin-top:10px">${T("Choisir mes")} ${PH_MAX} ${T("piques")}</button>`;
+    const tab=s.tab||'pique', ids = tab==='pique' ? myPiques() : [...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)];
+    const last=CHAT.filter(m=>!m.mine).slice(-1)[0];
+    return `<h2>${T("Messages")}</h2>
+    ${last?`<p class="lastmsg"><small>${esc(S[last.side]?S[last.side].name:'')}</small>${esc(last.text)}</p>`:''}
+    <div class="seg"><button type="button" data-act="chat-tab" data-v="pique" aria-pressed="${tab==='pique'}">😏 ${T("Piques")}</button><button type="button" data-act="chat-tab" data-v="nice" aria-pressed="${tab==='nice'}">🙂 ${T("Sympa")}</button></div>
+    <div class="qgrid">${ids.map(id=>`<button type="button" data-act="quick-msg" data-v="${id}">${esc(phText(id))}</button>`).join('')}</div>
+    ${tab==='pique'?`<button class="linkbtn" type="button" data-act="piques" style="display:block;margin:12px auto 0">✎ ${T("Changer mes piques")}</button>`:''}`;
   }
   if (s.type==='piques'){
     const mine=myPiques();
@@ -2041,7 +2075,8 @@ document.addEventListener('click', e=>{
     case 'hint': hint(); break;
     case 'undo': undo(); break;
     case 'chat': unread=0; sheet={type:'chat'}; render(); break;
-    case 'quick-msg': sendChat(v); break;
+    case 'quick-msg': sendChat(v); sheet=null; render(); break;
+    case 'chat-tab': sheet={type:'chat', tab:v}; render(); break;
     case 'piques': sheet={type:'piques'}; render(); break;
     case 'pique-tog': { const m=myPiques(); const i=m.indexOf(v); if (i>=0) m.splice(i,1); else if (m.length>=PH_MAX){ toast(`${PH_MAX} ${T("piques maximum : retire-en une d'abord")}`); break; } else m.push(v); P.piques=m; saveP(); render(); break; }
     case 'wizz': sendWizz('wizz'); break;
@@ -2471,6 +2506,31 @@ function trSheetHTML(){
 /* ---------- Célébration ---------- */
 let raf=null;
 function stopConfetti(){ if (raf) cancelAnimationFrame(raf); raf=null; }
+// Célébrations de victoire achetables : feu d'artifice, étoiles, pluie d'or, couronne royale
+function winFx(style, hex, cv, dur=4200){
+  if (!cv) return; const ctx=cv.getContext('2d'), dpr=window.devicePixelRatio||1, W=cv.width=innerWidth*dpr, H=cv.height=innerHeight*dpr;
+  const parts=[], t0=performance.now(), R=Math.random;
+  const star=(x,y,r,rot)=>{ ctx.beginPath(); for(let i=0;i<10;i++){ const a=rot+i*Math.PI/5, rr=i%2?r*.45:r; ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);} ctx.closePath(); ctx.fill(); };
+  const burst=(x,y)=>{ const cols=[hex,'#ffffff','#ffd75e','#ff3dd8','#2ef2ff']; for(let i=0;i<60;i++){ const a=R()*Math.PI*2, v=(3+R()*7)*dpr; parts.push({k:'spark',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,c:cols[i%cols.length],l:1,s:(2+R()*2.5)*dpr}); } };
+  let nextBurst=0, crown=style==='couronne'?{y:-120*dpr,vy:0}:null;
+  const step=now=>{
+    const el=now-t0; ctx.clearRect(0,0,W,H);
+    if (style==='feux' && el>nextBurst && el<dur-900){ burst(W*(.2+R()*.6), H*(.15+R()*.35)); nextBurst=el+380; }
+    if ((style==='etoiles'||style==='pluie'||style==='couronne') && el<dur-1200) for(let i=0;i<(style==='couronne'?2:4);i++) parts.push({k:style==='pluie'?'coin':'star',x:R()*W,y:-20*dpr,vx:(R()-.5)*1.5*dpr,vy:(2+R()*4)*dpr,rot:R()*6,vr:(R()-.5)*.2,s:(7+R()*9)*dpr,c:style==='pluie'?'#ffd75e':[hex,'#ffd75e','#ffffff'][i%3],l:1});
+    for (const p of parts){ p.x+=p.vx; p.y+=p.vy; if(p.k==='spark'){ p.vy+=.08*dpr; p.vx*=.98; p.l-=.012; ctx.globalAlpha=Math.max(0,p.l); ctx.fillStyle=p.c; ctx.shadowColor=p.c; ctx.shadowBlur=10*dpr; ctx.beginPath(); ctx.arc(p.x,p.y,p.s,0,7); ctx.fill(); }
+      else if(p.k==='coin'){ p.rot+=p.vr; ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.save(); ctx.translate(p.x,p.y); ctx.scale(Math.abs(Math.cos(p.rot*3)),1); const g=ctx.createRadialGradient(-p.s*.3,-p.s*.3,1,0,0,p.s); g.addColorStop(0,'#fff6c8'); g.addColorStop(.5,'#ffd75e'); g.addColorStop(1,'#b8902a'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,p.s,0,7); ctx.fill(); ctx.restore(); }
+      else { p.rot+=p.vr; ctx.globalAlpha=1; ctx.fillStyle=p.c; ctx.shadowColor=p.c; ctx.shadowBlur=12*dpr; star(p.x,p.y,p.s,p.rot); } }
+    ctx.shadowBlur=0; ctx.globalAlpha=1;
+    if (crown){ const target=H*.2; crown.vy+=.9*dpr; crown.y=Math.min(target, crown.y+crown.vy); if (crown.y>=target && crown.vy>0){ crown.vy=-crown.vy*.35; if (Math.abs(crown.vy)<2*dpr) crown.vy=0; }
+      ctx.font=`${140*dpr}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.shadowColor='#ffd75e'; ctx.shadowBlur=40*dpr; ctx.fillText('👑', W/2, crown.y); ctx.shadowBlur=0; }
+    for (let i=parts.length-1;i>=0;i--) if (parts[i].l<=0 || parts[i].y>H+40*dpr) parts.splice(i,1);
+    if (el<dur || parts.length) raf=requestAnimationFrame(step); else { ctx.clearRect(0,0,W,H); raf=null; }
+  };
+  stopConfetti(); raf=requestAnimationFrame(step);
+}
+// Aperçu d'une célébration depuis la boutique
+function previewWin(id){ let cv=document.getElementById('winprev'); if (!cv){ cv=document.createElement('canvas'); cv.id='winprev'; cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:95'; document.body.appendChild(cv); }
+  const hex=(COLORS[P.skin.color]||COLORS.azur).hex; if (id==='confettis'){ winFx('etoiles',hex,cv,1500); return; } winFx(id,hex,cv,3600); }
 function celebrate(){
   if (!M || !M.done || view!=='game') return;
   recordGame();
@@ -2490,7 +2550,9 @@ function celebrate(){
     <button class="secondary" type="button" data-act="leave-game" style="width:100%">${online()?(T("Quitter")):(T("Retour au menu"))}</button>`;
   box.hidden=false;
   if (iWon) sfx.win(); else sfx.round();
-  if (REDUCED || !iWon) return;
+  const style=(S[c].skin&&S[c].skin.win)||'confettis';
+  if (REDUCED || (!iWon && style==='confettis')) return;
+  if (style!=='confettis'){ stopConfetti(); winFx(style, S[c].hex, box.querySelector('canvas')); return; }
   const cv=box.querySelector('canvas'), ctx=cv.getContext('2d'), dpr=window.devicePixelRatio||1, W=cv.width=innerWidth*dpr, H=cv.height=innerHeight*dpr;
   const cols=[S[c].hex,'#2ef2ff','#ff3dd8','#b6ff3b','#ffffff'];
   const parts=Array.from({length:170},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.38,vx:(Math.random()-.5)*14*dpr,vy:(-6-Math.random()*12)*dpr,s:(5+Math.random()*7)*dpr,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
