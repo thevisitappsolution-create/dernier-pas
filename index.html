@@ -540,6 +540,10 @@ details.sec>.in{display:flex;flex-direction:column;gap:10px;padding:0 14px 14px}
 .node .frs{position:absolute;right:calc(100% + 8px);top:50%;transform:translateY(-50%);display:flex}
 .node .frs span{width:32px;height:32px;margin-left:-10px;border-radius:50%;background:#0c0a1c;border:2px solid #8f7bff;padding:2px;box-sizing:border-box}
 .node svg{width:100%;height:100%;overflow:visible}
+.node .stz{position:absolute;top:calc(100% + 1px);left:50%;transform:translateX(-50%);font-size:.78rem;letter-spacing:1px;color:#ffe14d;white-space:nowrap;text-shadow:0 0 6px #ffe14d88;font-family:var(--sans,inherit)}
+.ppath.pc{gap:26px}
+.pzsw{margin:2px 0 8px}
+.stbig{font-size:1.5rem;letter-spacing:3px;color:#ffe14d;text-shadow:0 0 10px #ffe14d99}
 .prog{height:12px;border-radius:999px;background:#241d4a;overflow:hidden}
 .prog i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#b6ff3b,#2ef2ff);box-shadow:0 0 10px #2ef2ff}
 .pzhead{display:flex;flex-direction:column;gap:6px}
@@ -648,6 +652,7 @@ html.calm .code{color:var(--accent)}
 .hscroll>*{scroll-snap-align:start;flex:none}
 .hcard{width:78%;min-height:150px;box-sizing:border-box;border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#3a1a8a,#1b1638);border:1px solid #8f7bff66;color:#fff}
 .hcard.c{background:linear-gradient(135deg,#8a3a1a,#1b1638);border-color:#ffb02e66}
+.hcard.p{background:linear-gradient(135deg,#0f6b4a,#15112d);border-color:#b6ff3b66}
 .hcard.b{background:linear-gradient(135deg,#0d5679,#15112d);border-color:#2ef2ff55}
 .hcard h3{margin:0;font-size:1.35rem;font-weight:800}
 .hcard .row2{display:flex;align-items:center;gap:10px}
@@ -768,7 +773,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 47,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 48,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1161,7 +1166,7 @@ const who = p => `<span class="who" style="--pc:${S[p].hex}"><i></i>${esc(S[p].n
 
 /* ---------- Règles ---------- */
 const stateOf = () => ({cells:G.cells, pawns:G.pawns, jumps:G.J, turn:G.turn});
-const movesFor = t => aiGen(G.cells, G.pawns, G.J, t);
+const movesFor = t => { const ms=aiGen(G.cells, G.pawns, G.J, t); return TR && TR.kind==='parc' ? ms.filter(m=>m[0]===0) : ms; };
 // Somme des chiffres visibles : les cases sous les pions ne comptent pas (on ne les voit pas)
 const boardSum = () => G.cells.reduce((a,v,i)=>a+(G.pawns.some(p=>p.includes(i))?0:v),0);
 function newRound(){
@@ -1170,6 +1175,7 @@ function newRound(){
     moves:0, msg:'', clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
 }
 function startTurn(){
+  if (isParc()){ G.turnAt=performance.now(); G.pick=0; return; }
   const ms=movesFor(G.turn);
   if (!ms.length){ G.msg=`${T("Les deux pions de")} ${S[G.turn].name} ${T("sont bloqués.")}`; endRound(1-G.turn); return; }
   G.turnAt=performance.now();
@@ -1188,6 +1194,7 @@ function doMove(m){
   if (online() && M){ M.fm=M.fm||[0,0]; M.fm[t]=1; }
   G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.hinting=false;
   if (fell) burst(from, '#2ef2ff'); if (t===humanSeat()) vibrate(6);
+  if (isParc()){ G.turn=0; G.pick=0; commit(); parcAfter(); return; }
   if (trapCheck(t, m[1])) return;
   G.turn=1-t; startTurn(); commit();
   if (vsAI && t===1 && !G.over) botAfterMove();
@@ -1608,7 +1615,7 @@ function renderGame(){
   if (key!==lastSkinKey){ lastSkinKey=key; skinPawns(); }
   const playing=G&&!G.over, seat=humanSeat(), myTurn=playing&&(seat===null||G.turn===seat);
   const bot=bottomSide();
-  $('#stripTop').innerHTML=strip(1-bot); $('#stripBot').innerHTML=strip(bot);
+  $('#stripTop').hidden=isParc(); $('#stripTop').innerHTML=isParc()?'':strip(1-bot); $('#stripBot').innerHTML=isParc()?parcStrip():strip(bot);
   $('#scorebar').hidden=!!TR; $('#coach').hidden=!TR; $('#app').classList.toggle('tr', !!TR); gbtnSet();
   if (TR){ $('#coach').innerHTML=`<div class="av">${coachSVG()}</div><div class="bub"><b>${esc(trHead())}</b>${['win','fail'].includes(TR.state)?'':`<p>${trStatus()}</p>`}</div>`; }
   else { const a=bot, b=1-bot, pts=matchPts();
@@ -1638,7 +1645,7 @@ function renderGame(){
     el.setAttribute('aria-label', `${sq(i)} : ${v===0?T('trou'):T('case')+' '+v}${hp!==undefined?(T(", pion de")+" ")+S[hp].name:''}`);
   });
   for (let p=0;p<2;p++) for (let k=0;k<2;k++){
-    const el=pawnEls[p][k], di=disp(G.pawns[p][k]);
+    const el=pawnEls[p][k], di=disp(G.pawns[p][k]); el.style.display=G.pawns[p][k]<0?'none':'';
     el.style.setProperty('--r',(di/5)|0); el.style.setProperty('--q',di%5);
     const lk=LOOK[p][k]; el.style.setProperty('--lx', flipped?-lk.x:lk.x); el.style.setProperty('--ly', flipped?-lk.y:lk.y);
     let cls='pawn'; const mine=myTurn&&p===G.turn;
@@ -1721,9 +1728,10 @@ function renderHome(){
   const fs=[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a)) || (b.last||0)-(a.last||0));
   return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} ${T("steps ·")} ${t[1]}</small></div><span class="flame" aria-label="${T("Série de")} ${streak} ${T("jours")}">🔥 ${streak}</span></div>${topRight()}</div>
   <div class="hscroll">
+    <div class="hcard p"><h3>${T("🧭 Parcours")}</h3><div class="row2"><b>★ ${parcTotal()}</b><div class="prog"><i style="width:${parcTotal()/(PARC.length*3)*100}%"></i></div><b>${PARC.length*3}</b></div><button class="primary" type="button" data-act="tab" data-v="parc">${T("Jouer")}</button></div>
     ${(()=>{ const k=rushTier(), RM=RUSH_MODES[k], bst=Math.min(rushBest(k),RM.target); return `<div class="hcard c"><h3>${T("⏱️ Défis chrono")}</h3><div class="row2"><b>${RM.e} ${RM.n}</b><div class="prog"><i style="width:${bst/RM.target*100}%"></i></div><b>${rushAllDone()?'✓':`${bst}/${RM.target}`}</b></div><button class="primary" type="button" data-act="rush-pick">${T("Jouer")}</button></div>`; })()}
     <div class="hcard"><h3>${T("🧩 Puzzles")}</h3><div class="row2"><b>${Math.min(pzToday(),PZ_DAY)}/${PZ_DAY}</b><div class="prog"><i style="width:${Math.min(1,pzToday()/PZ_DAY)*100}%"></i></div></div><button class="primary" type="button" data-act="tab" data-v="puzzles">${T("Résoudre")}</button></div>
-    <div class="hcard b"><h3>${T("Lastep du jour #")}${djNum()}</h3>${d?`<b class="emo" style="font-size:1.6rem">${d.res.map(r=>r?'✅':'❌').join('')}</b><button class="primary" type="button" data-act="dj-share">${T("Partager")}</button>`:`<small>${T("3 puzzles · 1 essai")}</small><button class="primary" type="button" data-act="dj">${T("Jouer")}</button>`}</div>
+    <div class="hcard b"><h3>${T("Lastep du jour #")}${djNum()}</h3>${d?`<b class="emo" style="font-size:1.6rem">${d.res.map(r=>r?'✅':'❌').join('')}</b><button class="primary" type="button" data-act="dj-share">${T("Partager")}</button>`:`<small>${T("4 défis · 1 essai")}</small><button class="primary" type="button" data-act="dj">${T("Jouer")}</button>`}</div>
   </div>
   <div class="hhead"><h2 class="h2">${T("Stats")}</h2></div>
   <div class="hscroll">${TIMES.map(tm=>{ const c=getR('champ',tm), a=getR('ia',tm); return `<div class="tile"><span class="em">${tm===1?'⚡':tm===3?'🔥':'⏱️'}</span><b>${c.g?c.r:a.r}</b><small>${tm===1?(T("Éclair")):tm+' min'}</small></div>`; }).join('')}</div>
@@ -1782,7 +1790,7 @@ function renderProfile(){
 }
 function renderTabs(){
   const t=[['home','home',(T("Accueil"))],['puzzles','bulb',(T("Puzzles"))],['learn','coach',(T("Apprendre"))],['shop','shop',(T("Boutique"))],['profile','user',(T("Profil"))]];
-  $('#tabsIn').innerHTML=t.map(([v,i,l])=>`<button type="button" data-act="tab" data-v="${v}" ${view===v||(v==='home'&&view==='play')?(T("aria-current=\"page\"")):''}>${ic(i)}${l}</button>`).join('');
+  $('#tabsIn').innerHTML=t.map(([v,i,l])=>`<button type="button" data-act="tab" data-v="${v}" ${view===v||(v==='home'&&view==='play')||(v==='puzzles'&&view==='parc')?(T("aria-current=\"page\"")):''}>${ic(i)}${l}</button>`).join('');
 }
 
 /* ---------- Rendu : feuilles ---------- */
@@ -1980,7 +1988,7 @@ function render(){
   if (inGame) renderGame();
   else {
     if (view==='game') view='play';
-    const html = view==='home'?renderHome():view==='shop'?renderShop():view==='profile'?renderProfile():view==='puzzles'?renderPuzzles():view==='learn'?renderLearn():renderPlay();
+    const html = view==='home'?renderHome():view==='shop'?renderShop():view==='profile'?renderProfile():view==='puzzles'?renderPuzzles():view==='parc'?renderParc():view==='learn'?renderLearn():renderPlay();
     if ($('#screen').dataset.v!==view || $('#screen').innerHTML!==html){ $('#screen').innerHTML=html; $('#screen').dataset.v=view; }
     renderTabs();
   }
@@ -1993,7 +2001,7 @@ document.addEventListener('click', e=>{
   const a=e.target.closest('[data-act]'); if (!a) return;
   const k=a.dataset.act, v=a.dataset.v;
   switch(k){
-    case 'tab': view=v; sheet=null; learnMenu=false; render(); window.scrollTo(0,0); if (v==='puzzles') pzScroll(); if (v==='learn') lnScroll(); break;
+    case 'tab': view=v; sheet=null; learnMenu=false; render(); window.scrollTo(0,0); if (v==='puzzles'||v==='parc') pzScroll(); if (v==='learn') lnScroll(); break;
     case 'party': if (window.Party) Party.open(); break;
     case 'learn-menu': learnMenu=!learnMenu; render(); break;
     case 'lessons-sheet': learnMenu=false; sheet={type:'lessons'}; render(); break;
@@ -2013,7 +2021,8 @@ document.addEventListener('click', e=>{
     case 'tr-quit': trQuit(); break;
     case 'dj': startDJ(); break;
     case 'dj-share': if (P.dj) shareText(djShareText(), `${baseURL()}${T("?dj=1")}`); break;
-    case 'pz-stop': if (TR && TR.state==='play') trDone(false); break;
+    case 'pz-stop': if (TR && TR.state==='play') (isParc()?parcDone(false):trDone(false)); break;
+    case 'parc': if (parcOpen(+v)) startParc(+v); break;
     case 'pz-chal': if (TR && TR.ms) shareChallenge(TR.cat, TR.idx, Math.max(1,Math.round(TR.ms/1000))); break;
     case 'chal-back': if (sheet && sheet.c) shareChallenge(sheet.c.cat, sheet.c.i, sheet.s); break;
     case 'chal-go': { const c=sheet&&sheet.c; sheet=null; if (c) startChal(c); } break;
@@ -2354,6 +2363,7 @@ function startExercise(){
 }
 function trRestart(){
   if (!TR) return;
+  if (TR.kind==='parc') return startParc(TR.i, '', TR.state==='win' ? 0 : TR.tries+1);
   if (TR.kind==='puzzle') startPuzzle(TR.cat, TR.idx);
   else if (TR.phase==='ex' || TR.state==='win' || TR.state==='fail') { sheet=null; startExercise(); }
   else startLesson(TR.i);
@@ -2417,7 +2427,8 @@ function trOppReply(){
 }
 function trTitle(){
   if (!TR) return '';
-  if (TR.mode==='dj') return `${T("Lastep du jour ·")} ${DJ?Math.min(3,DJ.k+1):3}/3`;
+  if (TR.mode==='dj') return `${T("Lastep du jour ·")} ${DJ?Math.min(4,DJ.k+1):4}/4`;
+  if (TR.kind==='parc') return `${T("Parcours")} ${TR.i+1}`;
   if (TR.mode==='chal' && CHAL) return `${T("Défi de")} ${CHAL.n}`;
   if (TR.rush && RUSH) return `${RUSH_MODES[RUSH.mode].e} ${RUSH_MODES[RUSH.mode].n} · ${RUSH.score}/${RUSH_MODES[RUSH.mode].target} · ${RUSH.err}${T("/3 erreurs")}`;
   if (TR.kind==='puzzle'){ const c=PUZ_CATS.find(x=>x.k===TR.cat); return `${c.t} · ${TR.idx+1}/${PUZ[TR.cat].length}`; }
@@ -2427,6 +2438,7 @@ function trStatus(){
   const tr=TR;
   if (tr.kind==='lesson' && tr.phase==='demo'){ const steps=tr.L.demo.steps, n=Math.max(0,tr.step), st=steps[n]; return esc(st?st.cap:''); }
   if (tr.kind==='lesson' && tr.phase==='ready') return (T("Démonstration terminée. À toi de jouer !"));
+  if (tr.kind==='parc'){ if (tr.state==='win') return tr.stars?`<b class="stbig">${starsTxt(tr.stars)}</b>`:''; if (tr.state==='fail') return (T("Bloqué : il reste des cases.")); return (T("Fais tomber toutes les cases.")); }
   if (tr.state==='win') return ("<b>"+T("Réussi !")+"</b>");
   if (tr.state==='fail') return tr.kind==='puzzle' ? (T("Raté.")) : (T("Raté. Réessaie ou regarde la solution."));
   if (tr.state==='check') return (T("Analyse de ton coup…"));
@@ -2443,22 +2455,23 @@ function renderTrActions(){
     const last=n>=tr.L.demo.steps.length-1, hasMv=!!(tr.L.demo.steps[Math.max(0,n)] && stepMove(tr.L, tr.L.demo.steps[Math.max(0,n)]));
     a.push(btn('demo-next', last?'':'fwd', last?(T("À l'exercice")):(T("Suivant")), {cls:'primary'}).replace('<button','<button aria-label="'+T('Explication suivante')+'"')); }
   else if (tr.kind==='lesson' && tr.phase==='ready'){ a.push(btn('demo-prev','back',(T("Revoir la fin")))); a.push(btn('tr-replay','undo',(T("Revoir tout")))); a.push(btn('tr-go','', (T("À toi !")),{cls:'primary'})); }
-  else if (tr.state==='win'){ a.push(btn('tr-next','', (T("Suivant")),{cls:'primary'})); }
+  else if (tr.state==='win'){ if (tr.kind==='parc' && tr.stars<3) a.push(btn('tr-restart','undo',(T("Rejouer")))); a.push(btn('tr-next','', (T("Suivant")),{cls:'primary'})); }
   else if (tr.rush){ a.push(btn('rush-stop','flag',(T("Arrêter le défi")))); }
   else if (tr.mode){ a.push(btn('pz-stop','flag',(T("Abandonner")))); }
-  else if (tr.state==='fail'){ if (tr.kind!=='puzzle') a.push(btn('tr-sol',P.premium?'bulb':'lock',(T("Solution")))); a.push(btn('tr-restart','', (T("Réessayer")),{cls:'primary'})); }
-  else { if (tr.kind!=='puzzle') a.push(btn('tr-hint',P.premium?'bulb':'lock',(T("Indice")),{dis:G.turn!==0})); a.push(btn('tr-restart','undo',(T("Recommencer")))); }
+  else if (tr.state==='fail'){ if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-sol',P.premium?'bulb':'lock',(T("Solution")))); a.push(btn('tr-restart','', (T("Réessayer")),{cls:'primary'})); }
+  else { if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-hint',P.premium?'bulb':'lock',(T("Indice")),{dis:G.turn!==0})); a.push(btn('tr-restart','undo',(T("Recommencer")))); }
   $('#actions').innerHTML=a.join('');
 }
 function trNext(){
   const tr=TR; sheet=null;
-  if (tr.kind==='puzzle'){ const k=pzIndex(tr.cat,tr.idx)+1; if (k<PUZ_LIST.length) return startPuzzle(PUZ_LIST[k].cat, PUZ_LIST[k].i); }
+  if (tr.kind==='parc'){ if (tr.i+1<PARC.length) return startParc(tr.i+1); }
+  else if (tr.kind==='puzzle'){ const k=pzIndex(tr.cat,tr.idx)+1; if (k<PUZ_LIST.length) return startPuzzle(PUZ_LIST[k].cat, PUZ_LIST[k].i); }
   else if (tr.i+1<LESSONS.length && (!LESSONS[tr.i+1].p || P.premium)) return startLesson(tr.i+1);
   trQuit();
 }
 function lnScroll(){ setTimeout(()=>{ const n=document.querySelector('.lnode.cur'); if (n) n.scrollIntoView({block:'center'}); }, 0); }
 function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.node.cur')||[...document.querySelectorAll('.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
-function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'){ sheet=null; view='puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
+function trQuit(){ const kind=TR&&TR.kind; if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 function trHint(){
   const tr=TR; if (!G || G.turn!==0) return;
   if (!P.premium){ sheet={type:'locked', what:'hint'}; render(); return; }
@@ -2903,10 +2916,72 @@ function renderPuzzles(){
       html+=`<button type="button" class="node${d?' done':''}${isCur&&!prem?' cur':''}" style="--x:${x}px" data-act="puzzle" data-k="${c.k}" data-v="${i}" ${open?'':'disabled'} aria-label="${T("Puzzle")} ${k+1}, ${esc(c.t)}${d?(T(", réussi")):prem?(T(", Premium")):open?'':(T(", verrouillé"))}">${d?'★':!open?ic('lock'):prem?ic('gem'):k+1}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}${here.length?`<span class="frs">${here.slice(0,3).map(f=>`<span title="${esc(f.name)}">${pawnSVG(cleanSkin(f.sk))}</span>`).join('')}</span>`:''}</button>`;
     });
   });
-  return `<div class="top"><h1 class="logo">${T("Puzzles")}</h1>${topRight()}</div>
+  return `<div class="top"><h1 class="logo">${T("Puzzles")}</h1>${topRight()}</div>${pzSwitch('puzzles')}
   <div class="pzhead"><div class="prog" role="progressbar" aria-label="${T("Progression")}" aria-valuemin="0" aria-valuemax="${PUZ_LIST.length}" aria-valuenow="${done}"><i style="width:${done/PUZ_LIST.length*100}%"></i></div>
   <p class="sub">${done}/${PUZ_LIST.length}${fr.length?` · <b>${myRank}${LANG==='en'?(myRank===1?'st':myRank===2?'nd':myRank===3?'rd':'th'):(myRank===1?'er':'e')}</b> ${T("sur")} ${ranked.length} ${T("amis")}`:''}</p></div>
   <div class="ppath">${html}<div class="ustep">${T("Saison 1 · bientôt")}</div></div>`;
+}
+
+/* ---------- Parcours : un pion seul doit faire tomber toutes les cases ----------
+   Mêmes règles que le jeu (1 à 3 cases en ligne, la case quittée perd 1, le saut passe les trous).
+   Niveaux générés à rebours : chacun a une solution garantie, classés du plus facile au plus dur. */
+const PARC=["0000000000001100011100111,12,0","0000010000111101100000000,5,0","0000000000011110111100001,24,0","0010000110001100001000010,2,0","0111100011000100000000000,1,0","0011001111001110000000000,6,0","0110001111001110000000000,2,0","0000000000010000111001111,21,0","0100001110011110100000000,1,0","0000011100011110111100000,5,0","0000000111001110001100001,12,0","0001011110000110001100000,3,0","1100010000110001100000000,11,0","0000000000011001110001111,15,0","0000100011000110001100111,22,0","0001100012001110011000100,22,0","0100001000011000110001211,1,0","0021100221000210001100000,7,0","0000000000000011000122222,14,0","0000000010000100011011221,8,0","0000010000211101122100110,5,0","1110011111002210010000000,9,0","0002100021000120001200011,3,0","0000000000000000121211111,17,0","0111200111000110001000000,4,0","0000000000110002211101212,11,0","2211111011011100000000000,12,0","2100022100101000010000000,5,0","0021010100211001110011100,2,0","0011000110211101012010000,7,0","0011000221000000120011200,22,1","0000000111000101111012210,21,1","0000100000000210012201122,21,1","1211012100021000100000100,5,1","0002201021000220001100010,23,1","0120000100100001120022100,10,1","2010020000200002110021000,17,1","0000101100011100012200212,11,1","0000010000110002001121122,5,1","1100122001121110110100000,6,1","0110000110001211221001000,7,1","1011021100210011000110000,3,1","2100022101100001100011000,20,1","1222111110000000110001100,1,1","0000000100101111111211101,24,1","0020001200012210111101011,16,1","0100000100112202221022200,13,1","0000011200101220011200121,5,1","0110101111022111210111100,2,1","1212101011110220001100000,6,1","1112011220001000110100111,0,1","0000010000111111112121121,10,1","1210022220122002101011000,21,1","0011122210111102211121100,18,1","0020102211121002210000100,7,1","1222111222101001011000010,17,1","0101101111000210101200022,1,1","1001110011100011100112211,16,1","0100000000121111222112111,11,1","1110022200121011110001100,7,1"];
+const PARC_D=["1110012100001000021100000,17,0","2111021200201001010000000,3,0","0112200112001110011000000,18,0","1211101210012100000000000,11,0","0000100002011110111011110,9,0","0001000021000120002100021,24,0","0000001200111001111011100,18,0","0000011000111000111112211,10,0","0000010000100001211011111,20,0","0000002100110001100022100,6,0","1000010000221001021011100,11,0","1211101122000220000000000,8,0","0011011110112101121000000,6,0","0100011000121001110011000,15,0","1111012110121110000000000,11,0","0110011100100001122110011,1,0","1000011000120001100012100,11,0","1100011111211111000000000,8,0","0000000000000001212111211,16,0","2222111100010000100000000,16,0","0001000011000210012100011,24,0","0111101121011100011000010,1,0","2212211111000010000000000,14,0","0011211122200101000000000,10,0","0011200122001110002100000,18,0","1100011011222220000000000,8,0","0011001110001110011000120,6,0","2100021000210001100011000,1,0","0000000001001120011100221,18,0","0001100012001210011100121,9,0","1111010020111100012000000,8,0","1110012100112100010000000,17,0","2211210112000020000100000,1,0","0000000110012100011100122,11,0","0000000100211101121000010,10,0","2210011200111001010000000,17,0","1222111111001110000000000,14,0","0000000000000121121112100,14,0","0000000000110001210022221,10,0","1100022100220002100001000,1,0","0012200110000110001100012,7,0","0000000000011101122011120,13,0","0121112111001000000000000,5,0","0111101112011010100000000,1,0","0000011110221001211000000,18,0","1112000110012100100011100,20,0","1221021210101001000000000,15,0","0012000011001220012100011,3,0","0000001000020110101112221,13,0","1100001200001000010001221,24,0","0021100221001100021000000,17,0","0000010000100002121012100,15,0","0000000000121101122100100,15,0","1200011000100001000022100,1,0","0011111111011210010000000,17,0","1100012200011000110001100,7,0","0000000000011010121101211,21,0","0000010010211102211012000,8,0","0000000000011110021111210,20,0","0111001010021210100011100,20,0","0011011221112001110000000,15,0","0000010000100001101211112,5,0","0000012200111001100021000,5,0","0002200111000110001200002,7,0","0000100111002120022100110,14,0","0000000010111100101201112,8,0","0000000100012001111101211,15,0","1000021100121001100011000,21,0","0111001120000210001100011,14,0","1211011121001100000000000,9,0","0121112112000000000000000,9,0","0000012111110001200022000,9,0","0111011100211001110000000,3,0","1100011221121200000000000,11,0","2000021000110002200012110,23,0","0111001110011100111200000,19,0","0001100011001110121101110,8,0","0112110021111211000000000,15,0","2122121011110010000000000,14,0","0011112120010100001000000,5,0","1000010000210002100021100,22,0","2222011100210001000010000,3,0","0000010000111101111011211,5,0","1112011120110100000000000,13,0","1211002100110001100000000,10,0","1111022000210001100011000,3,0","0000200012111111100111001,24,0","1110021211111000100000000,9,0","1112000110011100011000000,11,0","1111011210011000110001100,22,0","0000000000011110221102111,17,0","1000020000121101210011000,13,0","0000100002100022011111101,4,0","1121011100011000110000000,17,0","2100010000121000100011100,22,0","1100022110111001100000000,5,0","0011000121001110011100110,23,0","0002200112000020001200011,23,0","0011100111000110002200011,8,0","0000011110220102211100000,16,0","0000000000011210102001120,13,0","0011000222001110000100001,7,0","1120011221011110001000000,18,0","0000000010000110112100121,14,0","0111000021011110111100000,1,0","0000000010021200101011110,8,0","0110012110011210001100010,8,0","0112100111001000111000000,16,0","1210022100112100011000000,7,0","1121012110001200001000000,3,0","1100012000121101100011000,20,0","1000010000100001011022210,0,0","1211110000110000100012100,4,0","0000011110222110000000000,8,0","0000010000221201212100000,5,0","1011122211101000000000000,10,0","0000000000000011122101222,14,0","1110011100120000100002000,0,0","0000000111001121112100021,15,0","0000000000001000011112222,21,0","0001000011000111121100221,15,0","0112101110011001210000000,16,0","0010001210001100111001100,22,0","0000000011011212212010010,23,0","1211112010111000000000000,12,0","1110011211100110000000000,13,0","1112201211011100000000000,0,0","0001100011001110022000110,8,0","0001100011211111101000000,14,0","0000000000110001211011210,16,0","1111011110012200001000000,12,0","0001100121001210011200011,12,0","1120021200200001000010000,2,0","0111000100001000121101111,3,0","0000000000001101121122121,13,0","1000011010212101011000000,18,0","0000001200112102110001000,7,0","2200012100111100001000000,1,0","0022100010012100011000100,2,0","0000000000112111111111000,20,0","1221011100110002200001000,15,0","0001100011001220011100010,13,0","0111111211001110010000000,17,0","0111111111112100010000000,4,0","0000000001110021221201000,19,0","0011001110011001220012100,8,0","0000000000000100221102121,17,0","0000000000110011121111221,14,0","1111111110220000000000000,2,0","1121100111001120001100000,18,0"];
+const PARC_CH=[(T("Premiers pas")),(T("Cases doubles")),(T("Le saut")),(T("Maître du parcours"))];
+const PARC_PER=15;
+const parcZ = s => { const [c,p,j]=s.split(','); return {c, p:+p, j:+j}; };
+const parcStars = i => (P.parc||{})[i]||0;
+const parcTotal = () => Object.values(P.parc||{}).reduce((a,b)=>a+b,0);
+const parcOpen = i => i===0 || parcStars(i-1)>0 || parcStars(i)>0;
+const parcSum = () => G.cells.reduce((a,v,i)=>a+(i===G.pawns[0][0]?0:v),0);
+const isParc = () => !!(TR && TR.kind==='parc');
+const starsTxt = n => '★'.repeat(n)+'☆'.repeat(3-n);
+function startParc(i, mode, tries){
+  const src = mode==='dj' ? PARC_D[dayNum()%PARC_D.length] : PARC[i]; if (!src) return;
+  const z=parcZ(src);
+  TR={kind:'parc', i, z, my:0, state:'play', mode:mode||'', t0:performance.now(), tries:tries||0};
+  trBase(cellsFrom(z.c), [[z.p,-1],[-1,-1]], [z.j,0], 0);
+  TR.n0=parcSum(); startTurn(); G.msg='';
+  const b=$('#board'); b.classList.remove('deal'); void b.offsetWidth; b.classList.add('deal'); setTimeout(()=>b.classList.remove('deal'),1100);
+  render();
+}
+function parcAfter(){
+  const tr=TR; if (!tr || tr.state!=='play') return;
+  tr.my++;
+  if (parcSum()===0) return parcDone(true);
+  if (!movesFor(0).length) return parcDone(false);
+}
+function parcDone(ok){
+  const tr=TR; if (!tr || tr.state!=='play') return;
+  tr.state=ok?'win':'fail'; G.over=true; G.winner=ok?0:null; G.ver++;
+  if (ok) markActive();
+  if (tr.mode==='dj'){ sfx[ok?'win':'round'](); render(); djAfter(ok); return; }
+  if (ok){
+    const st = tr.tries===0 ? 3 : tr.tries<=2 ? 2 : 1, old=parcStars(tr.i); tr.stars=st;
+    if (st>old){ P.parc={...(P.parc||{}), [tr.i]:st}; const gain=(st-old)*3; P.coins=(P.coins||0)+gain; saveP(); toast(`+${gain} ${T("pièces")}`); }
+    sfx.win(); setTimeout(()=>banner('🧭', `${T("Parcours")} ${tr.i+1}`, starsTxt(st)), 250);
+  } else sfx.round();
+  render();
+}
+function parcStrip(){
+  const s=S[0], z=TR.z, clk=TR.mode?`<div class="clock" id="clk0">${fmt(performance.now()-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0))}</div>`:'<span></span>';
+  return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div><div style="min-width:0"><div class="nm">${esc(s.name)}</div>${z.j?`<div class="meta" style="--pc:${s.hex}">${jumpTag(0)}</div>`:''}</div>${clk}`;
+}
+function pzSwitch(cur){ return `<div class="seg pzsw"><button type="button" data-act="tab" data-v="puzzles" aria-pressed="${cur==='puzzles'}">${T("Puzzles")}</button><button type="button" data-act="tab" data-v="parc" aria-pressed="${cur==='parc'}">${T("Parcours")}</button></div>`; }
+function renderParc(){
+  const tot=parcTotal(), max=PARC.length*3, cur=PARC.findIndex((_,i)=>!parcStars(i));
+  let html='';
+  PARC_CH.forEach((t,ci)=>{
+    html+=`<div class="ustep">${T("Chapitre")} ${ci+1} · ${esc(t)}</div>`;
+    for (let i=ci*PARC_PER; i<Math.min(PARC.length,(ci+1)*PARC_PER); i++){
+      const s=parcStars(i), open=parcOpen(i), isCur=i===cur, x=Math.round(Math.sin(i*0.95)*72);
+      html+=`<button type="button" class="node${s?' done':''}${isCur?' cur':''}" style="--x:${x}px" data-act="parc" data-v="${i}" ${open?'':'disabled'} aria-label="${T("Parcours")} ${i+1}${s?`, ${s} ${T("étoiles")}`:open?'':(T(", verrouillé"))}">${!open?ic('lock'):i+1}${s?`<span class="stz" aria-hidden="true">${starsTxt(s)}</span>`:''}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}</button>`;
+    }
+  });
+  return `<div class="top"><h1 class="logo">${T("Parcours")}</h1>${topRight()}</div>${pzSwitch('parc')}
+  <div class="pzhead"><div class="prog" role="progressbar" aria-label="${T("Étoiles")}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${tot}"><i style="width:${tot/max*100}%"></i></div>
+  <p class="sub">★ ${tot}/${max}</p></div>
+  <div class="ppath pc">${html}</div>`;
 }
 
 /* ---------- Écrans : éléments communs ---------- */
@@ -3000,20 +3075,20 @@ const needW = () => (M && M.need) || 2;
 const mWinner = () => M.wins[0]>=needW() ? 0 : 1;
 const baseURL = () => `${location.origin}${location.pathname}`;
 
-/* Lastep du jour : 3 puzzles, un essai chacun, le même pour tout le monde */
+/* Lastep du jour : 3 puzzles + 1 parcours, un essai chacun, le même pour tout le monde */
 const DJ_EPOCH=Math.floor(Date.UTC(2026,9,6)/864e5);
 const djNum = () => Math.max(1, dayNum()-DJ_EPOCH+1);
-const djSet = () => { const d=dayNum(); return ['win1','win2','win3'].map(k=>({cat:k, i:d%PUZ[k].length})); };
+const djSet = () => { const d=dayNum(); return [...['win1','win2','win3'].map(k=>({cat:k, i:d%PUZ[k].length})), {parc:1}]; };
 const djToday = () => P.dj && P.dj.day===dayKey() ? P.dj : null;
 let DJ=null;
 function startDJ(){
   if (djToday()){ sheet={type:'dj'}; render(); return; }
   DJ={k:0, res:[], t0:performance.now()}; djPlay();
 }
-function djPlay(){ const q=djSet()[DJ.k]; startPuzzle(q.cat, q.i, 'dj'); }
+function djPlay(){ const q=djSet()[DJ.k]; if (q.parc) startParc(0, 'dj'); else startPuzzle(q.cat, q.i, 'dj'); }
 function djAfter(ok){
   DJ.res.push(ok?1:0); DJ.k++;
-  if (DJ.k<3){ const d=DJ; setTimeout(()=>{ if (DJ===d) djPlay(); }, 900); return; }
+  if (DJ.k<djSet().length){ const d=DJ; setTimeout(()=>{ if (DJ===d) djPlay(); }, 900); return; }
   const ms=performance.now()-DJ.t0, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1);
   const st=P.djStreak||{}; P.djStreak={last:today, n: st.last===dayKey(y) ? (st.n||0)+1 : st.last===today ? st.n||1 : 1};
   P.dj={day:today, n:djNum(), res:DJ.res, ms}; const won=DJ.res.reduce((a,b)=>a+b,0); P.coins=(P.coins||0)+won*5; saveP();
@@ -3023,7 +3098,7 @@ function djAfter(ok){
 const djShareText = () => { const d=P.dj; return `${T("Lastep #")}${d.n} 🧩 ${d.res.map(r=>r?'✅':'❌').join('')} · ${fmt(d.ms)}`; };
 function djCard(){
   const d=djToday(), st=P.djStreak||{};
-  if (!d) return `<button class="item dj" type="button" data-act="dj"><span class="djt">${T("🧩 Lastep du jour")} <b>#${djNum()}</b></span><small>${T("3 puzzles · un seul essai chacun · le même pour tout le monde")}</small></button>`;
+  if (!d) return `<button class="item dj" type="button" data-act="dj"><span class="djt">${T("🧩 Lastep du jour")} <b>#${djNum()}</b></span><small>${T("3 puzzles et 1 parcours · un seul essai chacun · le même pour tout le monde")}</small></button>`;
   return `<div class="item dj done"><span class="djt">${T("🧩 Lastep #")}${d.n} · <span class="emo">${d.res.map(r=>r?'✅':'❌').join('')}</span> · ${fmt(d.ms)}</span><small>${st.n>1?`${T("Série de")} ${st.n} ${T("jours ·")} `:''}${T("Nouveau puzzle demain")}</small><button class="primary" type="button" data-act="dj-share">${T("Partager mon résultat")}</button></div>`;
 }
 
@@ -3184,6 +3259,7 @@ function gbtnSet(){
 }
 function trHead(){
   const tr=TR; if (!tr) return '';
+  if (tr.kind==='parc' && tr.state==='win' && tr.stars) return `✅ ${starsTxt(tr.stars)}`;
   if (tr.state==='win') return (T("✅ Réussi !")); if (tr.state==='fail') return (T("❌ Raté"));
   if (tr.kind==='lesson') return tr.phase==='demo' ? tr.L.t : (T("À toi !"));
   return G && G.turn===0 ? (T("À toi !")) : (T("Attends…"));
@@ -3192,7 +3268,8 @@ function trProg(){
   const tr=TR; let k, n, label;
   if (tr.kind==='lesson'){ if (tr.phase==='demo'){ n=tr.L.demo.steps.length; k=Math.max(0,tr.step)+1; label=`${T("Étape")} ${k}/${n}`; } else { n=1; k=tr.state==='win'?1:0; label=(T("Exercice")); } }
   else if (tr.rush && RUSH){ return `<div class="trprog"><b>${RUSH.score} ${T("réussi")}${RUSH.score>1?'s':''}</b></div>`; }
-  else if (tr.mode==='dj'){ n=3; k=DJ?DJ.k:3; label=`${T("Lastep du jour ·")} ${Math.min(3,k+1)}/3`; }
+  else if (tr.mode==='dj'){ n=4; k=DJ?DJ.k:4; label=`${T("Lastep du jour ·")} ${Math.min(4,k+1)}/4`; }
+  else if (tr.kind==='parc'){ const left=G?parcSum():0; return `<div class="trprog"><b>${T("Reste")} ${left}</b><div class="prog"><i style="width:${Math.round((tr.n0-left)/tr.n0*100)}%"></i></div></div>`; }
   else if (tr.mode==='chal'){ return `<div class="trprog"><b>${T("Défi de")} ${esc(CHAL?CHAL.n:'')}</b></div>`; }
   else { n=PZ_DAY; const t=pzToday()%PZ_DAY; k = tr.state==='win' ? (t||PZ_DAY) : t; label=`${T("Puzzle")} ${Math.min(PZ_DAY, tr.state==='win'?(t||PZ_DAY):t+1)}/${PZ_DAY}`; }
   return `<div class="trprog"><b>${label}</b><div class="prog"><i style="width:${Math.round(k/n*100)}%"></i></div></div>`;

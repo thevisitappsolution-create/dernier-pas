@@ -983,3 +983,10 @@ Object.assign(window.EN_DICT,{"Doux": "Soft", "Brillant": "Glossy", "Chrome": "C
 Object.assign(window.EN_DICT,{"Sympa": "Friendly", "Changer mes piques": "Change my taunts", "Aucune": "None", "Étincelles": "Sparkles", "Flammes": "Flames", "Arc-en-ciel": "Rainbow", "Galaxie": "Galaxy", "Confettis": "Confetti", "Feu d'artifice": "Fireworks", "Pluie d'étoiles": "Star shower", "Pluie d'or": "Gold rain", "Couronne royale": "Royal crown", "Traînée": "Trail", "Célébration": "Celebration", "Traînées": "Trails", "Célébrations de victoire": "Victory celebrations"});
 Object.assign(window.EN_DICT,{"Avec un ami": "With a friend", "À 4 joueurs": "4 players", "Contre l'ordinateur": "Vs computer", "Avec l'entraîneur": "With the coach", "1 bombe cachée chacun": "1 hidden bomb each", "Bloquer les taquineries": "Block teasing"});
 Object.assign(window.EN_DICT,{"Tout débloquer (test)": "Unlock everything (test)", "Tout reverrouiller": "Lock everything again", "Toute la boutique est débloquée": "The whole shop is unlocked", "Boutique reverrouillée": "Shop locked again"});
+Object.assign(window.EN_DICT, {
+  "Premiers pas":"First steps","Cases doubles":"Double tiles","Le saut":"The jump","Maître du parcours":"Path master",
+  "Parcours":"Path","🧭 Parcours":"🧭 Path","Chapitre":"Chapter","étoiles":"stars","Étoiles":"Stars","Reste":"Left",
+  "Fais tomber toutes les cases.":"Make every tile fall.","Bloqué : il reste des cases.":"Stuck: tiles are left.",
+  "4 défis · 1 essai":"4 challenges · 1 try",
+  "3 puzzles et 1 parcours · un seul essai chacun · le même pour tout le monde":"3 puzzles and 1 path · one try each · the same for everyone"
+});
