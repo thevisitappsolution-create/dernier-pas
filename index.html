@@ -302,6 +302,7 @@ button{font:inherit;color:inherit}
 .qgrid button{padding:13px 12px;border-radius:14px;border:1px solid var(--line);background:var(--raise);color:inherit;font:inherit;font-size:.9rem;text-align:left;line-height:1.2;min-height:52px}
 .qgrid button:active{transform:scale(.97);border-color:var(--accent)}
 .lastmsg{margin:0 0 4px;padding:10px 12px;border-radius:12px;background:#0d0b1f;font-size:.95rem}.lastmsg small{display:block;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.fc .bonus{display:inline-flex;align-items:center;gap:3px;color:var(--neon3,#b6ff3b);font-family:var(--mono);font-weight:600}.fc .bonus svg{width:14px;height:14px}
 .phl{margin:10px 0 4px;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .phc{font-family:var(--mono);font-size:.85rem;color:var(--neon1,#2ef2ff);margin-left:6px}
 .phgrid{display:flex;flex-wrap:wrap;gap:8px;max-height:46vh;overflow-y:auto}
@@ -729,7 +730,7 @@ html.homefix #app{height:100%;box-sizing:border-box;overflow:hidden}
 <div id="app">
   <main id="screen" class="screen"></main>
   <section id="game" hidden>
-    <div class="gbar"><button class="iconbtn" id="gbtn" type="button" data-act="settings" aria-label="Réglages : sons, musique, thème, règles"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><span class="phase" id="phase"></span></div>
+    <div class="gbar"><button class="iconbtn" id="gbtn" type="button" data-act="settings" aria-label="Réglages : sons, musique, thème, règles"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.03 9.11L22 9.97V14.03L19.03 14.89L20.5 17.64L17.64 20.5L14.93 19.01L14.03 22H9.97L9.11 19.03L6.36 20.5L3.5 17.64L4.99 14.93L2 14.03V9.97L4.97 9.11L3.5 6.36L6.36 3.5L9.07 4.99L9.97 2H14.03L14.89 4.97L17.64 3.5L20.5 6.36Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2"/></svg></button><span class="phase" id="phase"></span></div>
     <div class="scorebar" id="scorebar" aria-live="polite"></div>
     <div class="coach" id="coach" hidden aria-live="polite"></div>
     <div class="strip" id="stripTop"></div>
@@ -767,7 +768,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 44,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 45,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1557,7 +1558,7 @@ const I={
   fwd:'<path d="M9 5l7 7-7 7"/>',
   pause:'<path d="M9 5v14M15 5v14"/>',
   playi:'<path d="M8 5l11 7-11 7z"/>',
-  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  gear:'<path d="M19.03 9.11L22 9.97V14.03L19.03 14.89L20.5 17.64L17.64 20.5L14.93 19.01L14.03 22H9.97L9.11 19.03L6.36 20.5L3.5 17.64L4.99 14.93L2 14.03V9.97L4.97 9.11L3.5 6.36L6.36 3.5L9.07 4.99L9.97 2H14.03L14.89 4.97L17.64 3.5L20.5 6.36Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2"/>',
 };
 const ic = (n, cls='ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
 
@@ -1591,7 +1592,7 @@ function fmt(ms){ const s=Math.ceil(Math.max(0,ms)/1000); return `${Math.floor(s
 function strip(side){
   const s=S[side], playing=G&&!G.over, on=playing&&G.turn===side, ms=G?G.clock[side]:P.time*60000, wins=M?M.wins[side]:0;
   let tag='';
-  if (vsAI && side===1) tag=`${LEVELS[vsAI].label} · ${LEVELS[vsAI].elo}`;
+  if (vsAI && side===1) tag=`${LEVELS[vsAI].elo}`;
   else if (side===humanSeat() || (vsAI && side===0)) tag = vsAI || !online() ? `${P.elo.r}` : 'toi';
   return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div>
     <div style="min-width:0"><div class="nm">${esc(s.name)} ${tag?`<small>(${tag})</small>`:''}</div>
@@ -1612,7 +1613,7 @@ function renderGame(){
   if (TR){ $('#coach').innerHTML=`<div class="av">${coachSVG()}</div><div class="bub"><b>${esc(trHead())}</b>${['win','fail'].includes(TR.state)?'':`<p>${trStatus()}</p>`}</div>`; }
   else { const a=bot, b=1-bot, pts=matchPts();
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
-      `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b><small>${T("manches · plateau")} ${boardSum()}</small></div>`+
+      `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b></div>`+
       `<div class="sd r" style="--pc:${S[b].hex}"><span class="nm2"><span>${esc(S[b].name)}</span><i></i></span><b class="pts">${pts[b]} pts</b></div>`; }
   $('#phase').textContent= TR ? trTitle() : `${T("Manche")} ${M.round} · ${BOARDS[G.bid].name}${M.train?(" "+T("· entraînement")):''}${online()?` · ${net.mm?(T("en ligne")):net.code.toUpperCase()}`:''}`;
   // plateau
@@ -1662,6 +1663,9 @@ function renderGame(){
   else if (G.hinting) txt=(T("Recherche du meilleur coup…"));
   else if (G.pick===null) txt = seat===null ? `<b>${esc(S[G.turn].name)}</b> ${T(": choisis un pion")}` : (T("À toi : choisis un pion"));
   else { const hasJ=pickMoves.some(m=>m[2]); txt = hasJ ? (T("Touche une case marquée. ↷ = ton saut, utilisé automatiquement")) : (T("Touche une case marquée")); }
+  // consignes de base : seulement pendant les 3 premières parties, ensuite le plateau parle de lui-même
+  const routine = !TR && !G.bombPhase && !G.over && !G.msg && !(premove && !myTurn) && seat!==null;
+  if (routine && ((P.stat && P.stat.games) || 0) >= 3) txt='';
   st.innerHTML=txt; st.classList.toggle('msg', isMsg);
   renderActions(); fitBoard();
 }
@@ -1724,7 +1728,7 @@ function renderHome(){
   <div class="hhead"><h2 class="h2">${T("Stats")}</h2></div>
   <div class="hscroll">${TIMES.map(tm=>{ const c=getR('champ',tm), a=getR('ia',tm); return `<div class="tile"><span class="em">${tm===1?'⚡':tm===3?'🔥':'⏱️'}</span><b>${c.g?c.r:a.r}</b><small>${tm===1?(T("Éclair")):tm+' min'}</small></div>`; }).join('')}</div>
   <div class="hhead"><h2 class="h2">${T("Amis")} ${P.friends.length?`<small class="note">${P.friends.length}</small>`:''}</h2></div>
-  <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>${T("Ajouter")}</b><small>${T("+100 pièces par ami qui rejoint")}</small></button>${fs.map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?(T("En ligne")):lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">${T("Défier")}</button></div>`).join('')}</div>
+  <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>${T("Ajouter")}</b><small class="bonus">+100 ${ic('coin','ic sm')}</small></button>${fs.map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?(T("En ligne")):lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">${T("Défier")}</button></div>`).join('')}</div>
   ${installCard()}
   <div class="spacer"></div>
   <div class="playbar"><div class="in"><button class="big" type="button" data-act="tab" data-v="play">${T("Jouer")}</button></div></div>`;
@@ -1734,10 +1738,10 @@ function renderPlay(){
   <div class="bigpawn">${pawnSVG(P.skin)}</div>
   <button class="timebtn" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} <span aria-hidden="true">▾</span></button>
   <button class="big" type="button" data-act="match">${T("Commencer la partie")}</button>
-  <button class="item" type="button" data-act="friend">${ic('friends')}${T("Jouer avec un ami")}</button>
-  <button class="item" type="button" data-act="party">${ic('party')}${T("Jouer une partie à 4")}</button>
-  <button class="item" type="button" data-act="ai-sheet">${ic('bot')}${T("Jouer contre l'ordinateur")}</button>
-  <button class="item" type="button" data-act="coach">${ic('coach')}${T("Jouer avec l'entraîneur")}</button>
+  <button class="item" type="button" data-act="friend">${ic('friends')}${T("Avec un ami")}</button>
+  <button class="item" type="button" data-act="party">${ic('party')}${T("À 4 joueurs")}</button>
+  <button class="item" type="button" data-act="ai-sheet">${ic('bot')}${T("Contre l'ordinateur")}</button>
+  <button class="item" type="button" data-act="coach">${ic('coach')}${T("Avec l'entraîneur")}</button>
   <button class="more" type="button" data-act="more" aria-expanded="${playMore}">${T("Plus")} ${playMore?'▴':'▾'}</button>
   ${playMore?`<button class="item" type="button" data-act="local">${ic('phone')}${T("À deux sur ce téléphone")}</button>`:''}`;
 }
@@ -1804,13 +1808,13 @@ function sheetHTML(){
   if (s.type==='ai'){
     return `<h2>${s.coach?(T("Jouer avec l'entraîneur")):(T("Choisis ton adversaire"))}</h2>
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
-    <label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("Une bombe cachée chacun, active 3 coups.")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>
+    <label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>
     <button class="primary" type="button" data-act="${s.coach?'go-coach':'go-ai'}">${T("Jouer ·")} ${tLabel(P.time)}</button>`;
   }
   if (s.type==='friend'){
     if (!net){
       if (!peerOK()) return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Le module en ligne n'a pas pu se charger. Vérifie ta connexion internet et relance l'appli.")}</p>`;
-      return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Choisis la cadence, crée la partie et dis le code à ton ami. Ou tape le code qu'il t'a donné : c'est sa cadence qui compte.")}</p>
+      return `<h2>${T("Jouer avec un ami")}</h2>
       <div class="timegrid t3">${TIMES.map(t=>`<button type="button" data-act="ftime" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>
       <button class="primary" type="button" data-act="host" style="margin-top:10px">${T("Créer une partie")} · ${tLabel(P.time)}</button>
       <form class="joinrow" id="joinform" autocomplete="off"><input class="code-input" id="code" maxlength="5" inputmode="numeric" placeholder="• • • •" aria-label="${T("Code de la partie")}" autocapitalize="characters"><button type="submit" class="secondary">${T("Rejoindre")}</button></form>
@@ -2540,7 +2544,7 @@ function celebrate(){
   const pts=matchPts(), opp=online()&&PEERS[1-net.seat];
   const quote = vsAI ? BOTS[vsAI][iWon?'lose':'win'][0] : '';
   $('#partyCard').innerHTML=`<button class="xclose" type="button" data-act="party-close" aria-label="${T("Fermer")}">✕</button><div class="av">${pawnSVG(S[c].skin,S[c].hex)}</div><h2>${title}</h2><p class="score">${M.wins[c]} – ${M.wins[1-c]}</p>
-    <p class="sub">${T("Points :")} ${pts[c]} – ${pts[1-c]}</p>
+    <p class="sub">${pts[c]} – ${pts[1-c]} pts</p>
     ${vsAI&&M.eloDelta!=null?`<p class="sub">${P.elo.r} ${T("steps (")}${M.eloDelta>=0?'+':''}${M.eloDelta}) · ${tierOf(P.elo.r)[1]}</p>`:''}
     ${online()&&CHAMP_ID===M.id&&LAST_CHAMP!=null?`<p class="sub">${T("Championnat")} ${getR('champ',P.time).r} ${T("steps (")}${LAST_CHAMP>=0?'+':''}${LAST_CHAMP})</p>`:''}
     ${opp&&opp.uid&&!friendById(opp.uid)?`<button class="secondary" type="button" data-act="add-opp" style="width:100%">${T("Ajouter")} ${esc(opp.nm)} ${T("en ami")}</button>`:''}
@@ -2922,7 +2926,7 @@ function settingsBody(){
   <label class="toggle"><span>${T("Musique pendant les parties")}</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
   ${CONFIG.themeChoice?`<label class="toggle"><span>${T("Thème calme")}<small class="note">${T("Moins lumineux, plus reposant pour les yeux.")}</small></span><input type="checkbox" id="o-calm" ${P.calm?'checked':''}></label>`:''}
   <label class="toggle"><span>${T("Afficher les messages de l'adversaire")}</span><input type="checkbox" id="o-chat" ${P.chat?'checked':''}></label>
-  <label class="toggle${P.premium?'':' off'}"><span>${T("Bloquer wizz, toc toc et haha")}${P.premium?'':(" "+T("· Premium"))}<small class="note">${P.premium?(T("Tu ne les reçois plus, mais tu ne peux plus en envoyer.")):(T("Réservé à Premium. Sinon, coupe les sons : les animations restent."))}</small></span><input type="checkbox" id="o-block" ${myBlock()?'checked':''} ${P.premium?'':'disabled'}></label>
+  <label class="toggle${P.premium?'':' off'}"><span>${T("Bloquer les taquineries")}${P.premium?'':' 💎'}</span><input type="checkbox" id="o-block" ${myBlock()?'checked':''} ${P.premium?'':'disabled'}></label>
   <button class="secondary" type="button" data-act="rules">${T("Règles du jeu")}</button>
   <p class="note" style="text-align:center">${T("Lastep · version")} ${CONFIG.version}</p>`;
 }
