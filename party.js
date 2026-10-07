@@ -83,11 +83,11 @@
   }
 
   /* ---------- Déroulement (côté arbitre : partie locale ou hôte) ---------- */
-  function newGame(seats) {
+  function newGame(seats, first) {
     const alive = seats.map(s => s.kind !== 'off');
     PT = {
       id: rid(6), cells: newBoard(), pawns: START.map((p, i) => alive[i] ? p.slice() : []), J: [JUMPS, JUMPS, JUMPS, JUMPS], alive, place: [],
-      seats: seats.map(s => ({ ...s })), turn: -1, moves: 0, last: null, msg: '', over: false, winner: null, deadline: 0, timeouts: [0, 0, 0, 0], pts: null, ver: 0,
+      seats: seats.map(s => ({ ...s })), first: first || 0, turn: -1, moves: 0, last: null, msg: '', over: false, winner: null, deadline: 0, timeouts: [0, 0, 0, 0], pts: null, ver: 0,
     };
     UI.stage = 'game'; UI.sel = null; UI.bubbles = {};
     try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; if (typeof musicStart === 'function') musicStart(); } catch (e) {}
@@ -101,7 +101,8 @@
   }
   function nextTurn(first) {
     if (PT.over) return;
-    let s = first ? 3 : PT.turn;
+    // au premier tour, on part du joueur « first » (il tourne à chaque revanche)
+    let s = first ? (PT.first + 3) % 4 : PT.turn;
     for (let guard = 0; guard < 8; guard++) {
       if (aliveSeats().length <= 1) return finish();
       s = (s + 1) % 4;
@@ -383,7 +384,7 @@
     if (PT.over) {
       const rows = (PT.rank || []).map((s, i) => `<li style="--sc:${SEATC[s]}"><span>${['🥇', '🥈', '🥉', '4'][i]}</span>${av(PT.seats[s].skin)}<b>${esc4(PT.seats[s].name)}</b><span>+${PT.pts ? PT.pts[s] : 0} pts</span></li>`).join('');
       const me = mySeat(), r = PT.rank ? PT.rank.indexOf(me) : -1;
-      end = `<ol class="podium">${rows}</ol>${r >= 0 ? `<p class="note">+${RANKCOINS[r]} ${tr('pièces')}</p>` : ''}<div class="acts">${isReferee() ? `<button class="btn pr" data-a="again">${tr('Rejouer')}</button>` : ''}<button class="btn" data-a="close">${tr('Quitter')}</button></div>`;
+      end = `<ol class="podium">${rows}</ol>${r >= 0 ? `<p class="note">+${RANKCOINS[r]} ${tr('pièces')}</p>` : ''}<div class="acts">${isReferee() ? `<button class="btn pr" data-a="again">${tr('Revanche')}</button>` : ''}<button class="btn" data-a="close">${tr('Quitter')}</button></div>`;
     }
     const chat = NET && !PT.over ? `<button class="btn" data-a="chat">💬 ${tr('Chat')}</button>` : '';
     const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';
@@ -464,7 +465,7 @@
     if (a === 'copy') return copyCode();
     if (a === 'start') return startOnline();
     if (a === 'share') return share();
-    if (a === 'again') { if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats); } else if (!NET) newGame(PT.seats.map(s => ({ ...s }))); return; }
+    if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
     if (a === 'say') return sendPhrase(b.dataset.v);
   }
