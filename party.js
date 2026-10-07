@@ -51,7 +51,7 @@
         for (let d = 1; d <= 3; d++) {
           const r = r0 + dr * d, c = c0 + dc * d; if (r < 0 || c < 0 || r >= N || c >= N) break;
           const i = r * N + c;
-          if (occ.has(i) || st.cells[i] === 0) { if (!st.J[s] || crossed) break; crossed = true; continue; }
+          if (occ.has(i) || st.cells[i] === 0) { if (!st.J[s]) break; crossed = true; continue; }
           out.push([k, i, crossed ? 1 : 0]);
         }
       }
@@ -89,7 +89,7 @@
       id: rid(6), cells: newBoard(), pawns: START.map((p, i) => alive[i] ? p.slice() : []), J: [JUMPS, JUMPS, JUMPS, JUMPS], alive, place: [],
       seats: seats.map(s => ({ ...s })), first: first || 0, turn: -1, moves: 0, last: null, msg: '', over: false, winner: null, deadline: 0, timeouts: [0, 0, 0, 0], pts: null, ver: 0,
     };
-    UI.stage = 'game'; UI.sel = null; UI.bubbles = {};
+    UI.stage = 'game'; UI.sel = null; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0;
     try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; if (typeof musicStart === 'function') musicStart(); } catch (e) {}
     nextTurn(true);
   }
@@ -214,6 +214,7 @@
     const s = c._seat; if (s == null) return;
     if (d.t === 'mv' && Array.isArray(d.m) && PT && PT.turn === s) play(s, [d.m[0] | 0, d.m[1] | 0, d.m[2] ? 1 : 0]);
     if (d.t === 'chat') { const id = String(d.id || ''); if (typeof phText === 'function' && phText(id)) { showBubble(s, id); relay({ t: 'chat', s, id }, s); } }
+    if (d.t === 'wz' && WZE[d.k] && PT && PT.seats[d.to | 0]) { const m = { t: 'wz', f: s, to: d.to | 0, k: d.k }; relay(m, s); gotWz(m.f, m.to, m.k); }
   }
   function relay(msg, except) { if (!NET) return; for (const s in NET.conns) if (+s !== except) { try { NET.conns[s].send(msg); } catch (e) {} } }
   function hostLost(me, c) {
@@ -259,13 +260,14 @@
       const st = d.st, isNew = !PT || PT.id !== st.id;
       const prev = PT;
       PT = { ...st, deadline: Date.now() + (st.left || 0), timeouts: [0, 0, 0, 0] };
-      if (isNew) { UI.stage = 'game'; UI.bubbles = {}; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
+      if (isNew) { UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
       if (prev && !isNew && st.moves === prev.moves + 1) { try { sfx.move(); } catch (e) {} }
       if (st.over && !(prev && prev.over)) { try { sfx.round(); } catch (e) {} reward(); }
       UI.sel = null; if (PT.turn === me.seat && !PT.over) { const ks = [...new Set(gen(PT, me.seat).map(m => m[0]))]; if (ks.length === 1) UI.sel = ks[0]; }
       draw(); return;
     }
     if (d.t === 'chat') showBubble(d.s, d.id);
+    if (d.t === 'wz' && WZE[d.k]) gotWz(d.f | 0, d.to | 0, d.k);
   }
   function quickMatch(slot) {
     slot = slot || 0;
@@ -294,6 +296,42 @@
     setTimeout(draw, 3100);
   }
 
+
+  /* ---------- Taquineries : toucher le nom d'un joueur → wizz, toc toc ou haha ---------- */
+  const WZE = { wizz: '⚡', toc: '✊', haha: '😂' }, WZN = { wizz: 'Wizz', toc: 'Toc toc', haha: 'Haha' };
+  function sendWz(to, k) {
+    const me = mySeat(); if (to == null || me == null || !PT || PT.over) return;
+    if (typeof myBlock === 'function' && myBlock()) { toast(tr('Tu as bloqué les taquineries : tu ne peux pas en envoyer.')); return; }
+    if (UI.wzLeft <= 0) { toast(tr('Plus de taquineries pour cette partie.')); return; }
+    const wait = 8000 - (Date.now() - (UI.wzLast || 0)); if (wait > 0) { toast(`${tr('Attends')} ${Math.ceil(wait / 1000)} s`); return; }
+    UI.wzLeft--; UI.wzLast = Date.now(); UI.wz = null;
+    try { toast(WZ_SENT[k]); } catch (e) {}
+    if (NET && NET.host) relay({ t: 'wz', f: me, to, k }, -1);
+    else if (NET && NET.conn) { try { NET.conn.send({ t: 'wz', to, k }); } catch (e) {} }
+    gotWz(me, to, k);
+    // un ordinateur réagit… et répond parfois
+    const ts = PT.seats[to];
+    if (ts && ts.kind === 'ai' && typeof BOTS === 'object') {
+      const bot = Object.values(BOTS).find(x => x.name === ts.name);
+      if (bot && bot.hit) setTimeout(() => { if (!PT) return; UI.bubbles[to] = { tx: bot.hit[Math.floor(Math.random() * bot.hit.length)], until: Date.now() + 3000 }; draw(); setTimeout(draw, 3100); }, 700);
+      if (Math.random() < 0.35) setTimeout(() => { if (PT && !PT.over && PT.alive[to]) gotWz(to, me, ['wizz', 'toc', 'haha'][Math.floor(Math.random() * 3)]); }, 2600);
+    }
+    draw();
+  }
+  function gotWz(f, to, k) {
+    if (!PT) return;
+    UI.hit = { s: to, k, until: Date.now() + 900 }; draw(); setTimeout(draw, 950);
+    const root = document.getElementById('pt4');
+    const burst = (n) => { if (!root) return; for (let i = 0; i < n; i++) { const e = document.createElement('div'); e.className = 'wzfly'; e.textContent = WZE[k]; e.style.left = (10 + Math.random() * 80) + '%'; e.style.top = (20 + Math.random() * 60) + '%'; e.style.animationDelay = (i * 90) + 'ms'; root.appendChild(e); setTimeout(() => e.remove(), 1400); } };
+    if (to !== mySeat()) { burst(2); return; }
+    if (typeof myBlock === 'function' && myBlock()) return;
+    const who = PT.seats[f] ? PT.seats[f].name : '';
+    try { toast(`${who} ${tr("t'envoie")} ${WZ_GOT[k]} !`); } catch (e) {}
+    try { if (k === 'wizz') { sfx.wizz(); vibrate([90, 50, 90, 50, 90]); } else if (k === 'haha') { sfx.laugh(); vibrate([40, 60, 40, 60, 40]); } else { sfx.knock ? sfx.knock() : sfx.wizz(); vibrate([60, 80, 60, 80, 60]); } } catch (e) {}
+    if (root && k === 'wizz') { root.classList.remove('wzshake'); void root.offsetWidth; root.classList.add('wzshake'); }
+    burst(k === 'haha' ? 6 : 4);
+  }
+
   /* ---------- Affichage ---------- */
   const CSS = `
 #pt4{position:fixed;inset:0;z-index:70;background:radial-gradient(60% 40% at 0% 0%,#ff3dd833,transparent 70%),radial-gradient(60% 40% at 100% 100%,#2ef2ff2e,transparent 70%),#07060f;color:#f3f0ff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));overflow-y:auto;font-family:var(--display,system-ui)}
@@ -308,7 +346,26 @@
 #pt4 .pc b{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pt4 .pc small{font-family:var(--mono,monospace);font-size:.68rem;color:#a39cd0}
 #pt4 .pc .tm{position:absolute;left:8px;right:8px;bottom:3px;height:3px;border-radius:2px;background:var(--sc);transform-origin:left}
+#pt4 .pc.tap{cursor:pointer}
+#pt4 .pc.tap::after{content:"⚡";position:absolute;top:-7px;right:-5px;font-size:.75rem;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#15112d;border:1px solid var(--sc)}
+#pt4 .wzpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:5;display:flex;gap:6px;align-items:center;padding:6px;border-radius:14px;background:#0b0820;border:2px solid var(--sc);box-shadow:0 8px 24px #000c}
+#pt4 .wzpop button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border-radius:10px;border:0;background:#241c55;color:#fff;font-size:1.3rem;cursor:pointer;box-shadow:inset 0 -3px 0 #0006}
+#pt4 .wzpop button span{font-size:.62rem;font-weight:800}
+#pt4 .wzpop small{position:absolute;right:8px;top:-18px;font-size:.62rem;color:#a39cd0}
+#pt4 .rows.bottom .wzpop{top:auto;bottom:calc(100% + 6px)}
+#pt4 .pc.hit-wizz{animation:wzsh .5s}
+#pt4 .pc.hit-toc{animation:wzknock .6s}
+#pt4 .pc.hit-haha{animation:wzhaha .7s}
+@keyframes wzsh{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes wzknock{0%,100%{transform:scale(1)}20%,60%{transform:scale(.92)}40%,80%{transform:scale(1.04)}}
+@keyframes wzhaha{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+#pt4.wzshake{animation:wzsh .6s}
+#pt4 .wzfly{position:fixed;z-index:80;font-size:2.6rem;pointer-events:none;animation:wzfly 1.3s ease-out both}
+@keyframes wzfly{0%{transform:scale(0) rotate(-20deg);opacity:0}25%{transform:scale(1.3) rotate(8deg);opacity:1}100%{transform:translateY(-60px) scale(1);opacity:0}}
 #pt4 .bub{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 6px);background:#fff;color:#0a0718;font-weight:800;font-size:.8rem;padding:6px 10px;border-radius:12px;white-space:nowrap;z-index:3;box-shadow:0 4px 0 #0006}
+#pt4 .rows:not(.bottom) .bub{bottom:auto;top:calc(100% + 6px)}
+#pt4 .rows:not(.bottom) .pc:first-child .bub,#pt4 .rows.bottom .pc:first-child .bub{left:8px;transform:none}
+#pt4 .rows:not(.bottom) .pc:last-child .bub,#pt4 .rows.bottom .pc:last-child .bub{left:auto;right:8px;transform:none}
 #pt4 .rows.bottom .bub{bottom:auto;top:calc(100% + 6px)}
 #pt4 *,#pt4 *::before,#pt4 *::after{box-sizing:border-box}
 #pt4 .bd{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px;margin:10px auto;width:100%;max-width:min(100%,calc(100dvh - 330px));border-radius:14px;background:linear-gradient(180deg,#120e28,#0d0b1f);box-shadow:0 0 0 1px #8f7bff55,0 0 30px #8f7bff40}
@@ -361,7 +418,9 @@
     const on = !PT.over && PT.turn === i, out = !PT.alive[i];
     const b = UI.bubbles[i] && UI.bubbles[i].until > Date.now() ? `<div class="bub">${esc4(UI.bubbles[i].tx)}</div>` : '';
     const tag = s.kind === 'ai' ? tr('Ordinateur') : (NET && NET.seat === i) || (!NET && i === mySeat()) ? tr('Toi') : '';
-    return `<div class="pc${on ? ' on' : ''}${out ? ' out' : ''}" style="--sc:${SEATC[i]}">${b}${av(s.skin)}<div style="min-width:0"><b>${esc4(s.name)}</b><small>${out ? '✖ ' + tr('Éliminé') : (PT.J[i] ? '↷'.repeat(PT.J[i]) + ' ' : '') + tag}</small></div>${on ? `<div class="tm" data-tm="${i}"></div>` : ''}</div>`;
+    const me = mySeat(), tap = !PT.over && !out && i !== me && me != null;
+    const pop = UI.wz === i ? `<div class="wzpop">${['wizz', 'toc', 'haha'].map(k => `<button type="button" data-a="wz" data-v="${k}">${WZE[k]}<span>${tr(WZN[k])}</span></button>`).join('')}<small>${UI.wzLeft > 0 ? UI.wzLeft + '/3' : tr('Plus de taquineries')}</small></div>` : '';
+    return `<div class="pc${on ? ' on' : ''}${out ? ' out' : ''}${tap ? ' tap' : ''}${UI.hit && UI.hit.s === i && UI.hit.until > Date.now() ? ' hit-' + UI.hit.k : ''}" style="--sc:${SEATC[i]}"${tap ? ` data-a="seat" data-v="${i}" role="button" aria-label="${tr('Taquiner')} ${esc4(s.name)}"` : ''}>${b}${pop}${av(s.skin)}<div style="min-width:0"><b>${esc4(s.name)}</b><small>${out ? '✖ ' + tr('Éliminé') : (PT.J[i] ? '↷'.repeat(PT.J[i]) + ' ' : '') + tag}</small></div>${on ? `<div class="tm" data-tm="${i}"></div>` : ''}</div>`;
   }
   function canAct() {
     if (!PT || PT.over || PT.turn < 0) return false;
@@ -468,6 +527,8 @@
     if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
     if (a === 'say') return sendPhrase(b.dataset.v);
+    if (a === 'wz') { e.stopPropagation(); return sendWz(UI.wz, b.dataset.v); }
+    if (a === 'seat') { const i = +b.dataset.v; UI.wz = UI.wz === i ? null : i; draw(); return; }
   }
   function onInput(e) {
     if (e.target.id !== 'pt4code') return;

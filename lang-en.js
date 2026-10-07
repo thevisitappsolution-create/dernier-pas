@@ -1010,3 +1010,4 @@ Object.assign(window.EN_DICT, {
   "Tu gagnes la manche":"You win round","remporte la manche":"wins round","Fin de la manche":"End of round",
   "Points de la manche":"Round points","Voir le plateau":"See the board"
 });
+Object.assign(window.EN_DICT, {"Taquiner":"Tease","Plus de taquineries":"No teases left","Plus de taquineries pour cette partie.":"No teases left this game.","Attends":"Wait","Wizz":"Wizz","Toc toc":"Knock knock","Haha":"Haha"});
