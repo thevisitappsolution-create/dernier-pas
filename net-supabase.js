@@ -28,7 +28,14 @@
   }
 
   function chan(topic, key) {
-    return sb().channel(topic, { config: { presence: { key }, broadcast: { self: false } } });
+    const c = sb();
+    // Le client Supabase renvoie le canal existant s'il porte le même nom (même en cours de fermeture) :
+    // on retire d'abord l'ancien, sinon on reprendrait un canal mort.
+    const old = (c.getChannels ? c.getChannels() : []).find(x => x.topic === 'realtime:' + topic || x.topic === topic);
+    if (old) { try { old.unsubscribe(); } catch (e) {} try { c.realtime && c.realtime._remove && c.realtime._remove(old); } catch (e) {} }
+    // Présence toujours active : sans écouteur de présence, le serveur n'envoie pas la liste des présents
+    // (c'est ce qui empêchait de trouver la partie d'un ami ou un adversaire dans la file).
+    return c.channel(topic, { config: { presence: { key, enabled: true }, broadcast: { self: false } } });
   }
   function drop(ch) { if (!ch) return; try { ch.untrack && ch.untrack(); } catch (e) {} try { sb().removeChannel(ch); } catch (e) { try { ch.unsubscribe(); } catch (_) {} } }
   function metas(ch) { const st = ch.presenceState() || {}; const out = []; for (const k in st) for (const m of st[k] || []) out.push({ key: k, ...m }); return out; }
@@ -115,6 +122,7 @@
       const cid = rid(14);
       const c = new Conn(this, cid, target, 'a');
       const look = chan('lp:' + target, 'g-' + rid(8));
+      look.on('presence', { event: 'sync' }, () => {});
       let done = false;
       const fail = () => {
         if (done) return; done = true; drop(look);
@@ -130,7 +138,7 @@
           later(() => { if (!done) { done = true; drop(look); } }, 1500);
         }, 1200);
       });
-      later(() => { if (!c.open) fail(); }, 10000);
+      later(() => { if (!c.open) fail(); }, 15000);
       return c;
     }
     disconnect() { const ch = this._own; this._own = null; this.open = false; drop(ch); }

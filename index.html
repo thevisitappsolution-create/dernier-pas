@@ -768,7 +768,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 45,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 46,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2767,7 +2767,7 @@ function mmGuest(i, me){
   try { peer=new Peer(); } catch(e){ net=null; goMatch(i+1); return; }
   me.peer=peer;
   const fail=()=>{ if (net!==me || me.opp) return; try { peer.destroy(); } catch(e){} net=null; goMatch(i+1); };
-  me.timer=setTimeout(fail, 6000);
+  me.timer=setTimeout(fail, 12000); // laisse le temps au réseau mobile (4G)
   peer.on('open', ()=>{ if (net!==me) return; wireConn(peer.connect(mmSlot(i), {reliable:true})); });
   peer.on('error', ()=>{ if (net===me && !me.opp) fail(); });
 }
