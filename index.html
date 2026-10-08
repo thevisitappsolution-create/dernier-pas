@@ -1058,6 +1058,52 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .mmrange small{color:#b9b0ff;font-weight:800}
 .mmbar{width:80%;height:8px;border-radius:9px;background:#0008;overflow:hidden}
 .mmbar i{display:block;height:100%;background:linear-gradient(90deg,#2ef2ff,#ff3dd8);transition:width .6s}
+
+.mmw{position:fixed;inset:0;z-index:60;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px calc(30px + env(safe-area-inset-bottom,0px));
+  background:radial-gradient(circle at 50% 30%,#ff8ad8,#c03cff 45%,#3a0f6a 100%);clip-path:circle(0% at 50% 70%);transition:clip-path .6s cubic-bezier(.5,0,.3,1)}
+.mmw.in{clip-path:circle(150% at 50% 70%)}
+.mmw.back{clip-path:circle(0% at 50% 90%);transition-duration:.7s}
+.mmw.land{opacity:0;transform:scale(1.15);transition:opacity .7s,transform .7s}
+.mmsky{position:absolute;inset:0;pointer-events:none}
+.mmsky .cl{position:absolute;border-radius:50%;background:radial-gradient(circle at 40% 40%,#ffe3f6,#ffb3e6 45%,#ff8ad800 70%);filter:blur(2px);opacity:.75;animation:cloud linear infinite}
+.mmsky .c1{width:260px;height:120px;top:8%;animation-duration:9s}
+.mmsky .c2{width:200px;height:90px;top:28%;animation-duration:7s;animation-delay:-3s;opacity:.55}
+.mmsky .c3{width:320px;height:140px;top:52%;animation-duration:11s;animation-delay:-6s}
+.mmsky .c4{width:180px;height:80px;top:70%;animation-duration:6s;animation-delay:-2s;opacity:.5}
+.mmsky .c5{width:240px;height:110px;top:84%;animation-duration:8s;animation-delay:-5s}
+@keyframes cloud{from{transform:translateX(110vw)}to{transform:translateX(-120%)}}
+.mmsky .st{position:absolute;color:#fff;font-size:1.4rem;animation:twk 1.8s ease-in-out infinite;text-shadow:0 0 10px #fff}
+.mmsky .s1{top:12%;left:14%}.mmsky .s2{top:20%;right:16%;animation-delay:-.6s}.mmsky .s3{top:44%;left:8%;animation-delay:-1.2s}.mmsky .s4{top:38%;right:10%;animation-delay:-.3s}
+@keyframes twk{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
+.mmarena{position:absolute;top:10%;left:calc(50% - min(35%,150px));width:70%;max-width:300px;opacity:.35;filter:blur(1px) drop-shadow(0 0 30px #fff8);animation:fl3 5s ease-in-out infinite}
+.mmx{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;width:44px;height:44px;border-radius:50%;border:2px solid #fff8;background:#0004;color:#fff;font-size:1.2rem;cursor:pointer;z-index:3}
+.mmfly{position:absolute;top:34%;left:50%;width:120px;margin-left:-60px;animation:fly 3.2s ease-in-out infinite;z-index:2}
+.mmpawn{width:120px;height:120px;filter:drop-shadow(0 14px 14px #0006)}
+.mmpawn svg{width:100%;height:100%;overflow:visible}
+.mmpawn .look{animation:lookside 2.4s ease-in-out infinite}
+@keyframes fly{0%,100%{transform:translate(-70px,0) rotate(-8deg)}25%{transform:translate(0,-26px) rotate(0)}50%{transform:translate(70px,0) rotate(8deg)}75%{transform:translate(0,22px) rotate(0)}}
+.mmtrail{position:absolute;left:50%;top:70%;width:80px;height:24px;margin-left:-40px;border-radius:50%;background:radial-gradient(#fff9,transparent 70%);filter:blur(4px)}
+.mmopp{position:absolute;top:34%;left:50%;width:120px;height:120px;margin-left:-60px;opacity:0;z-index:2}
+.mmopp svg{width:100%;height:100%;overflow:visible}
+.mmw[data-state="found"] .mmfly{animation:none;transform:translateX(-80px)}
+.mmw[data-state="found"] .mmopp{opacity:1;animation:oppin .5s cubic-bezier(.2,1.6,.4,1) both;transform:translateX(80px)}
+@keyframes oppin{from{transform:translateX(220px) scale(.3)}to{transform:translateX(80px) scale(1)}}
+.mmw[data-state="noone"] .mmfly{animation:fly 5s ease-in-out infinite;top:16%}
+.mmw.back .mmfly{animation:none;transform:translateY(60vh) scale(.4);transition:transform .7s ease-in}
+.mmbox{position:relative;z-index:3;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;border-radius:24px;background:#2a0b4ecc;border:2px solid #ffffff55;box-shadow:0 10px 30px #0006;text-align:center;color:#fff}
+.mmbox h2{margin:0;font-family:var(--fun);font-weight:400;font-size:1.5rem;text-shadow:0 3px 0 #0008}
+.mmbox .dots i{font-style:normal;animation:dot 1.2s infinite}.mmbox .dots i:nth-child(2){animation-delay:.2s}.mmbox .dots i:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,60%,100%{opacity:.2}30%{opacity:1}}
+.mmchip{padding:4px 14px;border-radius:999px;background:#0006;font-weight:800}
+.mmchip b{font-family:var(--fun);font-weight:400;color:#ffe14d}
+.mmbox small{color:#ffd6f3;font-weight:800}
+.mmbot{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:8px;border-radius:16px;background:#0005}
+.mmbot .av{width:64px;height:64px;flex:none}.mmbot .av svg{width:100%;height:100%}
+.mmbot b{font-family:var(--fun);font-weight:400;font-size:1.3rem}.mmbot small{display:block;color:#ffd6f3}.mmbot p{margin:2px 0 0;font-style:italic;font-size:.85rem}
+.row2{display:flex;gap:10px;width:100%}
+.mmno,.mmyes{flex:1;padding:13px;border:0;border-radius:16px;font-family:var(--fun);font-size:1.2rem;cursor:pointer;box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0008}
+.mmno{background:#ffffffdd;color:#4a0f6a}.mmyes{flex:1.6;background:linear-gradient(180deg,#d6ff6b,#6fd92a);color:#0f2a00}
+@media (prefers-reduced-motion:reduce){.mmfly,.mmsky .cl,.mmarena{animation:none}}
 </style>
 
 </head>
@@ -1104,7 +1150,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 61,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 62,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2417,6 +2463,10 @@ document.addEventListener('click', e=>{
     case 'calm': P.calm=!P.calm; saveP(); render(); break;
     case 'match': goMatch(0); break;
     case 'mm-cancel': mmCancel(); break;
+    case 'mmw-x': leaveOnline(); mmwClose(); break;
+    case 'mmw-yes': { const lv=mmBotLevel(); mmwClose(true); leaveOnline(); startAI(lv,false); break; }
+    case 'mmw-no': mmwClose(); break;
+    case 'mmw-retry': goMatch(0); break;
     case 'addfriend': sheet={type:'addfriend'}; render(); break;
     case 'invite-link': shareFriendLink(); break;
     case 'contacts': fromContacts(); break;
@@ -3140,7 +3190,7 @@ async function fromContacts(){
    On cherche d'abord dans sa tranche (±50), puis la recherche s'élargit avec le temps : ±150 après 8 s, ±250 après 20 s, ±350 après 35 s.
    Jamais au-delà : on ne gagne pas de points facilement contre des joueurs bien plus faibles.
    Pour éviter que deux joueurs se cherchent en même temps, c'est toujours le mieux classé qui va chercher dans les tranches en dessous. */
-const MM_SLOTS=3, MM_W=100, MM_WIDEN=[[8000,1],[20000,2],[35000,3]];
+const MM_SLOTS=3, MM_W=100, MM_WIDEN=[[4000,1],[9000,2],[14000,3]], MM_GIVEUP=20000;
 const mmRating = () => getR('champ',P.time).r;
 const mmBucket = r => Math.floor(r/MM_W);
 const mmSlot = (i, b) => `lastep-q3-${P.time}-${b==null?mmBucket(mmRating()):b}-${i}`;
@@ -3172,10 +3222,10 @@ function goMatch(i){
   i=i||0;
   if (!peerOK()){ sheet={type:'friend'}; render(); return; }
   leaveOnline(); vsAI=null; PEERS={}; M=null; G=null; view=view==='game'?'play':view;
-  if (i>=MM_SLOTS){ sheet={type:'mm', err:(T("Personne n'est disponible à cette cadence pour le moment. Réessaie dans un instant, change de cadence, ou invite un ami."))}; render(); return; }
+  if (i>=MM_SLOTS){ leaveOnline(); mmw('noone'); return; }
   const me=net={code:'', peer:null, conn:null, seat:0, seq:0, opp:false, err:'', mm:true, slot:i, widen:0, t0:Date.now()};
-  sheet={type:'mm'}; render();
-  if (i===0) setTimeout(()=>{ if (net===me && !me.opp){ me.waitLong=true; render(); } }, 45000);
+  sheet=null; mmw('search'); render();
+  setTimeout(()=>{ if (net===me && !me.opp && !me.matched){ leaveOnline(); mmw('noone'); } }, MM_GIVEUP);
   let peer; try { peer=new Peer(mmSlot(i)); } catch(e){ me.err=(T("Connexion impossible pour le moment.")); render(); return; }
   me.peer=peer;
   peer.on('open', ()=>{ if (net===me){ me.stage=''; render(); mmWidenLoop(me); } });
@@ -3203,7 +3253,53 @@ function mmGuest(i, me){
   peer.on('open', ()=>{ if (net!==me) return; wireConn(peer.connect(mmSlot(i), {reliable:true})); });
   peer.on('error', ()=>{ if (net===me && !me.opp) fail(); });
 }
-function mmCancel(){ leaveOnline(); sheet=null; render(); }
+function mmCancel(){ leaveOnline(); sheet=null; mmwClose(); render(); }
+/* ---------- Recherche d'adversaire : on voyage dans le monde rose de l'Arène ---------- */
+let MMW=null;
+const mmBotLevel = () => { const r=mmRating(); return Object.keys(LEVELS).reduce((a,k)=>Math.abs(LEVELS[k].elo-r)<Math.abs(LEVELS[a].elo-r)?k:a,'medium'); };
+function mmw(state){
+  let el=document.getElementById('mmw');
+  if (!el){
+    el=document.createElement('div'); el.id='mmw'; el.className='mmw'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true');
+    el.innerHTML=`<div class="mmsky"><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i><i class="cl c4"></i><i class="cl c5"></i><span class="st s1">✦</span><span class="st s2">✦</span><span class="st s3">✧</span><span class="st s4">✦</span></div>
+      ${IMG('arene','mmarena')}<button class="mmx" type="button" data-act="mmw-x" aria-label="${T("Annuler la recherche")}">✕</button>
+      <div class="mmfly"><div class="mmpawn">${pawnSVG(P.skin)}</div><div class="mmtrail"></div></div><div class="mmopp"></div><div class="mmbox"></div>`;
+    document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add('in'));
+    MMW={t0:Date.now(), timer:setInterval(mmwPaint, 500)};
+  }
+  el.dataset.state=state; mmwPaint();
+}
+function mmwPaint(){
+  const el=document.getElementById('mmw'); if (!el || !MMW) return;
+  const st=el.dataset.state, box=el.querySelector('.mmbox');
+  if (st==='search'){
+    const [lo,hi]=mmRange(net), w=(net&&net.widen)||0, left=Math.max(0,Math.ceil((MM_GIVEUP-(Date.now()-MMW.t0))/1000));
+    const html=`<h2>${T("Recherche d'un adversaire")}<span class="dots"><i>.</i><i>.</i><i>.</i></span></h2>
+      <div class="mmchip">${tLabel(P.time)} · <b>${lo} – ${hi}</b></div><div class="mmbar"><i style="width:${(w+1)/4*100}%"></i></div><small>${left} s</small>`;
+    if (box.dataset.h!==html){ box.innerHTML=html; box.dataset.h=html; }
+  } else if (st==='noone'){
+    const lv=mmBotLevel(), b=BOTS[lv];
+    const html=`<h2>${T("Personne de ton niveau pour l'instant")}</h2><div class="mmbot"><div class="av">${pawnSVG(b.skin)}</div><div><b>${esc(b.name)}</b><small>${LEVELS[lv].elo} · ${LEVELS[lv].label}</small><p>« ${esc(b.taunt[0])} »</p></div></div>
+      <p class="sub">${esc(b.name)} ${T("te défie. Tu acceptes ?")}</p>
+      <div class="row2"><button class="mmno" type="button" data-act="mmw-no">${T("Non")}</button><button class="mmyes" type="button" data-act="mmw-yes">${T("Oui, au combat !")}</button></div>
+      <button class="linkbtn" type="button" data-act="mmw-retry">${T("Chercher encore")}</button>`;
+    if (box.dataset.h!==html){ box.innerHTML=html; box.dataset.h=html; vibrate([20,40,20]); }
+  }
+  // adversaire trouvé : la partie a démarré derrière, on annonce puis on atterrit
+  if (st==='search' && view==='game' && M && online() && net.opp){
+    el.dataset.state='found'; const o=PEERS[1-net.seat]||{};
+    el.querySelector('.mmopp').innerHTML=`${pawnSVG(cleanSkin(o.sk))}`;
+    box.innerHTML=`<h2>${T("Adversaire trouvé !")}</h2><div class="mmchip"><b>${esc(o.nm||'')}</b>${o.rc&&o.rc[P.time]?` · ${o.rc[P.time]}`:''}</div>`; box.dataset.h='';
+    try { sfx.win(); } catch(e){} vibrate([30,50,30]);
+    setTimeout(()=>mmwClose(true), 1700);
+  }
+}
+function mmwClose(land){
+  const el=document.getElementById('mmw'); if (!el) return;
+  if (MMW){ clearInterval(MMW.timer); MMW=null; }
+  el.classList.add(land?'land':'back'); setTimeout(()=>{ el.remove(); render(); }, 750);
+}
+
 
 /* ---------- Abandon ---------- */
 function resignNow(){
