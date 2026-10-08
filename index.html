@@ -1119,7 +1119,8 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .mmw[data-state="noone"] .mmbot2 .mmsay{transform:scale(1)}
 .mmsay.me{right:auto;left:-6px;transform-origin:20% 100%;transition-delay:0s}
 .mmsay.me::after{right:auto;left:44px}
-.mmsay.me.on{transform:scale(1)}
+.mmsay.me.on{transform:scale(1);transition-delay:.25s}
+.mmw.reply .mmbot2 .mmsay{transform:scale(0)!important;transition-delay:0s}
 .mmbox.hide{opacity:0;pointer-events:none;transform:translateY(20px)}
 .mmbox{transition:opacity .3s,transform .3s}
 .mmw.back .mmfly{animation:none;transform:translateY(60vh) scale(.4);transition:transform .7s ease-in}
@@ -1183,7 +1184,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 64,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 65,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2497,8 +2498,8 @@ document.addEventListener('click', e=>{
     case 'match': goMatch(0); break;
     case 'mm-cancel': mmCancel(); break;
     case 'mmw-x': leaveOnline(); mmwClose(); break;
-    case 'mmw-yes': { const lv=mmBotLevel(); mmwSay(T("Jamais ! Au combat !")); setTimeout(()=>{ mmwClose(true); leaveOnline(); startAI(lv,false); }, 1100); break; }
-    case 'mmw-no': mmwSay(T("Une autre fois…")); setTimeout(()=>mmwClose(), 900); break;
+    case 'mmw-yes': { const lv=mmBotLevel(); mmwSay(T("Jamais ! Au combat !")); setTimeout(()=>{ mmwClose(true); leaveOnline(); startAI(lv,false); }, 1700); break; }
+    case 'mmw-no': mmwSay(T("Une autre fois…")); setTimeout(()=>mmwClose(), 1800); break;
     case 'mmw-retry': { const el=document.getElementById('mmw'); if (el){ el.dataset.dlg=''; el.querySelector('.mmbox').classList.remove('hide'); el.querySelector('.mmbox').dataset.h=''; } if (MMW) MMW.t0=Date.now(); else MMW={t0:Date.now(), timer:setInterval(mmwPaint,500)}; goMatch(0); break; }
     case 'addfriend': sheet={type:'addfriend'}; render(); break;
     case 'invite-link': shareFriendLink(); break;
@@ -3336,7 +3337,7 @@ function mmwPaint(){
     setTimeout(()=>mmwClose(true), 1700);
   }
 }
-function mmwSay(t){ const el=document.getElementById('mmw'); if (!el) return; const s=el.querySelector('.mmsay.me'); s.textContent=t; s.classList.add('on'); el.querySelector('.mmbox').classList.add('hide'); }
+function mmwSay(t){ const el=document.getElementById('mmw'); if (!el) return; const s=el.querySelector('.mmsay.me'); s.textContent=t; el.classList.add('reply'); s.classList.add('on'); el.querySelector('.mmbox').classList.add('hide'); }
 function mmwClose(land){
   const el=document.getElementById('mmw'); if (!el) return;
   if (MMW){ clearInterval(MMW.timer); MMW=null; }
