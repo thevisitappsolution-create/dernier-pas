@@ -851,7 +851,9 @@ body{font-weight:700}
 .bigcoin{width:96px;height:96px;filter:drop-shadow(0 6px 0 #0008) drop-shadow(0 0 16px #ffd75e88);animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
 
 /* ===== v58 : accueil illustré ===== */
-html:not(.lock) body{background:#0b0820 url(assets/web/fond-nuit.webp) center top/cover fixed}
+body{background:#0b0820}
+#bgfx{position:fixed;inset:0;z-index:-1;background:#0b0820 url(assets/web/fond-nuit.webp) center top/cover no-repeat;pointer-events:none}
+html.lock #bgfx{display:none}
 .gimg{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .htop{display:flex;align-items:center;gap:8px}
 .pill{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:3px 12px 3px 4px;border-radius:999px;border:2px solid #8f7bff66;background:#120d30d9;color:#fff;font-weight:900;box-shadow:0 3px 0 #0008;cursor:pointer}
@@ -914,8 +916,8 @@ html:not(.lock) body{background:#0b0820 url(assets/web/fond-nuit.webp) center to
 @keyframes artpulse{0%{filter:drop-shadow(0 12px 14px #000c)}60%{filter:drop-shadow(0 0 30px #fff) brightness(1.4)}100%{filter:drop-shadow(0 12px 14px #000c)}}
 .mode3 .ttl{position:relative;z-index:2;margin:0;font-family:var(--fun);font-weight:400;font-size:1.9rem;line-height:1;color:#fff;text-shadow:0 3px 0 #0a0718,0 0 14px #0008}
 .mode3 .sub3{position:relative;z-index:2;font-weight:800;font-size:.74rem;color:#ffffffd9;margin:3px 0 7px}
-.mode3 .chips3{position:relative;z-index:2;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:9px}
-.mode3 .chips3 span{padding:2px 9px;border-radius:999px;background:#0007;font-weight:900;font-size:.72rem;color:#fff}
+.chips3{position:relative;z-index:2;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:9px}
+.chips3 span{padding:2px 9px;border-radius:999px;background:#0007;font-weight:900;font-size:.72rem;color:#fff}
 .mode3 .go{position:relative;z-index:2;width:100%;padding:11px 0;border-radius:16px;font-family:var(--fun);font-size:1.3rem;color:#1a1000;background:linear-gradient(180deg,#ffe14d,#ffb02e);box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0009}
 .mode3.arena .go{background:linear-gradient(180deg,#fff,#cfe3ff);color:#2a0b3d}
 .mode3 .shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
@@ -939,10 +941,123 @@ html:not(.lock) body{background:#0b0820 url(assets/web/fond-nuit.webp) center to
 @media (max-height:760px){.modes3{margin-top:22px;gap:12px}.mode3 .ttl{font-size:1.6rem}.mode3 .go{padding:8px 0;font-size:1.1rem}.herop{width:min(20vw,76px)}.heroz{margin-top:4px}}
 @media (max-height:640px){.heroz{display:none}}
 @media (prefers-reduced-motion:reduce){.mode3 .art,.herop,.herop .look,.heros,.mode3 .shine::before{animation:none}}
+
+/* ===== v60 : pages au style de l'accueil ===== */
+html:not(.lock) body{background:transparent!important}
+.emo3{display:grid;place-items:center;font-size:2.2rem;line-height:1;filter:drop-shadow(0 3px 0 #0007) drop-shadow(0 0 8px #ffffff33)}
+.ptitle{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
+.ptitle .pti{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 3px 0 #0008)}
+.ptitle .emo3.pti{font-size:2.2rem}
+.ptitle h1{flex:1;margin:0;font-family:var(--fun);font-weight:400;font-size:2.1rem;line-height:1;background:linear-gradient(180deg,#5ff6ff,#ff5ce1);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0a0718) drop-shadow(0 0 10px #ff3dd866)}
+.ptitle .swap{padding:3px 12px;font-size:.85rem}
+.rrow2.r5{grid-template-columns:repeat(5,1fr);gap:6px}
+.rrow2.r5 .rb .gimg,.rrow2.r5 .rb .emo3{width:42px;height:42px;font-size:1.9rem}
+.rrow2.r5 .rb small{font-size:.64rem}
+.pgtop{position:sticky;top:0;z-index:6;margin:-12px -16px 0;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 10px;background:linear-gradient(180deg,#0b0820f2 78%,#0b082000);display:flex;flex-direction:column;gap:8px}
+.chapcard{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:20px;background:linear-gradient(135deg,#13b97acc,#0b6f9ccc 60%,#22186acc);border:2px solid #b6ff3b88;box-shadow:inset 0 -5px 0 #0005,0 4px 0 #0008}
+.chapcard>div:first-child{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.chapcard small{font-size:.7rem;font-weight:900;color:#ffffffc0;text-transform:uppercase;letter-spacing:.06em}
+.chapcard b{font-family:var(--fun);font-weight:400;font-size:1.15rem;color:#fff;white-space:nowrap}
+.chprog{flex:1;height:10px;border-radius:9px;background:#0007;overflow:hidden}
+.chprog i{display:block;height:100%;background:linear-gradient(90deg,#ffe14d,#ffb02e);border-radius:9px}
+.chapcard>span{font-weight:900;color:#ffd75e;white-space:nowrap}
+.lvpath{display:flex;flex-direction:column-reverse;align-items:center;gap:22px;padding:14px 0 34px}
+.chap{align-self:stretch;display:flex;flex-direction:column;align-items:center;gap:0;margin:8px 0;padding:8px;border-radius:16px;background:#120d30cc;border:2px solid #8f7bff44}
+.chap span{font-size:.68rem;font-weight:900;color:#b9b0ff;text-transform:uppercase;letter-spacing:.08em}
+.chap b{font-family:var(--fun);font-weight:400;font-size:1.25rem;color:#fff}
+.lv{position:relative;width:74px;height:74px;flex:none;border-radius:50%;border:3px solid #ffffff55;display:grid;place-items:center;transform:translateX(var(--x,0));cursor:pointer;color:#fff;
+  background:radial-gradient(circle at 35% 28%,#8f7bff,#3a2c86 70%);box-shadow:inset 0 -7px 0 #0006,0 5px 0 #0009,0 0 14px #8f7bff66}
+.lv b{font-family:var(--fun);font-weight:400;font-size:1.7rem;text-shadow:0 2px 0 #0008}
+.lv.done{background:radial-gradient(circle at 35% 28%,#fff3b0,#ffcf3a 45%,#d68a00);border-color:#fff8;color:#3a2400;box-shadow:inset 0 -7px 0 #0004,0 5px 0 #0009,0 0 18px #ffd75e88}
+.lv.done b{color:#5a3400;text-shadow:0 1px 0 #fff8}
+.lv.cur{background:radial-gradient(circle at 35% 28%,#9ffcff,#2ef2ff 40%,#8f7bff);border-color:#fff;box-shadow:inset 0 -7px 0 #0004,0 5px 0 #0009,0 0 0 8px #2ef2ff33,0 0 30px #2ef2ff;animation:bob 1.6s ease-in-out infinite}
+.lv.cur b{color:#0a0718;text-shadow:0 1px 0 #fff8}
+.lv.lk{background:radial-gradient(circle at 35% 28%,#3a3060,#1a1438 70%);border-color:#ffffff22;cursor:default;box-shadow:inset 0 -6px 0 #0006,0 4px 0 #0009}
+.lv .lkimg{width:38px;height:38px;object-fit:contain;opacity:.85}
+.lvst{position:absolute;top:calc(100% - 6px);left:50%;transform:translateX(-50%);display:flex;gap:1px;font-size:1.05rem;line-height:1}
+.lvst i{font-style:normal;color:#2a2350;text-shadow:0 2px 0 #0008}
+.lvst i.on{color:#ffd75e;text-shadow:0 2px 0 #9a6400,0 0 8px #ffd75e}
+.lvst i:nth-child(2){transform:translateY(5px)}
+.lvme{position:absolute;left:calc(100% + 8px);top:50%;width:46px;height:46px;transform:translateY(-50%);animation:herobob 2.4s ease-in-out infinite}
+.lvme svg{width:100%;height:100%;overflow:visible}
+.gobig{width:100%;padding:16px;border:0;border-radius:20px;font-family:var(--fun);font-size:1.5rem;color:#1a1000;background:linear-gradient(180deg,#ffe14d,#ffb02e);box-shadow:inset 0 -6px 0 #0004,0 5px 0 #0009,0 0 22px #ffb02e66;cursor:pointer}
+.mode3.wide{margin-top:44px;padding:0 18px 16px}
+.mode3.wide .art{width:78%;margin:-20% 0 0}
+.arow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tpill{padding:3px 14px;gap:6px;font-size:.9rem}
+.tpill .ic{width:18px;height:18px;stroke:#ffd75e}
+.tpill .tico{width:26px;height:26px;object-fit:contain}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid4 .rb .gimg,.grid4 .rb .emo3{width:46px;height:46px}
+.grid4 .rb small{font-size:.66rem;white-space:normal;line-height:1.1;min-height:2.2em;display:flex;align-items:center;text-align:center}
+.more .ic{width:18px;height:18px;vertical-align:-4px;margin-right:4px}
+/* Boutique */
+.stage{position:relative;height:250px;margin:8px 0 0;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.stbg{position:absolute;inset:10px 6px 22px;border-radius:30px;background:radial-gradient(circle at 50% 45%,#8f7bff55,#1a1440cc 70%);border:2px solid #8f7bff55;box-shadow:inset 0 0 40px #2ef2ff22}
+.pedestal{position:absolute;bottom:26px;left:50%;width:150px;height:30px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(#2ef2ff88,#2ef2ff00 70%);box-shadow:0 0 30px #2ef2ff66}
+.center{position:relative;z-index:3;width:170px;height:170px;display:grid;place-items:center;margin-bottom:24px;cursor:default}
+.center>svg,.center .fxstage>svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 12px 12px #000a);animation:herobob 2.4s ease-in-out infinite}
+.center.inR{animation:slR .35s cubic-bezier(.2,1.2,.4,1)}
+.center.inL{animation:slL .35s cubic-bezier(.2,1.2,.4,1)}
+@keyframes slR{from{transform:translateX(90px) scale(.6);opacity:.3}to{transform:none;opacity:1}}
+@keyframes slL{from{transform:translateX(-90px) scale(.6);opacity:.3}to{transform:none;opacity:1}}
+.side{position:absolute;z-index:2;top:50%;width:76px;height:76px;margin-top:-50px;border:0;background:none;padding:0;opacity:.45;filter:saturate(.7);cursor:pointer;display:grid;place-items:center}
+.side svg{width:100%;height:100%;overflow:visible}
+.side.l{left:30px}.side.r{right:30px}
+.side .swatch,.side .fxstage{transform:scale(.55)}
+.arw{position:absolute;z-index:4;top:50%;margin-top:-34px;width:40px;height:52px;border-radius:14px;border:2px solid #ffffff55;background:linear-gradient(180deg,#ffe14d,#ffb02e);color:#3a2400;font-family:var(--fun);font-size:2rem;line-height:1;cursor:pointer;box-shadow:inset 0 -4px 0 #0004,0 4px 0 #0009}
+.arw.l{left:0}.arw.r{right:0}
+.fxstage{position:relative;width:150px;height:150px}
+.fxstage .fxe{position:absolute;right:-12px;bottom:4px;font-size:3rem;filter:drop-shadow(0 0 12px #fff)}
+.fxstage.big .fxe{animation:wig 1.6s ease-in-out infinite}
+.swatch.big{width:150px;transform:rotate(-8deg);box-shadow:0 12px 20px #000a}
+.empty{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:3rem;color:#b6ff3b;text-align:center}
+.empty small{font-size:.85rem;color:#fff;max-width:200px}
+.iinfo{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;margin-top:-6px}
+.iinfo h2{margin:0;font-family:var(--fun);font-weight:400;font-size:1.8rem;color:#fff;text-shadow:0 3px 0 #0a0718}
+.iinfo>small{color:#b9b0ff;font-weight:800;font-size:.78rem}
+.iinfo .rar{position:static;padding:2px 10px;border-radius:999px;font-size:.66rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;background:#0008}
+.rar.r-rare{color:#5ec8ff;border:1px solid #5ec8ff}.rar.r-epic{color:#d08bff;border:1px solid #d08bff}.rar.r-leg{color:#ffd75e;border:1px solid #ffd75e}
+.buybtn{margin-top:6px;min-width:220px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:13px 22px;border:0;border-radius:18px;font-family:var(--fun);font-size:1.35rem;color:#0f2a00;background:linear-gradient(180deg,#d6ff6b,#6fd92a);box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0009,0 0 18px #b6ff3b55;cursor:pointer}
+.buybtn .ic{width:24px;height:24px}
+.buybtn.poor{background:linear-gradient(180deg,#ffe14d,#ffb02e);color:#3a2400}
+.buybtn.eq{background:#2a2350;color:#b6ff3b;box-shadow:none}
+.miss{color:#ffb3c0;font-weight:800;font-size:.75rem}
+.cats{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.catb{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 6px;border-radius:18px;border:2px solid #8f7bff44;background:linear-gradient(180deg,#2a2160d9,#130e34d9);color:#fff;text-align:left;cursor:pointer;box-shadow:inset 0 -4px 0 #0005,0 3px 0 #0008}
+.catb.on{border-color:#2ef2ff;box-shadow:inset 0 -4px 0 #0005,0 3px 0 #0008,0 0 16px #2ef2ff66}
+.cpv{width:44px;height:44px;flex:none;display:grid;place-items:center;font-size:1.8rem;border-radius:12px;background:#0006}
+.cpv svg{width:38px;height:38px}
+.catb b{flex:1;font-family:var(--fun);font-weight:400;font-size:1.15rem}
+.catb small{font-size:.72rem;font-weight:800;color:#b9b0ff}
+.packs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pack{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:18px;border:2px solid #ffd75e66;background:linear-gradient(180deg,#2a2160,#130e34);color:#fff;cursor:pointer;box-shadow:inset 0 -4px 0 #0005,0 4px 0 #0008}
+.pack .gimg{width:70px;height:70px;object-fit:contain}
+.pack b{display:flex;align-items:center;gap:4px;font-family:var(--fun);font-weight:400;font-size:1.2rem;color:#ffd75e}
+.pack b .ic{width:20px;height:20px}
+.pack .eur{padding:4px 14px;border-radius:12px;background:linear-gradient(180deg,#d6ff6b,#6fd92a);color:#0f2a00;font-weight:900}
+.ptag{position:absolute;top:-9px;padding:2px 8px;border-radius:999px;background:#ff3d6e;color:#fff;font-size:.62rem;font-weight:900;text-transform:uppercase}
+/* Profil */
+.prohead{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:4px;text-align:center}
+.heroz.pro{margin:0}
+.heroz.pro .herop{width:120px}
+.heroz.pro .herop .look{animation:none}
+.pname2{width:70%;text-align:center;font-family:var(--fun);font-size:1.7rem;color:#fff;background:#0006;border:2px solid #8f7bff55;border-radius:16px;padding:6px 10px}
+.stats2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.st2{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:16px;background:linear-gradient(180deg,#2a2160d9,#130e34d9);border:2px solid #8f7bff44;box-shadow:inset 0 -4px 0 #0005}
+.st2 b{font-family:var(--fun);font-weight:400;font-size:1.4rem;color:#fff}
+.st2 small{font-size:.66rem;font-weight:800;color:#b9b0ff;text-align:center}
+details.sec2{border-radius:18px;background:linear-gradient(180deg,#2a2160d9,#130e34d9);border:2px solid #8f7bff44;box-shadow:inset 0 -4px 0 #0005,0 3px 0 #0008}
+details.sec2>summary{list-style:none;padding:14px 16px;font-family:var(--fun);font-size:1.15rem;cursor:pointer;display:flex;justify-content:space-between}
+details.sec2>summary::after{content:"▾";color:#2ef2ff}
+details.sec2[open]>summary::after{content:"▴"}
+details.sec2>summary::-webkit-details-marker{display:none}
+details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
 </style>
 
 </head>
 <body>
+<div id="bgfx" aria-hidden="true"></div>
 <div id="app">
   <main id="screen" class="screen"></main>
   <section id="game" hidden>
@@ -984,7 +1099,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 59,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 60,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1987,31 +2102,6 @@ function card(kind,id,o={}){
   const rr=rarity(it.p);
   return `<button type="button" class="card${rr?' r-'+rr.k:''}" data-act="${o.shop?'buy':'equip'}" data-k="${kind}" data-v="${id}" aria-pressed="${!o.shop&&eq}">${rr&&o.shop?`<span class="rar">${rr.n}</span>`:''}${pv}<b>${it.n}</b><small class="${own?'own':'lk'}">${!own?'🔒 ':''}${status}</small></button>`;
 }
-function renderShop(){
-  return `<div class="top"><h1 class="logo">${T("Boutique")}</h1>${topRight()}</div>
-  <div class="wallet">${ic('coin')}<div><b>${P.coins} ${T("pièces")}</b><small>${T("Plus tu joues, plus tu en gagnes : 2 par minute de jeu, 10 par victoire, 3 par partie terminée, et des bonus pour les cours, puzzles et badges.")}</small></div></div>
-  <p class="demo">${T("Toute la personnalisation s'achète avec tes pièces. Touche un objet pour l'acheter ou l'équiper.")}</p>
-  ${['color','fur','fin','eyes','acc','trail','win','theme'].map(k=>`<h2 class="h2">${k==='theme'?(T("Plateaux")):k==='eyes'?(T("Yeux")):k==='fin'?(T("Finitions")):k==='trail'?(T("Traînées")):k==='win'?(T("Célébrations de victoire")):KIND_N[k]+'s'}</h2><div class="grid">${Object.keys(CAT[k]).filter(id=>CAT[k][id].p>0).map(id=>card(k,id,{shop:1})).join('')}</div>`).join('')}
-  <div class="premium"><svg class="gem" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">${I.gem}</svg>
-    <h3>${T("Premium")}</h3><p>${T("Pour devenir meilleur, pas pour la déco :")}</p><ul><li>${T("Cours avancés")}</li><li>${T("Indices et solutions des puzzles et des cours")}</li><li>${T("Zéro publicité")}</li><li>${T("Analyses de parties illimitées")}</li><li>${T("Bloquer wizz, toc toc et haha")}</li></ul>
-    <p>${P.premium?("<b>"+T("Premium est actif sur cet appareil.")+"</b>"):(T("Bientôt disponible en abonnement."))}</p>
-    ${CONFIG.supportUrl?`<button class="cta" type="button" data-act="support">${T("Soutenir le jeu")}</button>`:''}</div>`;
-}
-function renderProfile(){
-  const t=tierOf(P.elo.r), left=anLeft(), nb=Object.keys(P.badges).length;
-  const sec=(id,title,body)=>`<details class="sec" data-sec="${id}" ${OPEN.has(id)?'open':''}><summary>${title}</summary><div class="in">${body}</div></details>`;
-  return `<div class="top"><h1 class="logo">${T("Profil")}</h1>${topRight()}</div>
-  <div class="phead"><div class="avatar" style="width:88px;flex:none">${pawnSVG(P.skin)}</div><div class="field" style="flex:1;min-width:0"><label for="pname" class="sub">${T("Pseudo")}</label><input id="pname" maxlength="16" value="${esc(P.name)}" autocomplete="off"></div></div>
-  <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?(" "+T("· Premium actif")):''}</p>
-  ${sec('perso',(T("Personnalisation")), ['color','fur','fin','eyes','acc','trail','win','theme'].map(k=>`<b class="sub">${KIND_N[k]}</b><div class="chips">${Object.keys(CAT[k]).map(id=>card(k,id)).join('')}</div>`).join(''))}
-  ${sec('rank',(T("Classements par cadence · 5×5")), `${cadHTML()}<p class="note">${T("Chaque cadence a son propre classement. Classement national : bientôt, avec le serveur de comptes.")}</p>`)}
-  ${sec('games',`${T("Parties contre de vrais joueurs ·")} ${realGames().length}`, realGames().length?`<div class="list">${realGames().slice(-5).reverse().map(gameRow).join('')}</div><button class="linkbtn" type="button" data-act="games">${T("Tout voir ›")}</button>`:("<p class=\"sub\">"+T("Tes parties en ligne et contre tes amis apparaîtront ici.")+"</p>"))}
-  ${sec('stats',(T("Statistiques")), `<div class="stats"><div><b style="color:${t[2]}">${P.elo.r}</b><small>${T("steps ·")} ${t[1]}</small></div><div><b>${P.elo.g}</b><small>${T("matchs classés")}</small></div><div><b>${P.premium?'∞':left}</b><small>${P.premium?'analyses':left<3?`${T("analyses · +1 dans")} ${anRenewH()} h`:(T("analyses cette semaine"))}</small></div><div><b>${pzDone()}</b><small>${T("puzzles réussis")}</small></div><div><b>${P.stat.fell||0}</b><small>${T("cases détruites")}</small></div><div><b>${P.stat.games||0}</b><small>${T("parties jouées")}</small></div></div>`)}
-  ${sec('badges',`${T("Badges ·")} ${nb}/${BADGES.length}`, badgesHTML())}
-  ${sec('friends',`${T("Amis ·")} ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}${T("Ajouter")}</button><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${ic('image')}${T("Mon poster")}</button></div>`)}
-  ${sec('set',(T("Réglages")), settingsBody())}
-  ${sec('about',(T("À propos")), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}`;
-}
 function renderTabs(){
   const t=[['home','icone-maison',(T("Accueil"))],['parc','icone-carte',(T("Aventure"))],['play','icone-epees',(T("Arène"))],['shop','coffre-or',(T("Boutique"))],['profile','icone-profil',(T("Profil"))]];
   const on = v => view===v || (v==='parc' && ['puzzles','learn'].includes(view));
@@ -2037,6 +2127,7 @@ function renderSheet(){
 }
 function sheetHTML(){
   const s=sheet;
+  if (s.type==='coins') return coinsSheet();
   if (s.type==='lb') return lbHTML();
   if (s.type==='time') return `<h2>${T("Cadence")}</h2><p>${T("Temps par joueur et par manche. Quelle que soit la cadence, chacun commence une manche : il faut 2 manches gagnées.")}</p><div class="timegrid">${TIMES.map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>`;
   if (s.type==='ai'){
@@ -2251,6 +2342,17 @@ document.addEventListener('click', e=>{
     case 'pz-stop': if (TR && TR.state==='play') (isParc()?parcDone(false):trDone(false)); break;
     case 'parc': if (parcOpen(+v)) startParc(+v); break;
     case 'pick-mode': pickMode(v); break;
+    case 'shop-cat': SHOP.k=v; SHOP.i=Math.max(0,shopList(v,SHOP.mode).findIndex(id=>isEq(v,id))); SHOP.dir=0; render(); window.scrollTo({top:0,behavior:REDUCED?'auto':'smooth'}); break;
+    case 'shop-prev': shopMove(-1); break;
+    case 'shop-next': shopMove(1); break;
+    case 'shop-buy': shopBuy(); break;
+    case 'shop-equip': { const id=shopList(SHOP.k,'closet')[SHOP.i]; if (id){ equip(SHOP.k,id); vibrate(15); toast(T("Équipé !")); render(); } break; }
+    case 'shop-mode': SHOP.mode=SHOP.mode==='shop'?'closet':'shop'; SHOP.i=SHOP.mode==='closet'?Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))):0; render(); break;
+    case 'shop-preview': { const id=shopList(SHOP.k,SHOP.mode)[SHOP.i]; if (id) previewWin(id); break; }
+    case 'closet': SHOP.mode='closet'; SHOP.i=Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))); view='shop'; sheet=null; render(); window.scrollTo(0,0); break;
+    case 'coins-shop': sheet={type:'coins'}; render(); break;
+    case 'pack': { const k=PACKS.find(x=>x.id===v); if (window.LastepIAP && LastepIAP.buy){ LastepIAP.buy(k.id).then(ok=>{ if (ok){ P.coins+=k.c; saveP(); sheet=null; giveCoins(0,''); rewardClose(); toast(`+${k.c} ${T("pièces")}`); render(); } }); } else toast(T("Paiement bientôt disponible avec l'appli des stores.")); break; }
+    case 'coins-ad': adReward().then(ok=>{ if (!ok) return; const d=dayKey(), a=P.adCoins&&P.adCoins.d===d?P.adCoins.n:0; P.adCoins={d,n:a+1}; P.coins+=25; saveP(); sfx.win(); toast(`+25 ${T("pièces")}`); render(); }); break;
     case 'gift': giftClaim(); if (!giftInfo().can && !REWARD) toast(T("Déjà récupéré. Reviens demain !")); break;
     case 'wheel': wheelOpen(); break;
     case 'wheel-spin': wheelSpin(false); break;
@@ -2715,7 +2817,7 @@ function trNext(){
   trQuit();
 }
 function lnScroll(){ setTimeout(()=>{ const n=document.querySelector('.lnode.cur'); if (n) n.scrollIntoView({block:'center'}); }, 0); }
-function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.node.cur')||[...document.querySelectorAll('.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
+function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.lv.cur')||document.querySelector('.node.cur')||[...document.querySelectorAll('.lv.done,.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
 function trQuit(){ const kind=TR&&TR.kind; $('#party').hidden=true; stopConfetti(); if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 function trHint(){
   const tr=TR; if (!G || G.turn!==0) return;
@@ -3278,24 +3380,6 @@ function parcStrip(){
   const clk = TR.mode ? `<div class="clock" id="clk0">${fmt(performance.now()-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0))}</div>` : TR.limit ? `<div class="clock on${TR.left<10000?' low':''}" id="clk0">${fmt(TR.left)}</div>` : '<span></span>';
   return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div><div style="min-width:0"><div class="nm">${esc(s.name)}</div>${z.j?`<div class="meta" style="--pc:${s.hex}">${jumpTag(0)}</div>`:''}</div>${clk}`;
 }
-function renderParc(){
-  const tot=parcTotal(), max=PARC.length*3, cur=PARC.findIndex((_,i)=>!parcStars(i)), np=nextParc();
-  let html='';
-  PARC_CH.forEach((t,ci)=>{
-    html+=`<div class="ustep">${T("Chapitre")} ${ci+1} · ${esc(t)}</div>`;
-    for (let i=ci*PARC_PER; i<Math.min(PARC.length,(ci+1)*PARC_PER); i++){
-      const s=parcStars(i), open=parcOpen(i), isCur=i===cur, x=Math.round(Math.sin(i*0.95)*72);
-      html+=`<button type="button" class="node${s?' done':''}${isCur?' cur':''}" style="--x:${x}px" data-act="parc" data-v="${i}" ${open?'':'disabled'} aria-label="${T("Niveau")} ${i+1}${s?`, ${s} ${T("étoiles")}`:open?'':(T(", verrouillé"))}">${!open?ic('lock'):i+1}${s?`<span class="stz" aria-hidden="true">${starsTxt(s)}</span>`:''}${isCur?`<span class="me" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}</button>`;
-    }
-  });
-  return `<div class="advtop"><div class="top"><h1 class="logo">🗺️ ${T("Aventure")}</h1>${topRight()}</div>
-  ${hubBubbles()}</div>
-  <div class="pzhead"><div class="prog" role="progressbar" aria-label="${T("Étoiles")}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${tot}"><i style="width:${tot/max*100}%"></i></div>
-  <p class="sub">★ ${tot}/${max}</p></div>
-  <div class="ppath pc">${html}</div>
-  <div class="spacer"></div>
-  <div class="playbar"><div class="in"><button class="big" type="button" data-act="parc" data-v="${np}">${T("Niveau")} ${np+1} ▶</button></div></div>`;
-}
 
 /* ---------- Écrans : éléments communs ---------- */
 function themeSwitch(){ if (!CONFIG.themeChoice) return ''; return `<button class="tswitch" type="button" role="switch" aria-checked="${!!P.calm}" data-act="calm" aria-label="${T("Thème calme, moins lumineux")}"><span aria-hidden="true">${P.calm?(T("Calme")):(T("Néon"))}</span><span class="tr" aria-hidden="true"></span></button>`; }
@@ -3855,7 +3939,7 @@ function renderHome(){
   return `<div class="htop">
     <div class="pill me2"><span class="adm" data-admin="1" aria-hidden="true"><span class="pav">${pawnSVG(P.skin)}</span></span><span class="pn"><b>${esc(P.name)}</b><small>${arenaElo()} · ${t[1]}</small></span></div>
     <span class="pill flame2" aria-label="${T("Série de")} ${streak} ${T("jours")}">🔥<b>${streak}</b></span>
-    <button type="button" class="pill coin2" data-act="tab" data-v="shop" aria-label="${P.coins} ${T("pièces. Ouvrir la boutique")}">${ic('coin')}<b>${P.coins}</b>${IMG('icone-plus','plus')}</button>
+    <button type="button" class="pill coin2" data-act="coins-shop" aria-label="${P.coins} ${T("pièces")}">${ic('coin')}<b>${P.coins}</b>${IMG('icone-plus','plus')}</button>
   </div>
   <div class="hlogo">${IMG('logo-lastep','logo','Lastep')}</div>
   ${rewardsRow()}
@@ -3875,24 +3959,151 @@ function hubBubbles(){
     <button type="button" class="rbub" data-act="lb-open"><span class="e">🏆</span><small>${P.lg&&P.lg.rank?`${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue")}</small></button>
   </div>`;
 }
+
+/* =====================================================================
+   v60 : Aventure, Arène, Boutique (carrousel + vestiaire), Profil, au style de l'accueil
+   ===================================================================== */
+const ASSETS=new Set(['arene','aventure-ile','coffre-argent-ouvert','coffre-argent','coffre-bois-ouvert','coffre-bois','coffre-legendaire','coffre-or-ouvert','coffre-or','couronne-royale','icone-cadeau','icone-cadenas','icone-calendrier','icone-carte','icone-epees','icone-maison','icone-parchemin','icone-plus','icone-profil','icone-roue','icone-trophee','logo-lastep']);
+// image si elle existe, sinon émoji en relief (remplacé dès que l'icône arrive)
+const ICO = (n, emo, cls='') => ASSETS.has(n) ? IMG(n, cls) : `<span class="emo3 ${cls}" aria-hidden="true">${emo}</span>`;
+function pillsTop(){
+  const t=tierOf(P.elo.r), streak=streakNow();
+  return `<div class="htop">
+    <div class="pill me2"><span class="adm" data-admin="1" aria-hidden="true"><span class="pav">${pawnSVG(P.skin)}</span></span><span class="pn"><b>${esc(P.name)}</b><small>${arenaElo()} · ${t[1]}</small></span></div>
+    <span class="pill flame2" aria-label="${T("Série de")} ${streak} ${T("jours")}">🔥<b>${streak}</b></span>
+    <button type="button" class="pill coin2" data-act="coins-shop" aria-label="${P.coins} ${T("pièces")}">${ic('coin')}<b>${P.coins}</b>${IMG('icone-plus','plus')}</button>
+  </div>`;
+}
+const pageTitle = (img, emo, title, extra='') => `<div class="ptitle">${ICO(img,emo,'pti')}<h1>${title}</h1>${extra}</div>`;
+const tile = (act, img, emo, label, o={}) => `<button type="button" class="rb${o.hot?' hot':''}" data-act="${act}"${o.v!=null?` data-v="${o.v}"`:''}>${ICO(img,emo)}<small>${label}</small></button>`;
+
+/* ---------- Aventure ---------- */
+function renderParc(){
+  const tot=parcTotal(), max=PARC.length*3, cur=PARC.findIndex((_,i)=>!parcStars(i)), np=nextParc(), ch=Math.floor(np/PARC_PER), d=djToday();
+  const chStars=[...Array(PARC_PER)].reduce((a,_,k)=>a+parcStars(ch*PARC_PER+k),0);
+  let html='';
+  PARC_CH.forEach((t,ci)=>{
+    html+=`<div class="chap"><span>${T("Chapitre")} ${ci+1}</span><b>${esc(t)}</b></div>`;
+    for (let i=ci*PARC_PER; i<Math.min(PARC.length,(ci+1)*PARC_PER); i++){
+      const s=parcStars(i), open=parcOpen(i), isCur=i===cur, x=Math.round(Math.sin(i*0.95)*70);
+      html+=`<button type="button" class="lv${s?' done':''}${isCur?' cur':''}${open?'':' lk'}" style="--x:${x}px" data-act="parc" data-v="${i}" ${open?'':'disabled'} aria-label="${T("Niveau")} ${i+1}${s?`, ${s} ${T("étoiles")}`:open?'':(T(", verrouillé"))}">
+        ${open?`<b>${i+1}</b>`:IMG('icone-cadenas','lkimg')}${s?`<span class="lvst">${[0,1,2].map(k=>`<i class="${k<s?'on':''}">★</i>`).join('')}</span>`:''}${isCur?`<span class="lvme" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}</button>`;
+    }
+  });
+  return `<div class="pgtop">${pillsTop()}${pageTitle('icone-carte','🗺️',T("Aventure"))}
+    <div class="rrow2 r5">
+      ${tile('dj','icone-calendrier','📅', d?d.res.map(r=>r?'✅':'❌').join(''):T("Du jour"), {hot:!d})}
+      ${tile('tab','icone-puzzle','🧩',T("Puzzles"),{v:'puzzles'})}
+      ${tile('rush-pick','icone-chrono','⏱️',T("Chrono"))}
+      ${tile('tab','icone-cours','🎓',T("Cours"),{v:'learn'})}
+      ${tile('lb-open','icone-trophee','🏆', P.lg&&P.lg.rank?`${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue"))}
+    </div></div>
+  <div class="chapcard"><div><small>${T("Chapitre")} ${ch+1}</small><b>${esc(PARC_CH[ch]||'')}</b></div><div class="chprog"><i style="width:${chStars/(PARC_PER*3)*100}%"></i></div><span>⭐ ${tot}/${max}</span></div>
+  <div class="lvpath">${html}</div>
+  <div class="spacer"></div>
+  <div class="playbar"><div class="in"><button class="gobig" type="button" data-act="parc" data-v="${np}">${T("Niveau")} ${np+1} ▶</button></div></div>`;
+}
+
+/* ---------- Arène ---------- */
 function renderPlay(){
   const t=tierOf(arenaElo());
   const fs=[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a)) || (b.last||0)-(a.last||0));
-  return `<div class="top"><h1 class="logo">⚔️ ${T("Arène")}</h1>${topRight()}</div>
-  <div class="arenahead"><div class="bigpawn">${pawnSVG(P.skin)}</div><div><b class="tier" style="color:${t[2]}">${t[1]}</b><small>${arenaElo()} ${T("steps")}</small></div><button class="rbub" type="button" data-act="lb-arena"><span class="e">🏆</span><small>${T("Classement")}</small></button></div>
-  <button class="timebtn" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} <span aria-hidden="true">▾</span></button>
-  <button class="big" type="button" data-act="match">${T("Combattre")} ▶</button>
-  <div class="grid2">
-    <button class="tilebtn" type="button" data-act="friend"><span class="e">🤝</span>${T("Avec un ami")}</button>
-    <button class="tilebtn" type="button" data-act="party"><span class="e">👥</span>${T("À 4 joueurs")}</button>
-    <button class="tilebtn" type="button" data-act="ai-sheet"><span class="e">🤖</span>${T("Contre l'ordinateur")}</button>
-    <button class="tilebtn" type="button" data-act="coach"><span class="e">🎓</span>${T("Avec l'entraîneur")}</button>
+  return `${pillsTop()}${pageTitle('icone-epees','⚔️',T("Arène"))}
+  <div class="mode3 arena wide" data-act="match" role="button" tabindex="0" aria-label="${T("Combattre")}"><span class="shine"></span>${IMG('arene','art')}
+    <div class="chips3"><span style="color:${t[2]}">${t[1]}</span><span>${arenaElo()} ${T("steps")}</span></div>
+    <div class="go">${T("Combattre")}</div></div>
+  <div class="arow"><button class="pill tpill" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} ▾</button><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
+  <div class="grid4">
+    ${tile('friend','icone-amis','🤝',T("Avec un ami"))}
+    ${tile('party','icone-groupe','👥',T("À 4 joueurs"))}
+    ${tile('ai-sheet','icone-robot','🤖',T("Ordinateur"))}
+    ${tile('coach','icone-cours','🎓',T("Entraîneur"))}
   </div>
-  <button class="more" type="button" data-act="more" aria-expanded="${playMore}">${T("Plus")} ${playMore?'▴':'▾'}</button>
-  ${playMore?`<button class="item" type="button" data-act="local">${ic('phone')}${T("À deux sur ce téléphone")}</button>`:''}
+  <button class="more" type="button" data-act="local">${ic('phone')}${T("À deux sur ce téléphone")}</button>
   <div class="hhead"><h2 class="h2">${T("Amis")} ${P.friends.length?`<small class="note">${P.friends.length}</small>`:''}</h2></div>
   <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>${T("Ajouter")}</b><small class="bonus">+100 ${ic('coin','ic sm')}</small></button>${fs.map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?(T("En ligne")):lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">${T("Défier")}</button></div>`).join('')}</div>`;
 }
+
+/* ---------- Boutique : carrousel autour de ton pion ; Vestiaire : ce que tu possèdes ---------- */
+const SHOP_KINDS=['color','fur','fin','eyes','acc','trail','win','theme'];
+const KIND_PL={color:T("Couleur"),fur:T("Forme"),fin:T("Finition"),eyes:T("Yeux"),acc:T("Accessoire"),trail:T("Traînée"),win:T("Célébration"),theme:T("Plateau")};
+let SHOP={mode:'shop', k:'color', i:0, dir:0};
+const shopList = (k, mode) => Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
+const isEq = (k,id) => k==='theme' ? P.theme===id : P.skin[k]===id;
+function itemView(k, id, big){
+  const it=CAT[k][id];
+  if (k==='theme') return `<div class="swatch ${big?'big':''}" style="background:${it.fr}">${[1,2,1,2,1,2,1,2,1].map(v=>`<i style="background:${v===1?it.t1:it.t2}"></i>`).join('')}</div>`;
+  if (k==='trail'||k==='win') return `<div class="fxstage ${big?'big':''}">${pawnSVG({...P.skin,[k]:id})}<span class="fxe fx-${k}-${id}">${it.e}</span></div>`;
+  return pawnSVG({...P.skin,[k]:id});
+}
+function renderShop(){
+  const mode=SHOP.mode, list=shopList(SHOP.k, mode);
+  if (SHOP.i>=list.length) SHOP.i=Math.max(0,list.length-1);
+  const id=list[SHOP.i], it=id?CAT[SHOP.k][id]:null, n=list.length;
+  const prev=n>1?list[(SHOP.i-1+n)%n]:null, next=n>1?list[(SHOP.i+1)%n]:null;
+  const rr=it?rarity(it.p):null, c=it?cost(it.p):0;
+  let btn='';
+  if (it){
+    if (mode==='shop') btn = P.coins>=c ? `<button class="buybtn" type="button" data-act="shop-buy">${T("Acheter")} · ${ic('coin')} ${c}</button>` : `<button class="buybtn poor" type="button" data-act="coins-shop">${ic('coin')} ${c}</button><small class="miss">${T("Il te manque")} ${c-P.coins} ${T("pièces")}</small>`;
+    else btn = isEq(SHOP.k,id) ? `<button class="buybtn eq" type="button" disabled>✓ ${T("Équipé")}</button>` : `<button class="buybtn" type="button" data-act="shop-equip">${T("Équiper")}</button>`;
+  }
+  const cats=SHOP_KINDS.map(k=>{ const L=shopList(k,mode).length; return `<button type="button" class="catb${SHOP.k===k?' on':''}" data-act="shop-cat" data-v="${k}"><span class="cpv">${{color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪'}[k]}</span><b>${KIND_PL[k]}</b><small>${mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`}</small></button>`; }).join('');
+  return `${pillsTop()}${pageTitle(mode==='shop'?'coffre-or':'icone-profil', mode==='shop'?'🛍️':'👕', mode==='shop'?T("Boutique"):T("Vestiaire"),
+      `<button class="pill swap" type="button" data-act="shop-mode">${mode==='shop'?'👕 '+T("Vestiaire"):'🛍️ '+T("Boutique")}</button>`)}
+  <div class="stage">
+    <div class="stbg"></div>
+    ${prev?`<button type="button" class="side l" data-act="shop-prev" aria-label="${T("Précédent")}">${itemView(SHOP.k,prev)}</button>`:''}
+    ${next?`<button type="button" class="side r" data-act="shop-next" aria-label="${T("Suivant")}">${itemView(SHOP.k,next)}</button>`:''}
+    <div class="center ${SHOP.dir>0?'inR':SHOP.dir<0?'inL':''}" ${SHOP.k==='win'&&id?`data-act="shop-preview"`:''}>${it?itemView(SHOP.k,id,true):`<div class="empty">${mode==='shop'?'✓<small>'+T("Tu as déjà tout dans cette catégorie !")+'</small>':'<small>'+T("Rien ici pour l'instant")+'</small>'}</div>`}</div>
+    ${n>1?`<button type="button" class="arw l" data-act="shop-prev" aria-label="${T("Précédent")}">‹</button><button type="button" class="arw r" data-act="shop-next" aria-label="${T("Suivant")}">›</button>`:''}
+    <div class="pedestal"></div>
+  </div>
+  ${it?`<div class="iinfo">${rr?`<span class="rar r-${rr.k}">${rr.n}</span>`:''}<h2>${esc(it.n)}</h2><small>${KIND_PL[SHOP.k]} · ${SHOP.i+1}/${n}${SHOP.k==='win'?' · '+T("touche pour voir"):''}</small>${btn}</div>`:''}
+  <div class="cats">${cats}</div>`;
+}
+let shopTx=null;
+document.addEventListener('touchstart', e=>{ shopTx = e.target.closest && e.target.closest('.stage') ? e.touches[0].clientX : null; }, {passive:true});
+document.addEventListener('touchend', e=>{ if (shopTx==null) return; const dx=e.changedTouches[0].clientX-shopTx; shopTx=null; if (Math.abs(dx)>45) shopMove(dx<0?1:-1); }, {passive:true});
+function shopMove(d){ const n=shopList(SHOP.k,SHOP.mode).length; if (n<2) return; SHOP.i=(SHOP.i+d+n)%n; SHOP.dir=d; render(); setTimeout(()=>{ SHOP.dir=0; },400); }
+function shopBuy(){
+  const id=shopList(SHOP.k,'shop')[SHOP.i]; if (!id) return; const c=cost(CAT[SHOP.k][id].p);
+  if (P.coins<c){ sheet={type:'coins'}; render(); return; }
+  P.coins-=c; P.owned.push(SHOP.k+':'+id); equip(SHOP.k,id); saveP(); sfx.win(); vibrate([20,40,20]);
+  toast(`${CAT[SHOP.k][id].n} : ${T("acheté et équipé !")}`); fxRun('confettis', COLORS[P.skin.color].hex, $('#party').querySelector('canvas')); setTimeout(stopConfetti,2500);
+  render();
+}
+// Achat de pièces : vrai paiement avec l'appli des stores (window.LastepIAP) ; en attendant, une pub = quelques pièces
+const PACKS=[{id:'p1',c:500,eur:'0,99 €',img:'coffre-bois'},{id:'p2',c:1500,eur:'2,49 €',img:'coffre-argent',tag:T("Populaire")},{id:'p3',c:4000,eur:'4,99 €',img:'coffre-or',tag:T("Meilleur prix")},{id:'p4',c:10000,eur:'9,99 €',img:'coffre-legendaire'}];
+function coinsSheet(){
+  const ad=P.adCoins&&P.adCoins.d===dayKey()?P.adCoins.n:0;
+  return `<h2>${T("Acheter des pièces")}</h2><p class="sub">${T("Tu as")} <b>${P.coins}</b> ${T("pièces")}.</p>
+  <div class="packs">${PACKS.map(k=>`<button type="button" class="pack" data-act="pack" data-v="${k.id}">${k.tag?`<span class="ptag">${k.tag}</span>`:''}${IMG(k.img)}<b>${ic('coin')} ${k.c.toLocaleString(LANG)}</b><span class="eur">${k.eur}</span></button>`).join('')}</div>
+  ${ad<5?adBtn('coins-ad', `+25 ${T("pièces")} (${5-ad}/5)`):''}
+  <p class="note" style="text-align:center">${T("Les pièces servent uniquement à débloquer des apparences. Elles ne donnent aucun avantage en partie.")}</p>`;
+}
+
+/* ---------- Profil : ton pion, ton niveau, tes classements, les réglages ---------- */
+function renderProfile(){
+  const t=tierOf(P.elo.r), nb=Object.keys(P.badges).length;
+  const sec=(id,title,body)=>`<details class="sec2" data-sec="${id}" ${OPEN.has(id)?'open':''}><summary>${title}</summary><div class="in">${body}</div></details>`;
+  const stat=(v,l)=>`<div class="st2"><b>${v}</b><small>${l}</small></div>`;
+  return `${pillsTop()}
+  <div class="prohead">
+    <div class="heroz pro"><div class="herop">${pawnSVG(P.skin)}</div><div class="heros"></div></div>
+    <input id="pname" class="pname2" maxlength="16" value="${esc(P.name)}" autocomplete="off" aria-label="${T("Pseudo")}">
+    <div class="chips3"><span style="color:${t[2]}">${t[1]}</span><span>${arenaElo()} ${T("steps")}</span><span>⭐ ${parcTotal()}</span>${P.lg&&P.lg.rank?`<span>🏆 ${P.lg.rank}${LANG==='en'?'.':'e'}</span>`:''}</div>
+    <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?' · 💎 '+T("Premium"):''}</p>
+    <div class="arow"><button class="pill tpill" type="button" data-act="closet">👕 ${T("Vestiaire")}</button><button class="pill tpill" type="button" data-act="lb-open">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
+  </div>
+  <div class="stats2">${stat(P.stat.games||0,T("parties"))}${stat(P.elo.g,T("matchs classés"))}${stat(pzDone(),T("puzzles"))}${stat(P.stat.fell||0,T("cases détruites"))}${stat(nb+'/'+BADGES.length,T("badges"))}${stat(streakNow(),T("jours de suite"))}</div>
+  ${sec('rank',T("Classements par cadence"), cadHTML())}
+  ${sec('badges',`${T("Badges")} · ${nb}/${BADGES.length}`, badgesHTML())}
+  ${sec('friends',`${T("Amis")} · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}${T("Ajouter")}</button><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${ic('image')}${T("Mon poster")}</button></div>`)}
+  ${sec('games',`${T("Parties contre de vrais joueurs ·")} ${realGames().length}`, realGames().length?`<div class="list">${realGames().slice(-5).reverse().map(gameRow).join('')}</div><button class="linkbtn" type="button" data-act="games">${T("Tout voir ›")}</button>`:("<p class=\"sub\">"+T("Tes parties en ligne et contre tes amis apparaîtront ici.")+"</p>"))}
+  ${sec('set',`⚙️ ${T("Réglages")}`, settingsBody())}
+  ${sec('about',T("À propos"), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}`;
+}
+
 const backHead = (title, to) => `<div class="pagehead"><button class="iconbtn" type="button" data-act="tab" data-v="${to}" aria-label="${T("Retour")}">${ic('back')}</button><h1 class="logo">${title}</h1>${topRight()}</div>`;
 
 initWorker();
