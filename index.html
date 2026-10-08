@@ -849,6 +849,54 @@ body{font-weight:700}
 .gain.sm{font-size:1.2rem;animation-delay:.5s}
 .gain.sm .ic{width:24px;height:24px}
 .bigcoin{width:96px;height:96px;filter:drop-shadow(0 6px 0 #0008) drop-shadow(0 0 16px #ffd75e88);animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+
+/* ===== v58 : accueil illustré ===== */
+html:not(.lock) body{background:#0b0820 url(assets/web/fond-nuit.webp) center top/cover fixed}
+.gimg{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.htop{display:flex;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:3px 12px 3px 4px;border-radius:999px;border:2px solid #8f7bff66;background:#120d30d9;color:#fff;font-weight:900;box-shadow:0 3px 0 #0008;cursor:pointer}
+.me2{flex:1;min-width:0}
+.me2 .pav{width:36px;height:36px;flex:none;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a2c86,#120d30);display:grid;place-items:center;box-shadow:0 0 0 2px #2ef2ff}
+.me2 .pav svg{width:32px;height:32px}
+.pn{display:flex;flex-direction:column;min-width:0;line-height:1.1;text-align:left}
+.pn b{font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pn small{font-size:.68rem;color:#b9b0ff}
+.flame2{padding:3px 12px;gap:4px;cursor:default;border-color:#ffb02e88}
+.coin2{padding:3px 4px 3px 8px;border-color:#ffd75e99}
+.coin2 .ic{width:24px;height:24px}
+.coin2 b{font-family:var(--fun);font-weight:400;font-size:1.05rem;color:#ffd75e}
+.coin2 .plus{width:28px;height:28px}
+.hlogo{display:flex;justify-content:center;margin:4px 0 2px}
+.hlogo .logo{width:min(62vw,250px);height:auto;filter:drop-shadow(0 6px 10px #000a);animation:logobob 4s ease-in-out infinite}
+@keyframes logobob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+.rrow2{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rb{position:relative;display:flex;flex-direction:column;align-items:center;gap:0;padding:4px 2px 6px;border-radius:18px;border:2px solid #8f7bff55;background:linear-gradient(180deg,#2a2160e6,#130e34e6);color:#fff;cursor:pointer;box-shadow:inset 0 -4px 0 #0005,0 4px 0 #0008}
+.rb .gimg{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 3px 0 #0007)}
+.rb small{font-size:.7rem;font-weight:900;white-space:nowrap}
+.rb .ptbar{width:72%;height:6px;margin:1px 0 2px}
+.rb.hot{border-color:#ffd75e;box-shadow:inset 0 -4px 0 #0005,0 4px 0 #0008,0 0 18px #ffd75e88}
+.rb.hot .gimg{animation:wig 1.6s ease-in-out infinite}
+.rb.hot::after{content:"!";position:absolute;top:-7px;right:-4px;width:22px;height:22px;border-radius:50%;background:#ff3d6e;color:#fff;font-size:.85rem;font-weight:900;display:grid;place-items:center;box-shadow:0 2px 0 #0008;animation:bob 1.2s ease-in-out infinite}
+.modes2{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.mode2{position:relative;display:flex;align-items:center;min-height:max(168px,calc((var(--apph,100dvh) - 420px)/2));padding:14px 14px 14px 18px;border-radius:26px;cursor:pointer;overflow:visible;box-shadow:inset 0 -7px 0 #0006,0 6px 0 #0009}
+.mode2::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 80% 30%,#ffffff2e,transparent 55%);pointer-events:none}
+.mode2.adv{background:linear-gradient(135deg,#13b97a,#0b6f9c 55%,#22186a);border:2px solid #b6ff3b99}
+.mode2.arena{background:linear-gradient(135deg,#ff3d8a,#9a2bd6 55%,#22186a);border:2px solid #ffb02e99}
+.mtxt{position:relative;z-index:2;display:flex;flex-direction:column;gap:4px;width:52%}
+.mode2 h2{margin:0;font-size:2rem;line-height:1;color:#fff;text-shadow:0 3px 0 #0008}
+.mode2 small{font-weight:800;color:#ffffffd9;font-size:.8rem}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px}
+.chips2 span{padding:3px 10px;border-radius:999px;background:#0006;font-weight:900;font-size:.78rem;color:#fff}
+.mbtn{align-self:flex-start;padding:12px 26px;border:0;border-radius:16px;font-family:var(--fun);font-size:1.35rem;color:#1a1000;background:linear-gradient(180deg,#ffe14d,#ffb02e);box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0009;cursor:pointer}
+.mode2.arena .mbtn{background:linear-gradient(180deg,#fff,#cfe3ff);color:#2a0b3d}
+.mart{position:absolute;right:-8px;top:50%;width:58%;max-width:250px;transform:translateY(-50%);filter:drop-shadow(0 10px 14px #000b);animation:float 5s ease-in-out infinite}
+.mode2.arena .mart{animation-delay:-2.5s}
+@keyframes float{0%,100%{transform:translateY(-50%)}50%{transform:translateY(calc(-50% - 7px))}}
+#tabs .te{width:34px;height:34px;object-fit:contain;filter:grayscale(.75) brightness(.7);transition:transform .15s,filter .15s}
+#tabs button[aria-current="page"] .te{filter:none;transform:translateY(-4px) scale(1.18)}
+@media (max-height:760px){html.homefix .screen{gap:9px}.htop .pill{min-height:38px}.hlogo{margin:0}.hlogo .logo{width:min(44vw,170px)}.rb{padding:3px 2px 4px}.rb .gimg{width:40px;height:40px}.modes2{gap:10px;margin-top:0}.mode2{min-height:0;padding:10px 12px 10px 16px}.mode2 h2{font-size:1.6rem}.chips2{margin:2px 0 4px}.mbtn{padding:8px 20px;font-size:1.1rem}.mart{width:50%}}
+@media (max-height:640px){.hlogo{display:none}}
+@media (prefers-reduced-motion:reduce){.hlogo .logo,.mart,.rb.hot .gimg{animation:none}}
 </style>
 
 </head>
@@ -894,7 +942,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 57,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 58,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1923,9 +1971,9 @@ function renderProfile(){
   ${sec('about',(T("À propos")), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}`;
 }
 function renderTabs(){
-  const t=[['home','🏠',(T("Accueil"))],['parc','🗺️',(T("Aventure"))],['play','⚔️',(T("Arène"))],['shop','🛍️',(T("Boutique"))],['profile','👤',(T("Profil"))]];
+  const t=[['home','icone-maison',(T("Accueil"))],['parc','icone-carte',(T("Aventure"))],['play','icone-epees',(T("Arène"))],['shop','coffre-or',(T("Boutique"))],['profile','icone-profil',(T("Profil"))]];
   const on = v => view===v || (v==='parc' && ['puzzles','learn'].includes(view));
-  $('#tabsIn').innerHTML=t.map(([v,e,l])=>`<button type="button" data-act="tab" data-v="${v}" ${on(v)?'aria-current="page"':''}><span class="te" aria-hidden="true">${e}</span>${l}</button>`).join('');
+  $('#tabsIn').innerHTML=t.map(([v,e,l])=>`<button type="button" data-act="tab" data-v="${v}" ${on(v)?'aria-current="page"':''}>${IMG(e,'te')}${l}</button>`).join('');
 }
 
 /* ---------- Rendu : feuilles ---------- */
@@ -3730,33 +3778,41 @@ function lgDueCheck(){
 
 /* ---------- Écrans : Accueil, Aventure, Arène ---------- */
 const nextParc = () => { const i=PARC.findIndex((_,k)=>!parcStars(k)); return i<0 ? PARC.length-1 : i; };
+const IMG = (n, cls='', alt='') => `<img class="gimg ${cls}" src="assets/web/${n}.webp" alt="${alt}" draggable="false" decoding="async">`;
 function rewardsRow(){
   const g=giftInfo(), w=wheelInfo(), p=ptInfo(), pr=Math.min(1,p.ms/PT_GOAL), ready=p.ms>=PT_GOAL && !p.got;
-  return `<div class="rrow">
-    <button type="button" class="rbub${g.can?' hot':''}" data-act="gift"><span class="e">🎁</span><small>${g.can?`${T("Jour")} ${g.day+1}`:'✓'}</small></button>
-    <button type="button" class="rbub${!w.free?' hot':''}" data-act="wheel"><span class="e">🎡</span><small>${!w.free?T("Gratuit"):`${3-(w.ads||0)}/3`}</small></button>
-    <button type="button" class="rbub wide${ready?' hot':''}" data-act="ptchest" aria-label="${T("Coffre de jeu")} : ${Math.floor(p.ms/60000)} / 30 min"><span class="e">🧰</span><span class="ptbar"><i style="width:${pr*100}%"></i></span><small>${p.got?`✓ · ${ptReset()}`:ready?T("Ouvrir !"):`${Math.floor(p.ms/60000)}/30 min`}</small></button>
-    <button type="button" class="rbub" data-act="lb-open"><span class="e">🏆</span><small>${P.lg&&P.lg.rank?`${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue")}</small></button>
+  const b=(act,img,label,hot,extra='')=>`<button type="button" class="rb${hot?' hot':''}" data-act="${act}">${IMG(img)}${extra}<small>${label}</small></button>`;
+  return `<div class="rrow2">
+    ${b('gift','icone-cadeau', g.can?`${T("Jour")} ${g.day+1}`:'✓', g.can)}
+    ${b('wheel','icone-roue', !w.free?T("Gratuit"):`${3-(w.ads||0)}/3`, !w.free)}
+    ${b('ptchest', ready?'coffre-bois-ouvert':'coffre-bois', p.got?ptReset():ready?T("Ouvrir !"):`${Math.floor(p.ms/60000)}/30′`, ready, `<span class="ptbar"><i style="width:${pr*100}%"></i></span>`)}
+    ${b('lb-open','icone-trophee', P.lg&&P.lg.rank?`${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue"), false)}
   </div>`;
 }
 function renderHome(){
   const t=tierOf(P.elo.r), streak=streakNow(), np=nextParc();
   setTimeout(lgDueCheck, 300);
-  return `<div class="hrow"><div class="me"><div class="av adm" data-admin="1" aria-hidden="true">${pawnSVG(P.skin)}</div><div><b>${esc(P.name)}</b><small>${P.elo.r} ${T("steps ·")} ${t[1]}</small></div><span class="flame" aria-label="${T("Série de")} ${streak} ${T("jours")}">🔥 ${streak}</span></div>${topRight()}</div>
-  ${rewardsRow()}
-  <div class="modes">
-    <div class="mode adv" data-act="tab" data-v="parc" role="button" tabindex="0" aria-label="${T("Aventure")}">
-      <div class="mtop"><span class="memo" aria-hidden="true">🗺️</span><div><h2>${T("Aventure")}</h2><small>${T("Seul contre le jeu")}</small></div></div>
-      <div class="mmid"><span>★ ${parcTotal()}</span><span>${T("Niveau")} ${np+1}</span></div>
-      <button class="mplay" type="button" data-act="parc" data-v="${np}">${T("Jouer")} ▶</button>
-    </div>
-    <div class="mode arena" data-act="tab" data-v="play" role="button" tabindex="0" aria-label="${T("Arène")}">
-      <div class="mtop"><span class="memo" aria-hidden="true">⚔️</span><div><h2>${T("Arène")}</h2><small>${T("Contre de vrais joueurs")}</small></div></div>
-      <div class="mmid"><span>${t[1]}</span><span>${arenaElo()} ${T("steps")}</span></div>
-      <button class="mplay" type="button" data-act="match">${T("Combattre")} ▶</button>
-    </div>
+  return `<div class="htop">
+    <div class="pill me2"><span class="adm" data-admin="1" aria-hidden="true"><span class="pav">${pawnSVG(P.skin)}</span></span><span class="pn"><b>${esc(P.name)}</b><small>${arenaElo()} · ${t[1]}</small></span></div>
+    <span class="pill flame2" aria-label="${T("Série de")} ${streak} ${T("jours")}">🔥<b>${streak}</b></span>
+    <button type="button" class="pill coin2" data-act="tab" data-v="shop" aria-label="${P.coins} ${T("pièces. Ouvrir la boutique")}">${ic('coin')}<b>${P.coins}</b>${IMG('icone-plus','plus')}</button>
   </div>
-  ${installCard()}`;
+  <div class="hlogo">${IMG('logo-lastep','logo','Lastep')}</div>
+  ${rewardsRow()}
+  <div class="modes2">
+    <div class="mode2 adv" data-act="tab" data-v="parc" role="button" tabindex="0">
+      <div class="mtxt"><h2>${T("Aventure")}</h2><small>${T("Seul contre le jeu")}</small>
+        <div class="chips2"><span>⭐ ${parcTotal()}</span><span>${T("Niveau")} ${np+1}</span></div>
+        <button class="mbtn" type="button" data-act="parc" data-v="${np}">${T("Jouer")}</button></div>
+      ${IMG('aventure-ile','mart')}
+    </div>
+    <div class="mode2 arena" data-act="tab" data-v="play" role="button" tabindex="0">
+      <div class="mtxt"><h2>${T("Arène")}</h2><small>${T("Contre de vrais joueurs")}</small>
+        <div class="chips2"><span>${t[1]}</span><span>${arenaElo()}</span></div>
+        <button class="mbtn" type="button" data-act="match">${T("Combattre")}</button></div>
+      ${IMG('arene','mart')}
+    </div>
+  </div>`;
 }
 function hubBubbles(){
   const d=djToday();
