@@ -1023,3 +1023,4 @@ Object.assign(window.EN_DICT, {"Personne n'ose venir… Moi, je ne fuis jamais l
 Object.assign(window.EN_DICT, {"Fuir":"Run away","Accepter":"Accept"});
 Object.assign(window.EN_DICT, {"Fin dans":"Ends in","Steps des 30 derniers jours. Les personnages 🤖 servent de repères.":"Steps over the last 30 days. Game characters 🤖 are there as benchmarks."});
 Object.assign(window.EN_DICT, {"Steps des 30 derniers jours.":"Steps over the last 30 days.","personnage du jeu, à dépasser":"game character to beat"});
+Object.assign(window.EN_DICT, {"Catégories":"Categories"});

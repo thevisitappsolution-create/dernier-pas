@@ -1190,6 +1190,28 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .mode3 .art,.mmarena{aspect-ratio:1}
 #screen.pgin{animation:pgin .28s ease-out}
 @keyframes pgin{from{transform:translateY(10px)}to{transform:none}}
+
+/* Boutique : tout sur un écran */
+.catcar{position:relative;display:grid;grid-template-columns:1fr 1.6fr 1fr;align-items:center;gap:6px;margin-top:8px;touch-action:pan-y}
+.ccs{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:16px;border:2px solid #8f7bff33;background:#130e34b3;color:#b9b0ff;opacity:.6;cursor:pointer;transform:scale(.9)}
+.ccs span{font-size:1.5rem;line-height:1}
+.ccs small{font-size:.7rem;font-weight:900}
+.ccs.l::before,.ccs.r::after{position:absolute;top:50%;margin-top:-16px;font-family:var(--fun);font-size:1.7rem;color:#ffe14d;text-shadow:0 2px 0 #0008}
+.ccs.l::before{content:"‹";left:-4px}.ccs.r::after{content:"›";right:-4px}
+.ccc{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px 10px;border-radius:20px;border:2px solid #2ef2ff;background:linear-gradient(180deg,#2a2160,#130e34);box-shadow:inset 0 -4px 0 #0005,0 0 18px #2ef2ff55;text-align:center}
+.ccc .cce{font-size:2rem;line-height:1.1}
+.ccc b{font-family:var(--fun);font-weight:400;font-size:1.25rem;color:#fff}
+.ccc small{font-size:.7rem;font-weight:800;color:#b6ff3b}
+.ccc.inR{animation:slR .3s cubic-bezier(.2,1.2,.4,1)}.ccc.inL{animation:slL .3s cubic-bezier(.2,1.2,.4,1)}
+.ccdots{grid-column:1/-1;display:flex;justify-content:center;gap:5px;margin-top:2px}
+.ccdots i{width:6px;height:6px;border-radius:50%;background:#ffffff33}
+.ccdots i.on{width:16px;border-radius:4px;background:#2ef2ff}
+.stage{height:min(230px,30vh)}
+.center{width:min(160px,22vh);height:min(160px,22vh)}
+.iinfo{gap:2px}
+.iinfo h2{font-size:1.6rem}
+.buybtn{margin-top:4px;padding:11px 22px}
+@media (max-height:700px){.ptitle .pti{width:34px;height:34px}.stbg{inset:4px 6px 14px}.pedestal{bottom:16px}.center{margin-bottom:14px}.catcar{margin-top:4px}.ccs{padding:5px 2px}.ccc{padding:5px 4px 6px}.ccdots{display:none}.iinfo .rar{display:none}.stage{height:170px}.center{width:130px;height:130px}.side{width:60px;height:60px}.iinfo h2{font-size:1.35rem}.buybtn{padding:9px 18px;font-size:1.15rem}.ccc .cce{font-size:1.5rem}.ptitle{margin:2px 0}.ptitle h1{font-size:1.7rem}}
 </style>
 
 </head>
@@ -1236,7 +1258,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 68,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 69,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2504,6 +2526,8 @@ document.addEventListener('click', e=>{
     case 'pick-mode': pickMode(v); break;
     case 'shop-cat': SHOP.k=v; SHOP.i=Math.max(0,shopList(v,SHOP.mode).findIndex(id=>isEq(v,id))); SHOP.dir=0; render(); window.scrollTo({top:0,behavior:REDUCED?'auto':'smooth'}); break;
     case 'shop-prev': shopMove(-1); break;
+    case 'cat-prev': catMove(-1); break;
+    case 'cat-next': catMove(1); break;
     case 'shop-next': shopMove(1); break;
     case 'shop-buy': shopBuy(); break;
     case 'shop-equip': { const id=shopList(SHOP.k,'closet')[SHOP.i]; if (id){ equip(SHOP.k,id); vibrate(15); toast(T("Équipé !")); render(); } break; }
@@ -4313,7 +4337,15 @@ function renderShop(){
     if (mode==='shop') btn = P.coins>=c ? `<button class="buybtn" type="button" data-act="shop-buy">${T("Acheter")} · ${ic('coin')} ${c}</button>` : `<button class="buybtn poor" type="button" data-act="coins-shop">${ic('coin')} ${c}</button><small class="miss">${T("Il te manque")} ${c-P.coins} ${T("pièces")}</small>`;
     else btn = isEq(SHOP.k,id) ? `<button class="buybtn eq" type="button" disabled>✓ ${T("Équipé")}</button>` : `<button class="buybtn" type="button" data-act="shop-equip">${T("Équiper")}</button>`;
   }
-  const cats=SHOP_KINDS.map(k=>{ const L=shopList(k,mode).length; return `<button type="button" class="catb${SHOP.k===k?' on':''}" data-act="shop-cat" data-v="${k}"><span class="cpv">${{color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪'}[k]}</span><b>${KIND_PL[k]}</b><small>${mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`}</small></button>`; }).join('');
+  const ki=SHOP_KINDS.indexOf(SHOP.k), NK=SHOP_KINDS.length, kp=SHOP_KINDS[(ki-1+NK)%NK], kn=SHOP_KINDS[(ki+1)%NK];
+  const CE={color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪'};
+  const kinfo=k=>{ const L=shopList(k,mode).length; return mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`; };
+  const cats=`<div class="catcar" aria-label="${T("Catégories")}">
+    <button type="button" class="ccs l" data-act="cat-prev" aria-label="${KIND_PL[kp]}"><span>${CE[kp]}</span><small>${KIND_PL[kp]}</small></button>
+    <div class="ccc ${SHOP.cdir>0?'inR':SHOP.cdir<0?'inL':''}"><span class="cce">${CE[SHOP.k]}</span><b>${KIND_PL[SHOP.k]}</b><small>${kinfo(SHOP.k)}</small></div>
+    <button type="button" class="ccs r" data-act="cat-next" aria-label="${KIND_PL[kn]}"><span>${CE[kn]}</span><small>${KIND_PL[kn]}</small></button>
+    <div class="ccdots">${SHOP_KINDS.map((k,i)=>`<i class="${i===ki?'on':''}"></i>`).join('')}</div>
+  </div>`;
   return `${pillsTop()}${pageTitle(mode==='shop'?'coffre-or':'icone-profil', mode==='shop'?'🛍️':'👕', mode==='shop'?T("Boutique"):T("Vestiaire"),
       `<button class="pill swap" type="button" data-act="shop-mode">${mode==='shop'?'👕 '+T("Vestiaire"):'🛍️ '+T("Boutique")}</button>`)}
   <div class="stage">
@@ -4328,8 +4360,10 @@ function renderShop(){
   <div class="cats">${cats}</div>`;
 }
 let shopTx=null;
-document.addEventListener('touchstart', e=>{ shopTx = e.target.closest && e.target.closest('.stage') ? e.touches[0].clientX : null; }, {passive:true});
-document.addEventListener('touchend', e=>{ if (shopTx==null) return; const dx=e.changedTouches[0].clientX-shopTx; shopTx=null; if (Math.abs(dx)>45) shopMove(dx<0?1:-1); }, {passive:true});
+let shopZone=null;
+document.addEventListener('touchstart', e=>{ const z=e.target.closest && (e.target.closest('.stage')?'item':e.target.closest('.catcar')?'cat':null); shopZone=z; shopTx = z ? e.touches[0].clientX : null; }, {passive:true});
+document.addEventListener('touchend', e=>{ if (shopTx==null) return; const dx=e.changedTouches[0].clientX-shopTx; shopTx=null; if (Math.abs(dx)>45){ if (shopZone==='cat') catMove(dx<0?1:-1); else shopMove(dx<0?1:-1); } }, {passive:true});
+function catMove(d){ const NK=SHOP_KINDS.length, k=SHOP_KINDS[(SHOP_KINDS.indexOf(SHOP.k)+d+NK)%NK]; SHOP.k=k; SHOP.cdir=d; SHOP.dir=0; SHOP.i=Math.max(0,shopList(k,SHOP.mode).findIndex(id=>isEq(k,id))); vibrate(8); render(); setTimeout(()=>{ SHOP.cdir=0; },400); }
 function shopMove(d){ const n=shopList(SHOP.k,SHOP.mode).length; if (n<2) return; SHOP.i=(SHOP.i+d+n)%n; SHOP.dir=d; render(); setTimeout(()=>{ SHOP.dir=0; },400); }
 function shopBuy(){
   const id=shopList(SHOP.k,'shop')[SHOP.i]; if (!id) return; const c=cost(CAT[SHOP.k][id].p);
