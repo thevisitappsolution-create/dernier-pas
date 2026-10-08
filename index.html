@@ -839,6 +839,11 @@ body{font-weight:700}
 .adskip{color:#a39cd0}
 .adx{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:#0008;color:#fff;cursor:pointer}
 .pcard{max-height:92vh;overflow:auto}
+.tapfx{animation:tapfx .18s ease-out}
+@keyframes tapfx{0%{transform:scale(1)}40%{transform:scale(.94)}100%{transform:scale(1)}}
+#board .cell.tapfx,#pt4bd .cl.tapfx{animation:tapcell .22s ease-out}
+@keyframes tapcell{0%{filter:brightness(1)}35%{filter:brightness(1.8)}100%{filter:brightness(1)}}
+@media (prefers-reduced-motion:reduce){.tapfx{animation:none}}
 </style>
 
 </head>
@@ -884,7 +889,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 54,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 55,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1247,7 +1252,29 @@ function musicStop(){
   setTimeout(()=>{ if (!MUSIC.on && MUSIC.el) MUSIC.el.pause(); }, 700);
 }
 document.addEventListener('visibilitychange', ()=>{ if (!MUSIC.el) return; if (document.hidden) MUSIC.el.pause(); else if (MUSIC.on){ musicSync(); MUSIC.el.play().catch(()=>{ MUSIC.wait=true; }); } });
-const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e){} };
+// Retour tactile. Android : navigator.vibrate. iPhone : Safari n'a pas de vibrate, mais basculer un interrupteur système
+// (<input type=checkbox switch>, iOS 18+) déclenche le petit « tic » de l'iPhone. On s'en sert, toujours à la suite d'un toucher.
+const IOS_HAPTIC = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+let hapticEl=null;
+function hapticTick(){
+  if (P && P.haptic===false) return;
+  try {
+    if (navigator.vibrate){ navigator.vibrate(8); return; }
+    if (!IOS_HAPTIC) return;
+    if (!hapticEl){ hapticEl=document.createElement('label'); hapticEl.setAttribute('aria-hidden','true'); hapticEl.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+      hapticEl.innerHTML='<input type="checkbox" switch tabindex="-1">'; document.body.appendChild(hapticEl); }
+    hapticEl.click();
+  } catch(e){}
+}
+const vibrate = p => { if (P && P.haptic===false) return; try { if (navigator.vibrate) navigator.vibrate(p); else if (IOS_HAPTIC){ const n=Array.isArray(p)?Math.ceil(p.length/2):1; for (let i=0;i<Math.min(n,3);i++) setTimeout(hapticTick, i*110); } } catch(e){} };
+// Chaque toucher sur un élément actif : petit tic tactile + léger son + enfoncement visuel
+document.addEventListener('pointerdown', e=>{
+  const el=e.target.closest && e.target.closest('button,[data-act],[data-a],[data-c],[role=button],.rbub,.mode,label.toggle,select');
+  if (!el || el.disabled || el.closest('[aria-hidden="true"]')) return;
+  hapticTick();
+  if (P.sound && !el.closest('#board,#pt4bd')) tone(640,.025,'triangle',.045);
+  el.classList.remove('tapfx'); void el.offsetWidth; el.classList.add('tapfx');
+}, true);
 document.addEventListener('pointerdown', () => ac(), {once:true});
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchmove', e => { if (e.touches && e.touches.length>1) e.preventDefault(); }, {passive:false});
@@ -2015,6 +2042,7 @@ function sheetHTML(){
     <button class="secondary" type="button" data-act="rules">${T("Règles du jeu")}</button>
     <label class="toggle"><span>${T("Sons")}</span><input type="checkbox" id="o-sound" ${P.sound?'checked':''}></label>
     <label class="toggle"><span>${T("Musique")}</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
+    <label class="toggle"><span>${T("Vibrations")}</span><input type="checkbox" id="o-haptic" ${P.haptic!==false?'checked':''}></label>
     ${M&&M.done&&!online()?`<button class="secondary" type="button" data-act="leave-game">${T("Retour au menu")}</button>`:s.confirm?`<button class="danger" type="button" data-act="leave-game">${online()?(T("Quitter la partie")):(T("Confirmer l'abandon"))}${vsAI&&M&&!M.train?(" "+T("(compte comme une défaite)")):''}</button>`:`<button class="danger" type="button" data-act="ask-leave">${online()?(T("Quitter")):(T("Abandonner"))}</button>`}`;
   if (s.type==='chat'){
     const tab=s.tab||'pique', ids = tab==='pique' ? myPiques() : [...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)];
@@ -2243,6 +2271,7 @@ document.addEventListener('change', e=>{
   if (t.id==='o-block'){ P.blockTaunts=t.checked && P.premium; saveP(); netSend({t:'nb', v:myBlock()}); render(); }
   if (t.id==='o-sound'){ P.sound=t.checked; saveP(); if (!P.sound) musicStop(); else if (view==='game' && M) musicStart(); }
   if (t.id==='o-lang'){ P.lang=t.value; saveP(); location.reload(); return; }
+  if (t.id==='o-haptic'){ P.haptic=t.checked; saveP(); if (P.haptic) hapticTick(); }
   if (t.id==='o-music'){ P.music=t.checked; saveP(); if (P.music && view==='game' && M) musicStart(); else musicStop(); }
   if (t.id==='o-chat'){ P.chat=t.checked; saveP(); }
 });
@@ -3187,6 +3216,7 @@ const gameRow = g => `<div class="prow"><span class="rk" style="color:${g.w?'var
 function settingsBody(){
   return `<label class="toggle"><span>${T("Sons")}</span><input type="checkbox" id="o-sound" ${P.sound?'checked':''}></label>
   <label class="toggle"><span>${T("Langue")}</span><select id="o-lang" class="langsel"><option value="fr" ${LANG==='fr'?'selected':''}>Français</option><option value="en" ${LANG==='en'?'selected':''}>English</option></select></label>
+  <label class="toggle"><span>${T("Vibrations")}</span><input type="checkbox" id="o-haptic" ${P.haptic!==false?'checked':''}></label>
   <label class="toggle"><span>${T("Musique pendant les parties")}</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
   ${CONFIG.themeChoice?`<label class="toggle"><span>${T("Thème calme")}<small class="note">${T("Moins lumineux, plus reposant pour les yeux.")}</small></span><input type="checkbox" id="o-calm" ${P.calm?'checked':''}></label>`:''}
   <label class="toggle"><span>${T("Afficher les messages de l'adversaire")}</span><input type="checkbox" id="o-chat" ${P.chat?'checked':''}></label>

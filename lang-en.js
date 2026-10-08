@@ -1015,3 +1015,4 @@ Object.assign(window.EN_DICT, {"Rejoindre le vocal":"Join voice chat","Micro cou
 "Vocal activé : tes amis t'entendent":"Voice on: your friends can hear you","Micro refusé : autorise le micro dans les réglages du téléphone.":"Microphone blocked: allow it in your phone settings.",
 "Vocal indisponible sur cet appareil.":"Voice chat isn't available on this device.","Réécouter":"Unmute","Couper sa voix":"Mute them",
 "Facultatif : parlez-vous pendant la partie, même chacun chez soi. Rien n'est enregistré.":"Optional: talk during the game, even from home. Nothing is recorded."});
+Object.assign(window.EN_DICT, {"Vibrations":"Vibrations"});
