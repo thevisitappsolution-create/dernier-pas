@@ -1053,6 +1053,11 @@ details.sec2>summary::after{content:"▾";color:#2ef2ff}
 details.sec2[open]>summary::after{content:"▴"}
 details.sec2>summary::-webkit-details-marker{display:none}
 details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.mmrange{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px;border-radius:16px;background:#0006;border:2px solid #2ef2ff55;text-align:center}
+.mmrange>b{font-family:var(--fun);font-weight:400;font-size:1.6rem;color:#2ef2ff}
+.mmrange small{color:#b9b0ff;font-weight:800}
+.mmbar{width:80%;height:8px;border-radius:9px;background:#0008;overflow:hidden}
+.mmbar i{display:block;height:100%;background:linear-gradient(90deg,#2ef2ff,#ff3dd8);transition:width .6s}
 </style>
 
 </head>
@@ -1099,7 +1104,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 60,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 61,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2192,8 +2197,9 @@ function sheetHTML(){
     if (err) return `<h2>${T("Jeu en ligne")}</h2><p>${esc(err)}</p><div class="row"><button class="primary" type="button" data-act="match">${T("Réessayer")}</button><button class="secondary" type="button" data-act="time-sheet">${T("Changer de cadence")}</button></div>`;
     return `<h2>${T("Recherche d'un adversaire…")}</h2><div class="radar" aria-hidden="true"><div class="av">${pawnSVG(P.skin)}</div></div>
       <p>${T("La partie démarre dès qu'un autre joueur cherche en même temps que toi. Garde cet écran ouvert.")}</p>
-      <p class="note" style="text-align:center">${esc((net&&net.stage)||(T("Connexion au service en ligne…")))}</p>
-      ${net&&net.waitLong?`<div class="demo">${T("Personne d'autre ne cherche à cette cadence pour l'instant.")}<button class="primary" type="button" data-act="mm-bot" style="width:100%;margin-top:8px">${T("Jouer contre")} ${BOTS[P.level].name} ${T("(l'ordinateur) en attendant")}</button></div>`:''}
+      <div class="mmrange"><small>${tLabel(P.time)} · ${T("ton niveau")} <b>${mmRating()}</b></small><b>${mmRange(net)[0]} – ${mmRange(net)[1]}</b><div class="mmbar"><i style="width:${(((net&&net.widen)||0)+1)/4*100}%"></i></div><small>${(net&&net.widen)>=3?T("Recherche la plus large atteinte"):T("La recherche s'élargit peu à peu")}</small></div>
+      ${net&&net.stage?`<p class="note" style="text-align:center">${esc(net.stage)}</p>`:''}
+      ${net&&net.waitLong?`<div class="demo">${T("Personne de ton niveau ne cherche à cette cadence pour l'instant.")}<button class="primary" type="button" data-act="mm-bot" style="width:100%;margin-top:8px">${T("Jouer contre")} ${BOTS[P.level].name} ${T("(l'ordinateur) en attendant")}</button></div>`:''}
       <button class="secondary" type="button" data-act="mm-cancel">${T("Annuler la recherche")}</button>
       <p class="note">${T("Seuls les joueurs qui cherchent en même temps que toi se trouvent. Partage le jeu pour qu'il y ait du monde !")}</p>`;
   }
@@ -3129,19 +3135,50 @@ async function fromContacts(){
 }
 
 /* ---------- Recherche d'adversaire en ligne (sans serveur de jeu) ---------- */
-const MM_SLOTS=6;
-const mmSlot = i => `lastep-q-v2-${i}`;   // une seule file pour toutes les cadences : la cadence du premier arrivé s'applique
+/* Recherche d'adversaire « à la chess.com » : même cadence, niveau proche.
+   Les joueurs attendent dans une file par cadence et par tranche de 100 points (steps de championnat).
+   On cherche d'abord dans sa tranche (±50), puis la recherche s'élargit avec le temps : ±150 après 8 s, ±250 après 20 s, ±350 après 35 s.
+   Jamais au-delà : on ne gagne pas de points facilement contre des joueurs bien plus faibles.
+   Pour éviter que deux joueurs se cherchent en même temps, c'est toujours le mieux classé qui va chercher dans les tranches en dessous. */
+const MM_SLOTS=3, MM_W=100, MM_WIDEN=[[8000,1],[20000,2],[35000,3]];
+const mmRating = () => getR('champ',P.time).r;
+const mmBucket = r => Math.floor(r/MM_W);
+const mmSlot = (i, b) => `lastep-q3-${P.time}-${b==null?mmBucket(mmRating()):b}-${i}`;
+const mmRange = me => { const r=mmRating(), w=(me&&me.widen)||0; return [Math.max(0,(mmBucket(r)-w)*MM_W), (mmBucket(r)+w+1)*MM_W-1]; };
+function mmWidenLoop(me){
+  MM_WIDEN.forEach(([ms,step])=>setTimeout(()=>{ if (net!==me || me.opp || me.matched) return; me.widen=step; render(); mmProbe(me, mmBucket(mmRating())-step, 0); }, ms));
+}
+// va voir si quelqu'un attend dans une tranche plus basse ; si oui, on le rejoint et on quitte sa propre file
+function mmProbe(me, b, i){
+  if (net!==me || me.opp || me.matched || b<0 || i>=MM_SLOTS) return;
+  let pr; try { pr=new Peer(); } catch(e){ return; }
+  let done=false; const end=next=>{ if (done) return; done=true; try { if (!me.matched || me.probe!==pr) pr.destroy(); } catch(e){} if (next) mmProbe(me, b, i+1); };
+  const tm=setTimeout(()=>end(true), 9000);
+  pr.on('open', ()=>{
+    if (net!==me || me.opp || me.matched){ clearTimeout(tm); end(false); return; }
+    const c=pr.connect(mmSlot(i,b), {reliable:true});
+    c.on('open', ()=>{
+      clearTimeout(tm);
+      if (net!==me || me.opp || me.matched){ try { c.close(); } catch(e){} end(false); return; }
+      me.matched=true; me.probe=pr; done=true; const host=me.peer; me.peer=pr; me.seat=1;
+      try { host && host.destroy(); } catch(e){}
+      wireConn(c); try { c.send({t:'hello', nm:P.name, sk:P.skin, uid:P.uid, nb:myBlock(), rc:Object.fromEntries(TIMES.map(t=>[t,getR('champ',t).r]))}); } catch(e){}
+      net.lastSeen=Date.now(); clearInterval(net.hb); net.hb=setInterval(()=>netSend({t:'ping'}), 3000);
+    });
+  });
+  pr.on('error', ()=>{ clearTimeout(tm); end(true); });
+}
 function goMatch(i){
   i=i||0;
   if (!peerOK()){ sheet={type:'friend'}; render(); return; }
   leaveOnline(); vsAI=null; PEERS={}; M=null; G=null; view=view==='game'?'play':view;
   if (i>=MM_SLOTS){ sheet={type:'mm', err:(T("Personne n'est disponible à cette cadence pour le moment. Réessaie dans un instant, change de cadence, ou invite un ami."))}; render(); return; }
-  const me=net={code:'', peer:null, conn:null, seat:0, seq:0, opp:false, err:'', mm:true, slot:i};
+  const me=net={code:'', peer:null, conn:null, seat:0, seq:0, opp:false, err:'', mm:true, slot:i, widen:0, t0:Date.now()};
   sheet={type:'mm'}; render();
-  if (i===0) setTimeout(()=>{ if (net===me && !me.opp){ me.waitLong=true; render(); } }, 15000);
+  if (i===0) setTimeout(()=>{ if (net===me && !me.opp){ me.waitLong=true; render(); } }, 45000);
   let peer; try { peer=new Peer(mmSlot(i)); } catch(e){ me.err=(T("Connexion impossible pour le moment.")); render(); return; }
   me.peer=peer;
-  peer.on('open', ()=>{ if (net===me){ me.stage=`${T("En attente d'un joueur (file")} ${i+1})`; render(); } });
+  peer.on('open', ()=>{ if (net===me){ me.stage=''; render(); mmWidenLoop(me); } });
   peer.on('connection', conn=>{
     if (net!==me){ conn.close(); return; }
     if (me.conn && me.conn.open){ conn.on('open',()=>{ conn.send({t:'full'}); setTimeout(()=>conn.close(),300); }); return; }
@@ -3151,7 +3188,7 @@ function goMatch(i){
   peer.on('error', err=>{
     if (net!==me) return;
     const t=err && err.type;
-    if (t==='unavailable-id'){ try { peer.destroy(); } catch(e){} me.stage=`${T("Un joueur attend : connexion… (file")} ${i+1})`; render(); mmGuest(i, me); return; }
+    if (t==='unavailable-id'){ try { peer.destroy(); } catch(e){} me.stage=T("Un joueur de ton niveau attend : connexion…"); render(); mmGuest(i, me); return; }
     if (me.matched || me.opp) return;
     me.err=(T("Connexion au service en ligne impossible. Vérifie ta connexion internet.")); render();
   });
