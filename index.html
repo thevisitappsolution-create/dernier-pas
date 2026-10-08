@@ -1138,6 +1138,52 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .mmno,.mmyes{flex:1;padding:13px;border:0;border-radius:16px;font-family:var(--fun);font-size:1.2rem;cursor:pointer;box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0008}
 .mmno{background:#ffffffdd;color:#4a0f6a}.mmyes{flex:1.6;background:linear-gradient(180deg,#d6ff6b,#6fd92a);color:#0f2a00}
 @media (prefers-reduced-motion:reduce){.mmfly,.cld,.speed b,.mmarena,.mmtrail i{animation:none}}
+
+/* Classement */
+.lbtitle{display:flex;align-items:center;gap:8px}
+.lbtitle .gimg{width:40px;height:40px;object-fit:contain}
+.lbtitle h2{font-family:var(--fun);font-weight:400;font-size:1.7rem!important;color:#fff;text-shadow:0 3px 0 #0a0718}
+.lbtabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lbtabs button{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:16px;border:2px solid #8f7bff44;background:linear-gradient(180deg,#2a2160,#130e34);color:#b9b0ff;font-family:var(--fun);font-size:1.1rem;cursor:pointer;box-shadow:inset 0 -4px 0 #0005,0 3px 0 #0008}
+.lbtabs button .gimg{width:30px;height:30px;object-fit:contain;filter:grayscale(.6)}
+.lbtabs button[aria-pressed="true"]{color:#1a1000;background:linear-gradient(180deg,#ffe14d,#ffb02e);border-color:#fff8}
+.lbtabs button[aria-pressed="true"] .gimg{filter:none}
+.lbinfo2{display:flex;justify-content:center}
+.lbinfo2 b{color:#ffd75e}
+.lbrew{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lbrew div{display:flex;flex-direction:column;align-items:center;padding:4px;border-radius:14px;background:#0005;border:1px solid #ffd75e44}
+.lbrew .gimg{width:44px;height:44px;object-fit:contain}
+.lbrew b{font-family:var(--fun);font-weight:400;color:#ffd75e;font-size:.95rem}
+.lbnote{text-align:center;color:#b9b0ff!important;font-size:.8rem;font-weight:800}
+.podium2{display:grid;grid-template-columns:1fr 1.1fr 1fr;align-items:end;gap:6px;margin-top:6px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;text-align:center}
+.pav2{position:relative;width:58px;height:58px}
+.pod.p1 .pav2{width:74px;height:74px}
+.pav2 svg{width:100%;height:100%;overflow:visible}
+.crown{position:absolute;top:-22px;left:50%;transform:translateX(-50%) rotate(-8deg);font-size:1.4rem}
+.pnm{max-width:100%;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.pod small{font-family:var(--fun);font-size:.9rem;color:#ffd75e}
+.blk{width:100%;display:grid;place-items:center;border-radius:12px 12px 4px 4px;box-shadow:inset 0 -5px 0 #0005;margin-top:3px}
+.blk span{font-family:var(--fun);font-size:1.6rem;color:#fff;text-shadow:0 2px 0 #0008}
+.pod.p1 .blk{height:70px;background:linear-gradient(180deg,#ffe14d,#d68a00)}
+.pod.p2 .blk{height:52px;background:linear-gradient(180deg,#e8f1ff,#8fa3c4)}
+.pod.p3 .blk{height:40px;background:linear-gradient(180deg,#ffb27a,#b8642a)}
+.pod.me .pnm{color:#2ef2ff}
+.pod.bot{opacity:.75}
+.lb2{display:flex;flex-direction:column;gap:6px;padding-bottom:4px}
+.lbr2{display:grid;grid-template-columns:34px 38px 1fr auto;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:14px;background:linear-gradient(180deg,#221a52,#150f36);border:1px solid #8f7bff33}
+.lbr2 .rk2{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#0006;font-family:var(--fun);font-size:1rem;color:#b9b0ff}
+.lbr2 .av{width:36px;height:36px}.lbr2 .av svg{width:100%;height:100%}
+.lbr2 .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;color:#fff}
+.lbr2 b{font-family:var(--fun);font-weight:400;font-size:1.15rem;color:#fff;white-space:nowrap}
+.lbr2 b small{font-size:.7rem;color:#b9b0ff}
+.lbtag{display:inline-block;font-style:normal;font-size:.66rem;font-weight:900;padding:1px 7px;border-radius:8px;background:#2ef2ff;color:#0a0718;vertical-align:2px}
+.lbr2.bot{opacity:.62;background:#140f30;border-style:dashed}
+.lbr2.bot .rk2{background:none;font-size:1.1rem}
+.lbr2.me{background:linear-gradient(90deg,#0e7fa8,#3a2c86);border:2px solid #2ef2ff;box-shadow:0 0 14px #2ef2ff55}
+.lbr2.me .rk2{background:#2ef2ff;color:#0a0718}
+.lbme{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(180deg,#0c0a1c00,#0c0a1c 30%)}
+.lbload{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
 </style>
 
 </head>
@@ -1184,7 +1230,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 65,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 66,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -4056,7 +4102,7 @@ async function lbLoad(mode){
   if (LB.mode!==mode) return;
   const mine={uid:P.uid, me:1, name:lgName(), skin:P.skin, v: mode==='adv' ? (P.lg.xp||0) : arenaElo()};
   let rows=[...real.filter(x=>x.uid!==P.uid), mine, ...rivalRows(mode==='adv'?'adv':'arena')].sort((a,b)=>b.v-a.v || (a.me?-1:b.me?1:0));
-  rows=rows.map((x,i)=>({...x, rk:i+1}));
+  { let n=0; rows=rows.map(x=>({...x, rk: x.bot ? null : ++n})); }
   const meRow=rows.find(x=>x.me);
   if (mode==='adv'){ P.lg.rank=meRow.rk; saveP(); }
   LB.rows=rows; LB.me=meRow; if (sheet && sheet.type==='lb') render();
@@ -4064,14 +4110,23 @@ async function lbLoad(mode){
 function lbSheet(mode){ sheet={type:'lb'}; lbLoad(mode||'adv'); }
 function lbHTML(){
   const m=LB.mode, left=weekEnd()-Date.now(), d=Math.floor(left/DAY_MS), h=Math.floor(left%DAY_MS/3600e3);
-  const tabs=`<div class="seg"><button type="button" data-act="lb" data-v="adv" aria-pressed="${m==='adv'}">🗺️ ${T("Aventure")}</button><button type="button" data-act="lb" data-v="arena" aria-pressed="${m==='arena'}">⚔️ ${T("Arène")}</button></div>`;
-  const head = m==='adv' ? `<p class="sub lbinfo">⏳ ${T("Fin de la ligue dans")} <b>${d} j ${h} h</b><br>🥇 ${CHESTS.or.n} · 🥈🥉 ${CHESTS.argent.n} · ${T("Top 10")} : ${CHESTS.bois.n}</p>` : `<p class="sub lbinfo">${T("Classement par steps, sur les 30 derniers jours.")}</p>`;
-  if (!LB.rows) return `<h2>🏆 ${T("Classement")}</h2>${tabs}${head}<p class="sub" style="text-align:center">${T("Chargement…")}</p>`;
-  const rows=LB.rows, me=LB.me, show=rows.filter(x=>x.rk<=30 || x.me);
-  return `<h2>🏆 ${T("Classement")}</h2>${tabs}${head}
-    <div class="lb">${show.map(x=>`<div class="lbr${x.me?' me':''}${x.rk<=3?' p'+x.rk:''}"><span class="rk">${x.rk<=3?['🥇','🥈','🥉'][x.rk-1]:x.rk}</span><span class="av">${pawnSVG(cleanSkin(x.skin))}</span><span class="nm">${esc(cleanName(x.name))}${x.bot?' <small>🤖</small>':''}${x.me?` <small>(${T("toi")})</small>`:''}</span><b>${x.v}${m==='adv'?' <small>XP</small>':''}</b></div>`).join('')}</div>
+  const tabs=`<div class="lbtabs"><button type="button" data-act="lb" data-v="adv" aria-pressed="${m==='adv'}">${IMG('icone-carte')}${T("Aventure")}</button><button type="button" data-act="lb" data-v="arena" aria-pressed="${m==='arena'}">${IMG('icone-epees')}${T("Arène")}</button></div>`;
+  const head = m==='adv'
+    ? `<div class="lbinfo2"><span class="pill tpill">⏳ ${T("Fin dans")} <b>${d} j ${h} h</b></span></div>
+       <div class="lbrew">${[['coffre-or','1'],['coffre-argent','2–3'],['coffre-bois','4–10']].map(([img,r])=>`<div>${IMG(img)}<b>${r}${r==='1'?(LANG==='en'?'st':'er'):''}</b></div>`).join('')}</div>`
+    : `<p class="lbnote">${T("Steps des 30 derniers jours.")}</p>`;
+  const title=`<div class="lbtitle">${IMG('icone-trophee')}<h2>${T("Classement")}</h2></div>`;
+  if (!LB.rows) return `${title}${tabs}${head}<div class="lbload"><div class="radar small"></div><p class="sub">${T("Chargement…")}</p></div>`;
+  const rows=LB.rows, me=LB.me, unit=m==='adv'?'XP':'';
+  const top=rows.filter(x=>!x.bot).slice(0,3), rest=rows.filter(x=>!top.includes(x) && (x.bot || x.rk<=30 || x.me));
+  const pod=i=>{ const x=top[i]; if (!x) return '<div class="pod"></div>'; return `<div class="pod p${x.rk}${x.me?' me':''}${x.bot?' bot':''}"><div class="pav2">${pawnSVG(cleanSkin(x.skin))}${x.rk===1?'<span class="crown">👑</span>':''}</div><b class="pnm">${esc(cleanName(x.name))}</b><small>${x.v} ${unit}</small><div class="blk"><span>${x.rk}</span></div></div>`; };
+  const meOut = me && me.rk>10;
+  const row=x=>`<div class="lbr2${x.me?' me':''}${x.bot?' bot':''}"><span class="rk2">${x.bot?'🤖':x.rk}</span><span class="av">${pawnSVG(cleanSkin(x.skin))}</span><span class="nm">${esc(cleanName(x.name))}${x.me?` <i class="lbtag">${T("toi")}</i>`:''}</span><b>${x.v}<small>${unit?' '+unit:''}</small></b></div>`;
+  return `${title}${tabs}${head}
+    <div class="podium2">${pod(1)}${pod(0)}${pod(2)}</div>
+    <div class="lb2">${rest.map(row).join('')}${meOut?`<div class="lbme">${row(me)}</div>`:''}</div>
     ${LB.err?`<p class="note" style="text-align:center">${T("Hors ligne : seuls toi et les personnages du jeu sont affichés.")}</p>`:''}
-    <p class="note" style="text-align:center">${m==='adv'?T("XP : 10 par étoile, 5 par puzzle réussi, 5 par victoire contre l'ordi."):''}</p>`;
+    <p class="lbnote">${m==='adv'?'⭐ 10 XP · 🧩 5 XP · ⚔️ 5 XP · ':''}🤖 = ${T("personnage du jeu, à dépasser")}</p>`;
 }
 function lgDueCheck(){
   const due=lgWeek().due; if (!due || REWARD || view==='game') return;

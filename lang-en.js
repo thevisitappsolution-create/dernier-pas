@@ -1021,3 +1021,5 @@ Object.assign(window.EN_DICT, {"ton niveau":"your level","Recherche la plus larg
 Object.assign(window.EN_DICT, {"Recherche d'un adversaire":"Looking for an opponent","Personne de ton niveau pour l'instant":"No one at your level right now","te défie. Tu acceptes ?":"challenges you. Accept?","Non":"No","Oui, au combat !":"Yes, let's fight!","Chercher encore":"Search again","Adversaire trouvé !":"Opponent found!"});
 Object.assign(window.EN_DICT, {"Personne n'ose venir… Moi, je ne fuis jamais le combat.":"Nobody dares to show up… Me, I never run from a fight.","Et toi ?":"Do you?","Oui !":"Yes!","Chercher encore un joueur":"Look for a player again","Jamais ! Au combat !":"Never! Let's fight!","Une autre fois…":"Another time…"});
 Object.assign(window.EN_DICT, {"Fuir":"Run away","Accepter":"Accept"});
+Object.assign(window.EN_DICT, {"Fin dans":"Ends in","Steps des 30 derniers jours. Les personnages 🤖 servent de repères.":"Steps over the last 30 days. Game characters 🤖 are there as benchmarks."});
+Object.assign(window.EN_DICT, {"Steps des 30 derniers jours.":"Steps over the last 30 days.","personnage du jeu, à dépasser":"game character to beat"});
