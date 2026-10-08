@@ -1229,7 +1229,17 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .chgain{display:flex;justify-content:center;gap:14px;align-items:center;font-weight:800;font-size:1.2rem;min-height:10px}.chgain img{width:58px;height:58px;animation:pop .5s}
 .chtiers{display:flex;justify-content:center;gap:14px;margin:10px 0 2px}.chtiers div{display:grid;justify-items:center;opacity:.35;filter:grayscale(1)}.chtiers div.on{opacity:1;filter:none}.chtiers img{width:44px;height:44px}
 .assist{margin:4px 10px 2px;display:grid;gap:4px}
-.assist .gends{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:800}.assist .gends b{opacity:.6;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.assist .ghead{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:800}
+.assist .gnum{font-size:1.15rem;font-weight:900;padding:1px 10px;border-radius:10px;background:#ffffff14;min-width:64px;text-align:center}.assist .gnum.pos{color:#2effa8}.assist .gnum.neg{color:#ff6b8f}.assist .gnum.busy{opacity:.55}
+.gauge2{margin:2px 4px 0}.gtrack{position:relative;height:12px;border-radius:7px;background:#ffffff18;box-shadow:inset 0 0 0 1px #ffffff22}
+.gfill{position:absolute;top:0;bottom:0;border-radius:7px;transition:all .5s cubic-bezier(.2,1.2,.4,1);opacity:.9}
+.gmid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#fff9}
+.gcur{position:absolute;top:-5px;width:6px;height:22px;margin-left:-3px;border-radius:4px;background:#fff;box-shadow:0 0 8px #fff;transition:left .5s cubic-bezier(.2,1.2,.4,1)}
+.gticks{position:relative;height:14px;font-size:.62rem;opacity:.75;font-weight:700}.gticks span{position:absolute;transform:translateX(-50%);top:1px}
+.cmsg{display:flex;align-items:flex-end;gap:8px;margin-top:2px}.cmsg .cav{width:38px;flex:none}
+.cmsg .cbub{flex:1;background:#fff;color:#141028;border-radius:14px 14px 14px 4px;padding:6px 10px;display:grid;font-size:.8rem;line-height:1.25;box-shadow:0 4px 14px #0006}
+.cmsg .cbub b{font-size:.92rem}.cmsg.top .cbub b,.cmsg.good .cbub b,.cmsg.win .cbub b{color:#0a9a62}.cmsg.inacc .cbub b{color:#b07a00}.cmsg.mist .cbub b,.cmsg.trap .cbub b{color:#d26a00}.cmsg.blun .cbub b,.cmsg.lose .cbub b{color:#e0204f}
+.cmsg.pop .cbub{animation:cpop .45s cubic-bezier(.2,1.4,.4,1)}@keyframes cpop{0%{transform:scale(.6) translateY(8px);opacity:0}100%{transform:none;opacity:1}}
 .aimode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 8px}.aimode button{display:grid;gap:2px;padding:10px 8px;border-radius:16px;border:2px solid #ffffff22;background:#ffffff0a;color:inherit;font:inherit;text-align:center}
 .aimode button b{font-size:1rem}.aimode button small{opacity:.75;font-size:.72rem}.aimode button[aria-checked="true"]{border-color:#2ef2ff;background:#2ef2ff1f;box-shadow:0 0 14px #2ef2ff55}.aimnote{margin:0 0 8px}
 .assist .gauge{position:relative;height:14px;border-radius:8px;background:linear-gradient(90deg,#ff3b7a,#ffb13b 40%,#ffe94a 50%,#9dff5a 60%,#2effa8);box-shadow:0 0 10px #0008 inset}
@@ -1286,7 +1296,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 73,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 74,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1532,18 +1542,19 @@ const weekNum = () => Math.floor((Date.now()/864e5+3)/7);
 function cred(){ const m=new Date().toISOString().slice(0,7); let c=P.cred; if (!c || c.m!==m) c=P.cred={m, a:0, xa:(c&&c.xa)||0, xh:(c&&c.xh)||0}; return c; }
 function credW(k){
   P.credw=P.credw||{}; const w=weekNum(); let c=P.credw[k];
-  if (!c){ c=P.credw[k]={n:CRED_START, w}; if (k==='h' && P.cred && P.cred.xh){ c.n+=P.cred.xh; P.cred.xh=0; } }
-  else if (c.w<w){ for (let i=c.w;i<w;i++) if (c.n<CRED_WCAP) c.n++; c.w=w; }
+  if (!c){ c=P.credw[k]={f:CRED_START, b:0, w}; if (k==='h' && P.cred && P.cred.xh){ c.b+=P.cred.xh; P.cred.xh=0; } }
+  if (c.n!=null){ c.f=Math.min(c.n,CRED_WCAP); c.b=Math.max(0,c.n-CRED_WCAP); delete c.n; }
+  if (c.w<w){ c.f=Math.min(CRED_WCAP, c.f+(w-c.w)); c.w=w; }     // +1 gratuit par semaine, jamais plus de 5 gratuits
   return c;
 }
-const credLeft = k => P.premium ? Infinity : k==='a' ? Math.max(0, CRED_FREE.a-cred().a)+(cred().xa||0) : credW(k).n;
+const credLeft = k => P.premium ? Infinity : k==='a' ? Math.max(0, CRED_FREE.a-cred().a)+(cred().xa||0) : credW(k).f+credW(k).b;
 function credUse(k){
   if (P.premium) return true;
   if (k==='a'){ const c=cred(); if (c.a<CRED_FREE.a) c.a++; else if (c.xa>0) c.xa--; else { sheet={type:'nocred', k}; render(); return false; } }
-  else { const c=credW(k); if (c.n>0) c.n--; else { sheet={type:'nocred', k}; render(); return false; } }
+  else { const c=credW(k); if (c.f>0) c.f--; else if (c.b>0) c.b--; else { sheet={type:'nocred', k}; render(); return false; } }
   saveP(); return true;
 }
-function credAdd(k, n){ if (k==='a'){ const c=cred(); c.xa=(c.xa||0)+n; } else credW(k).n+=n; saveP(); }
+function credAdd(k, n){ if (k==='a'){ const c=cred(); c.xa=(c.xa||0)+n; } else credW(k).b+=n; saveP(); }
 const anLeft = () => credLeft('a');
 const credBadge = k => P.premium ? '' : String(credLeft(k));
 const TIERS=[[900,(T("Bronze")),'#c98a5b'],[1150,(T("Argent")),'#c9d1cf'],[1400,(T("Or")),'#ecd59c'],[1650,(T("Platine")),'#8fd1c9'],[1e9,(T("Diamant")),'#9fb6ff']];
@@ -1810,7 +1821,6 @@ function endRound(w){
   if (vsAI) setTimeout(()=>{ botSay(w===1 ? 'win' : 'lose', true); if (w===1 && Math.random()<.6) receiveWizz('haha',1); }, 600);
   if (M.wins[w]>=needW()){
     M.done=true;
-    if (vsAI && !M.train) M.eloDelta=applyElo(w===0?1:0);
     setTimeout(celebrate, 1100); return;
   }
   if (M.rounds.length===1){ M.next=1-M.starter; M.why=''; return; }
@@ -1837,7 +1847,6 @@ function startRound(){
 function leaveGame(){
   if (TR){ trClear(TR); TR=null; }
   RUSH=null; musicStop();
-  if (vsAI && M && !M.done && !M.train && (M.rounds.length || (G && G.moves>0))) applyElo(0);
   $('#party').hidden=true; $('#intro').hidden=true; stopConfetti(); leaveOnline();
   vsAI=null; M=null; G=null; AN=null; premove=null; HIST={}; sheet=null; view='play'; render();
 }
@@ -1889,24 +1898,34 @@ function onCell(i){
   if (m) doMove(m);
 }
 /* ---------- Mode assisté (Premium, contre l'ordinateur) ---------- */
-const AS_V={top:"Excellent !",good:"Bon coup",inacc:"Imprécis",mist:"Erreur",blun:"Gaffe !",ok:"Bien résisté"};
-const asGauge = (v) => Math.abs(v)>=1000 ? (v>0?98:2) : Math.round(50+48*Math.tanh(v/16));
+const AS_V={top:"Meilleur coup !",good:"Bon coup",inacc:"Imprécis",mist:"Erreur",blun:"Gaffe !",ok:"Bien résisté"};
+// Note de la position, vue par le joueur : de -10 (il domine) à +10 (tu domines) ; une victoire ou une défaite forcée est annoncée en coups.
+function asNote(v, plies, after){
+  if (Math.abs(v)>=1000){ const n = v>0 ? Math.max(1, ((plies+1)>>1) - (after?1:0)) : Math.max(1, plies>>1); return {s:v>0?10:-10, m:v>0?n:-n}; }
+  return {s:Math.max(-9.5, Math.min(9.5, Math.round(v/2*2)/2)), m:0};
+}
 const nCoups = n => `${n} ${T(n>1?'coups':'coup')}`;
+const fmtNote = a => a.m ? (a.m>0 ? `${T("Gagne en")} ${a.m}` : `${T("Perd en")} ${-a.m}`) : (a.s>0?'+':a.s<0?'−':'')+String(Math.abs(a.s)).replace('.',',');
+function coachSay(a, title, text, kind){ a.msg={t:title, x:text, k:kind||'', id:(a.msg?a.msg.id:0)+1}; }
 async function assistTurn(){
-  const g=G, ver=G.ver; G.as=G.as||{g:50}; G.as.busy=true; assistPaint();
+  const g=G, ver=G.ver; G.as=G.as||{s:0,m:0}; G.as.busy=true; assistPaint();
   const r=await ask('assist',{...stateOf(), ms:800});
   if (G!==g || G.ver!==ver || !M || !M.assist || !r) { if (G===g && G.as) { G.as.busy=false; assistPaint(); } return; }
-  const a=G.as; a.busy=false; a.g=asGauge(r.best); a.at=ver;
-  if (r.best>=1000){ const n=(r.bp+1)>>1; a.tip = n<=3 ? `🌟 ${T("Bravo ! Si tu joues bien, tu peux gagner en")} ${nCoups(n)}. ${T("À toi de trouver comment.")}` : `🌟 ${T("Tu as une victoire forcée. Cherche-la !")}`; a.tk='win'; }
-  else if (r.best<=-1000){ const n=Math.max(1,r.bp>>1); a.tip = `😰 ${T("Position difficile : l'adversaire peut te bloquer en")} ${nCoups(n)}. ${T("Tiens le plus longtemps possible, ou annule ton dernier coup.")}`; a.tk='lose'; }
-  else if (r.traps && r.tp){ const n=Math.max(1,r.tp>>1); a.tip = n<=3 ? `⚠️ ${T("Attention ici : un mauvais coup et tu perds en")} ${nCoups(n)}.` : `⚠️ ${T("Attention : certains coups ici sont des pièges.")}`; a.tk='trap'; }
-  else { a.tip = a.g>=62 ? `👍 ${T("Tu as l'avantage. Garde plus de sorties que lui.")}` : a.g<=38 ? `🤔 ${T("Il a plus de liberté que toi. Cherche à lui couper des sorties.")}` : `⚖️ ${T("Position équilibrée. Réfléchis bien.")}`; a.tk=''; }
+  const a=G.as; a.busy=false; Object.assign(a, asNote(r.best, r.bp, false)); a.at=ver;
+  // l'alerte du moment (gratuite en Premium, sinon avec un conseil)
+  let tip=null;
+  if (r.best>=1000){ const n=(r.bp+1)>>1; tip = n<=3 ? [T("Tu peux gagner !"), `${T("Si tu joues bien, tu gagnes en")} ${nCoups(n)}. ${T("À toi de trouver comment.")}`, 'win'] : [T("Victoire forcée"), T("Tu as une victoire forcée. Cherche-la !"), 'win']; }
+  else if (r.best<=-1000){ const n=Math.max(1,r.bp>>1); tip = [T("Attention !"), `${T("L'adversaire peut te bloquer en")} ${nCoups(n)}. ${T("Tiens le plus longtemps possible, ou annule ton dernier coup.")}`, 'lose']; }
+  else if (r.traps && r.tp){ const n=Math.max(1,r.tp>>1); tip = [T("Attention ici"), n<=3 ? `${T("Un mauvais coup et tu perds en")} ${nCoups(n)}.` : T("Certains coups ici sont des pièges."), 'trap']; }
+  a.tip = tip || [T("À toi"), a.s>=3 ? T("Tu as l'avantage. Garde plus de sorties que lui.") : a.s<=-3 ? T("Il a plus de liberté que toi. Cherche à lui couper des sorties.") : T("Position équilibrée. Réfléchis bien."), ''];
+  if (P.premium && tip) coachSay(a, ...tip);
+  else if (!P.premium && a.rev===ver) coachSay(a, ...a.tip);
   assistPaint();
 }
 async function assistRate(){
   if (!P.premium) return;
   const h=HIST[G.round]||[], e=h[h.length-1]; if (!e || e.turn!==0) return;
-  const g=G, ver=G.ver; G.as=G.as||{g:50}; G.as.busy=true; G.as.vd=null; G.as.vt=T("L'assistant analyse ton coup…"); G.as.tip=''; assistPaint();
+  const g=G; G.as=G.as||{s:0,m:0}; G.as.busy=true; assistPaint();
   const r=await ask('assist',{cells:e.cells, pawns:e.pawns, jumps:e.jumps, turn:0, move:e.move, ms:900});
   if (G!==g || !M || !M.assist || !r || r.played===null || (HIST[G.round]||[]).indexOf(e)<0) { if (G===g && G.as){ G.as.busy=false; assistPaint(); } return; }
   const a=G.as, b=r.best, v=r.played; let k;
@@ -1914,28 +1933,33 @@ async function assistRate(){
   else if (b<=-1000) k = r.pp>=r.bp ? 'ok' : 'inacc';
   else if (v<=-1000) k='blun';
   else { const d=b-v; k = d<=0 ? 'top' : d<=3 ? 'good' : d<=8 ? 'inacc' : 'mist'; }
-  a.vd=k; a.g=asGauge(v); a.busy=false;
-  if (k==='blun' && b>=1000) a.vt=T("Tu avais une victoire forcée. Annule et cherche-la !");
-  else if (v>=1000) a.vt=`${T("Bravo ! Si tu joues bien, tu peux gagner en")} ${nCoups(Math.max(1,((r.pp+1)>>1)-1))}.`;
-  else if (v<=-1000) a.vt=`${T("Aïe : l'adversaire peut maintenant te bloquer en")} ${nCoups(Math.max(1,r.pp>>1))}. ${T("Annule pour corriger.")}`;
-  else a.vt = k==='top' ? T("Le meilleur coup possible.") : k==='good' ? T("Bon choix, proche du meilleur.") : k==='inacc' ? T("Il y avait mieux. Tu peux annuler et réessayer.") : T("Ce coup lui donne l'avantage. Annule et cherche mieux.");
+  Object.assign(a, asNote(v, r.pp, true)); a.busy=false;
+  let x;
+  if (k==='blun' && b>=1000) x=T("Tu avais une victoire forcée. Annule et cherche-la !");
+  else if (v>=1000) x=`${T("Continue comme ça : tu peux gagner en")} ${nCoups(a.m)}.`;
+  else if (v<=-1000) x=`${T("L'adversaire peut maintenant te bloquer en")} ${nCoups(-a.m)}. ${T("Annule pour corriger.")}`;
+  else x = k==='top' ? T("C'était le meilleur coup possible.") : k==='good' ? T("Bon choix, proche du meilleur.") : k==='inacc' ? T("Il y avait mieux. Tu peux annuler et réessayer.") : T("Ce coup lui donne l'avantage. Annule et cherche mieux.");
+  coachSay(a, T(AS_V[k]), x, k);
   if (k==='top'||k==='good') vibrate(6); else if (k==='blun'||k==='mist') vibrate([20,40,20]);
   assistPaint();
 }
 function assistHint(){
   if (!G || !G.as || G.over || G.turn!==0 || G.as.rev===G.ver) return;
   if (!credUse('h')) return;
-  G.as.rev=G.ver; vibrate(6); assistPaint(); renderActions();
+  const a=G.as; a.rev=G.ver; vibrate(6);
+  if (a.at===G.ver && a.tip) coachSay(a, ...a.tip); else { coachSay(a, T("Je regarde…"), '', ''); assistTurn(); }
+  assistPaint(); renderActions();
 }
 function assistPaint(){
   const el=document.getElementById('assist'); if (!el) return;
   const on=!!(view==='game' && G && M && M.assist && !TR); el.hidden=!on; if (!on) return;
-  const a=G.as||{g:50};
- const html=`<div class="gends"><span style="color:${S[1].hex}">${esc(S[1].name)}</span><b>${T("Jauge")}</b><span style="color:${S[0].hex}">${T("Toi")}</span></div><div class="gauge${a.busy?' busy':''}" style="--g:${a.g}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${a.g}" aria-label="${T("Jauge de l'assistant")}"><i></i></div>
-    ${a.vt?`<div class="al">${a.vd?`<span class="vd ${a.vd}">${T(AS_V[a.vd])}</span>`:''}<span>${esc(a.vt)}</span></div>`:''}
-    ${P.premium ? `<div class="al">${esc(a.tip||(a.busy?'…':T("Joue ton coup : l'assistant te dira s'il est bon.")))}</div>`
-      : a.rev===G.ver && a.at===G.ver && a.tip ? `<div class="al">${esc(a.tip)}</div>` : `<div class="al note">${a.rev===G.ver?'…':`${T("La jauge montre qui mène. Besoin d'aide ? Touche « Conseil ».")}`}</div>`}`;
-  if (el._h!==html){ el._h=html; el.innerHTML=html; }
+  const a=G.as||{s:0,m:0}, pct=50+a.s*5;
+  const ticks=[-10,-5,0,5,10].map(t=>`<span style="left:${50+t*5}%">${t>0?'+'+t:t<0?'−'+(-t):'0'}</span>`).join('');
+  const msg=a.msg || (P.premium ? {t:T("Ton coach"), x:T("Joue : je te dis après chaque coup s'il est bon."), k:'', id:0} : {t:T("Ton coach"), x:T("La jauge montre qui mène. Besoin d'aide ? Touche « Conseil »."), k:'', id:0});
+  const html=`<div class="ghead"><span style="color:${S[1].hex}">◀ ${esc(S[1].name)}</span><b class="gnum${a.s>0?' pos':a.s<0?' neg':''}${a.busy?' busy':''}">${fmtNote(a)}</b><span style="color:${S[0].hex}">${T("Toi")} ▶</span></div>
+    <div class="gauge2" role="meter" aria-valuemin="-10" aria-valuemax="10" aria-valuenow="${a.s}" aria-label="${T("Jauge du coach")} : ${fmtNote(a)}"><div class="gtrack"><i class="gfill" style="${a.s>=0?`left:50%;width:${pct-50}%`:`left:${pct}%;width:${50-pct}%`};background:${a.s>=0?S[0].hex:S[1].hex}"></i><i class="gmid"></i><i class="gcur" style="left:${pct}%"></i></div><div class="gticks">${ticks}</div></div>
+    <div class="cmsg ${msg.k}" data-id="${msg.id}"><div class="cav">${coachSVG()}</div><div class="cbub"><b>${esc(msg.t)}</b>${msg.x?`<span>${esc(msg.x)}</span>`:''}</div></div>`;
+  if (el._h!==html){ const prev=el._id; el._h=html; el.innerHTML=html; if (prev!==msg.id && msg.id){ const c=el.querySelector('.cmsg'); c.classList.add('pop'); } el._id=msg.id; }
 }
 function undo(){
   if (!G || !M || !M.train) return;
@@ -1945,7 +1969,7 @@ function undo(){
   const e=h[idx]; h.length=idx;
   if (G.over){ M.wins[G.winner]--; M.rounds.pop(); M.done=false; G.over=false; G.winner=null; $('#party').hidden=true; stopConfetti(); }
   Object.assign(G,{cells:e.cells.slice(), pawns:e.pawns.map(p=>[...p]), J:e.jumps.slice(), turn:0, moves:idx, pick:null, jumpOn:false, hint:null, last:null, msg:(T("Coup annulé."))});
-  if (G.as){ G.as.vd=null; G.as.vt=''; }
+  if (G.as && P.premium) coachSay(G.as, T("Coup annulé"), T("Cherche mieux, tu as tout ton temps."), '');
   G.ver++; startTurn(); render();
 }
 async function hint(){
@@ -2342,7 +2366,7 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', ()=>
 function renderActions(){
   if (view!=='game' || !G) return;
   if (TR) return renderTrActions();
-  const seat=humanSeat(), playing=!G.over, myTurn=playing&&(seat===null||G.turn===seat), social=vsAI||online();
+  const seat=humanSeat(), playing=!G.over, myTurn=playing&&(seat===null||G.turn===seat), social=online();
   const me=seat===null?G.turn:seat, a=[];
   const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`${T("aria-pressed=\"")}${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
   if (playing){
@@ -2356,7 +2380,8 @@ function renderActions(){
       a.push(btn('toc','fist',(T("Toc toc")),{dis:blk||wzLeft<=0||cd}));
       a.push(btn('haha','laugh',(T("Haha")),{dis:blk||wzLeft<=0||cd}));
     }
-    if (seat!==-1) a.push(btn('resign','flag',online()?(T("Quitter")):(T("Abandon")),{cls:'quit'}));
+    if (M.assist) a.push(btn('leave-train','door',T("Quitter"),{cls:'quit'}));
+    else if (seat!==-1) a.push(btn('resign','flag',online()?(T("Quitter")):(T("Abandon")),{cls:'quit'}));
   } else {
     if (social && seat!==-1) a.push(btn('chat','chat',(T("Chat")),{badge:unread||''}));
     a.push(btn('analyze','chart',`${T("Analyser")}`,{badge:M.anOK?'':credBadge('a')}));
@@ -2416,8 +2441,9 @@ function sheetHTML(){
   if (s.type==='time') return `<h2>${T("Cadence")}</h2><p>${T("Temps par joueur et par manche. Quelle que soit la cadence, chacun commence une manche : il faut 2 manches gagnées.")}</p><div class="timegrid">${TIMES.map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>`;
   if (s.type==='ai'){
     return `<h2>${T("Contre l'ordinateur")}</h2>
-    <div class="aimode" role="radiogroup"><button type="button" role="radio" data-act="ai-mode" data-v="0" aria-checked="${!s.assist}"><b>⚔️ ${T("Classée")}</b><small>${T("Compte pour ton classement")}</small></button><button type="button" role="radio" data-act="ai-mode" data-v="1" aria-checked="${!!s.assist}"><b>💡 ${T("Entraînement")}</b><small>${T("Jauge et conseils en direct")}</small></button></div>
-    ${s.assist?`<p class="note aimnote">${P.premium?T("Pendant la partie : la jauge en direct, un avis sur chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité. Hors classement."):`${T("Pendant la partie : la jauge en direct et le retour en arrière illimité. Conseils :")} <b>${credLeft('h')}</b> (${T("+1 chaque semaine")}). ${T("Hors classement.")}`}</p>`:''}
+    <div class="aimode" role="radiogroup"><button type="button" role="radio" data-act="ai-mode" data-v="0" aria-checked="${!s.assist}"><b>🎮 ${T("Partie libre")}</b><small>${T("Sans aide")}</small></button><button type="button" role="radio" data-act="ai-mode" data-v="1" aria-checked="${!!s.assist}"><b>💡 ${T("Avec le coach")}</b><small>${T("Jauge et conseils en direct")}</small></button></div>
+    <p class="note aimnote">${T("Contre l'ordinateur, on s'entraîne : ça ne compte pas pour le classement. Pour gagner des points de classement, il faut battre de vrais joueurs.")}</p>
+    ${s.assist?`<p class="note aimnote">${P.premium?T("Pendant la partie : la jauge chiffrée, ton coach qui commente chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité."):`${T("Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Conseils du coach :")} <b>${credLeft('h')}</b> (${T("+1 chaque semaine")}).`}</p>`:''}
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
     ${s.assist?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
     <button class="primary" type="button" data-act="go-ai">${s.assist?`💡 ${T("Lancer l'entraînement")}`:`${T("Jouer ·")} ${tLabel(P.time)}`}</button>`;
@@ -2451,12 +2477,12 @@ function sheetHTML(){
   if (s.type==='settings') return `<h2>${T("Réglages")}</h2>${settingsBody()}`;
   if (s.type==='nocred'){ const k=s.k, pk=CRED_PACK[k], ad=P.adCoins&&P.adCoins.d===dayKey()?P.adCoins.n:0, nm=k==='a'?T("analyses"):T("indices");
     return `<div class="modicon">${k==='a'?'📊':'💡'}</div><h2>${k==='a'?T("Plus d'analyse ce mois-ci"):T("Plus d'indice pour l'instant")}</h2>
-    <p>${k==='a'?`${T("Chaque mois, tu as")} ${CRED_FREE.a} ${T("analyses gratuites. Elles reviennent le 1er du mois.")}`:`${k==='pa'?T("Aventure"):T("Cours")} : ${T("tu gagnes 1 indice gratuit chaque semaine.")}`}</p>
+    <p>${k==='a'?`${T("Chaque mois, tu as")} ${CRED_FREE.a} ${T("analyses gratuites. Elles reviennent le 1er du mois.")}`:`${k==='pa'?T("Aventure"):T("Cours")} : ${T("tu gagnes 1 indice gratuit chaque semaine (5 gratuits au maximum). Ceux que tu achètes restent jusqu'à ce que tu les utilises.")}`}</p>
     <div class="credrow"><span>${ic('coin')} <b>${P.coins||0}</b></span></div>
     <button class="primary" type="button" data-act="buy-pack" data-v="${k}" ${(P.coins||0)<pk.price?'disabled':''}>${T("Acheter")} ${pk.n} ${nm} · ${pk.price} ${ic('coin','ic sm')}</button>
     ${ad<5?adBtn('coins-ad', `${T("Regarder une pub")} : +25 ${T("pièces")}`):''}
     <p class="note">💎 ${T("Premium : indices, analyses et cours illimités, sans publicité.")}</p>`; }
-  if (s.type==='resign') return `<h2>${online()?(T("Quitter la partie ?")):(T("Abandonner la partie ?"))}</h2><p>${vsAI&&M&&!M.train?(T("La partie comptera comme une défaite pour ton classement.")):online()?(T("Ton adversaire gagne la partie et tu perds des points de championnat.")):(T("Tu retournes au menu."))}</p>
+  if (s.type==='resign') return `<h2>${online()?(T("Quitter la partie ?")):(T("Abandonner la partie ?"))}</h2><p>${false?'':online()?(T("Ton adversaire gagne la partie et tu perds des points de championnat.")):(T("Tu retournes au menu."))}</p>
     <div class="row"><button class="danger" type="button" data-act="resign-ok">${online()?(T("Quitter")):(T("Abandonner"))}</button><button class="secondary" type="button" data-act="sheet-close">${T("Continuer")}</button></div>`;
   if (s.type==='admin') return `<h2>${T("Accès administrateur")}</h2><p>${P.premium?(T("Premium est actif sur cet appareil.")):(T("Entre le code pour débloquer Premium sur cet appareil."))}</p>
     <form class="joinrow" id="adminform" autocomplete="off"><input class="code-input" id="admcode" inputmode="numeric" maxlength="8" placeholder="${T("CODE")}" aria-label="${T("Code administrateur")}"><button type="submit" class="primary">${T("Valider")}</button></form>
@@ -2634,7 +2660,7 @@ function render(){
 
 /* ---------- Événements ---------- */
 function startAI(level, assist){ leaveOnline(); vsAI=level; training=!!assist; const tp=P.trap; if (assist) P.trap=false; startMatch(); P.trap=tp;
-  if (assist && M){ M.assist=true; G.as={g:50}; render(); if (!G.over && G.turn===0) assistTurn(); } }
+  if (assist && M){ M.assist=true; G.as={s:0,m:0}; render(); if (!G.over && G.turn===0) assistTurn(); } }
 document.addEventListener('click', e=>{
   const a=e.target.closest('[data-act]'); if (!a) return;
   const k=a.dataset.act, v=a.dataset.v;
@@ -2760,6 +2786,7 @@ document.addEventListener('click', e=>{
     case 'undo': undo(); break;
     case 'buy-pack': { const pk=CRED_PACK[v]; if ((P.coins||0)>=pk.price){ P.coins-=pk.price; credAdd(v, pk.n); sfx.win(); toast(`+${pk.n} ${v==='a'?T("analyses"):T("indices")}`); sheet=null; render(); } break; }
     case 'as-hint': assistHint(); break;
+    case 'leave-train': { const pl=matchPlayed(); leaveGame(); if (pl) adInter(); break; }
     case 'ai-assist': sheet={type:'ai', assist:true}; render(); break;
     case 'ai-mode': if (sheet && sheet.type==='ai'){ sheet.assist=v==='1'; P.aiTrain=sheet.assist; saveP(); render(); } break;
     case 'an-games': sheet={type:'angames'}; render(); break;
@@ -2891,7 +2918,7 @@ function recordGame(){
   if (M.daily && w){ const d=P.daily||{}, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1); if (d.last!==today){ P.daily={last:today, streak: d.last===dayKey(y) ? (d.streak||0)+1 : 1}; } }
   addCoins(w?10:3, true);
   if (w && src==='ia') xpAdd(5); if (w && src==='online') xpAdd(10);
-  if (w && !M.forfeit){ if (M.rounds.length===3) badge('belle'); if (M.wins[1-me]===0) badge('carton'); if (vsAI==='expert' && !M.train) badge('sphinx'); if (TAUNT_ID!==M.id) badge('zen'); }
+  if (w && !M.forfeit){ if (M.rounds.length===3) badge('belle'); if (M.wins[1-me]===0) badge('carton'); if (vsAI==='expert' && !M.assist) badge('sphinx'); if (TAUNT_ID!==M.id) badge('zen'); }
   if (w && online()) badge('enligne');
   if (P.daily && P.daily.streak>=3) badge('enfeu');
   saveP();
@@ -4329,7 +4356,8 @@ async function lgSync(){
   try { await db.rpc('lastep_upsert', {p_uid:P.uid, p_key:P.lgKey, p_name:lgName(), p_skin:cleanSkin(P.skin), p_week:P.lg.wk, p_wxp:Math.min(100000,P.lg.xp||0), p_stars:parcTotal(), p_elo:arenaElo()}); } catch(e){}
 }
 const lgName = () => P.name && P.name!==T('Toi') && P.name!=='Toi' ? P.name : `${T("Joueur")} ${P.uid.slice(0,4).toUpperCase()}`;
-const arenaElo = () => Math.max(...TIMES.map(t=>{ const c=getR('champ',t); return c.g ? c.r : 0; }), P.elo.r);
+// Le classement de l'Arène ne vient que des parties contre de vrais joueurs (l'ordinateur sert à s'entraîner)
+const arenaElo = () => { const v=Math.max(0, ...TIMES.map(t=>{ const c=getR('champ',t); return c.g ? c.r : 0; })); return v||1000; };
 // Les personnages du jeu courent aussi la ligue : ils sont clairement marqués 🤖, pour qu'on ait toujours quelqu'un à dépasser.
 const RIVALS=[['easy',70],['lumi',120],['braise',180],['medium',260],['prof',340],['hard',450],['expert',600]];
 const rivalRows = mode => RIVALS.map(([k,base],i)=>({bot:1, name:BOTS[k].name, skin:BOTS[k].skin, v: mode==='arena' ? LEVELS[k].elo : Math.round(base*weekFrac()*(0.85+((hash32(weekKey()+k)%30)/100)))}));

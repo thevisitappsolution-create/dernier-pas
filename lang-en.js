@@ -1078,3 +1078,18 @@ Object.assign(window.EN_DICT, {
 "+1 chaque semaine":"+1 every week","Conseil":"Tip","La jauge montre qui mène. Besoin d'aide ? Touche « Conseil ».":"The gauge shows who's ahead. Need help? Tap “Tip”.","Jauge":"Gauge","Toi":"You"
 });
 Object.assign(window.EN_DICT, {"Lancer l'entraînement":"Start training","· entraînement":"· training"});
+// v74
+Object.assign(window.EN_DICT, {
+"Partie libre":"Free game","Sans aide":"No help","Avec le coach":"With the coach",
+"Contre l'ordinateur, on s'entraîne : ça ne compte pas pour le classement. Pour gagner des points de classement, il faut battre de vrais joueurs.":"Games against the computer are for practice: they don't count for your ranking. To earn ranking points, beat real players.",
+"Pendant la partie : la jauge chiffrée, ton coach qui commente chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité.":"During the game: a numbered gauge, your coach commenting on every move, “you can win / lose in N moves” alerts and unlimited undo.",
+"Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Conseils du coach :":"During the game: a numbered gauge and unlimited undo. Coach tips:",
+"Meilleur coup !":"Best move!","Gagne en":"Wins in","Perd en":"Loses in","Tu peux gagner !":"You can win!","Si tu joues bien, tu gagnes en":"Play it right and you win in",
+"Victoire forcée":"Forced win","Attention !":"Careful!","L'adversaire peut te bloquer en":"Your opponent can block you in","Attention ici":"Careful here",
+"Un mauvais coup et tu perds en":"One wrong move and you lose in","Certains coups ici sont des pièges.":"Some moves here are traps.","À toi":"Your move",
+"Continue comme ça : tu peux gagner en":"Keep it up: you can win in","L'adversaire peut maintenant te bloquer en":"Your opponent can now block you in",
+"C'était le meilleur coup possible.":"That was the best possible move.","Je regarde…":"Let me look…","Ton coach":"Your coach",
+"Joue : je te dis après chaque coup s'il est bon.":"Play: after each move I'll tell you if it was good.","Jauge du coach":"Coach gauge",
+"Coup annulé":"Move undone","Cherche mieux, tu as tout ton temps.":"Look for better, take your time.","Quitter":"Quit",
+"tu gagnes 1 indice gratuit chaque semaine (5 gratuits au maximum). Ceux que tu achètes restent jusqu'à ce que tu les utilises.":"you get 1 free hint every week (5 free at most). The ones you buy stay until you use them."
+});
