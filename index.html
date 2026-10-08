@@ -817,7 +817,9 @@ body{font-weight:700}
 .lbr b{font-family:var(--fun);font-weight:400;font-size:1.1rem}
 .lbr small{opacity:.7;font-size:.72rem}
 /* coffres, roue, pub */
-.chestbtn{border:0;background:none;padding:0;cursor:pointer;width:170px}
+.chestbtn{border:0;background:none;padding:0;cursor:pointer;width:190px}
+.chestbtn img{width:190px;height:190px;object-fit:contain;filter:drop-shadow(0 8px 18px #000a)}
+.chestbtn.open img{animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
 .chest{width:100%;overflow:visible;filter:drop-shadow(0 8px 0 #0008) drop-shadow(0 0 18px var(--pc))}
 .chestbtn.shake{animation:cshake 1.1s ease-in-out infinite}
 @keyframes cshake{0%,60%,100%{transform:rotate(0) scale(1)}65%{transform:rotate(-7deg) scale(1.05)}75%{transform:rotate(7deg) scale(1.05)}85%{transform:rotate(-4deg)}}
@@ -983,6 +985,9 @@ html:not(.lock) body{background:transparent!important}
 .lv.cur{background:radial-gradient(circle at 35% 28%,#9ffcff,#2ef2ff 40%,#8f7bff);border-color:#fff;box-shadow:inset 0 -7px 0 #0004,0 5px 0 #0009,0 0 0 8px #2ef2ff33,0 0 30px #2ef2ff;animation:bob 1.6s ease-in-out infinite}
 .lv.cur b{color:#0a0718;text-shadow:0 1px 0 #fff8}
 .lv.lk{background:radial-gradient(circle at 35% 28%,#3a3060,#1a1438 70%);border-color:#ffffff22;cursor:default;box-shadow:inset 0 -6px 0 #0006,0 4px 0 #0009}
+.lv .lvgem{font-size:1.9rem;filter:drop-shadow(0 2px 0 #0008)}.lv.prem{cursor:pointer}
+.lv .lvok{position:absolute;top:calc(100% - 10px);left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;background:#2effa8;color:#0b0620;font-weight:900;display:grid;place-items:center;box-shadow:0 2px 0 #0008}
+.chap.soon{opacity:.6}
 .lv .lkimg{width:38px;height:38px;object-fit:contain;opacity:.85}
 .lvst{position:absolute;top:calc(100% - 6px);left:50%;transform:translateX(-50%);display:flex;gap:1px;font-size:1.05rem;line-height:1}
 .lvst i{font-style:normal;color:#2a2350;text-shadow:0 2px 0 #0008}
@@ -1228,8 +1233,11 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .chpts{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:4px 0}.chpts b{font-size:3.2rem;color:#ffd84a;text-shadow:0 0 18px #ffd84a88}
 .chgain{display:flex;justify-content:center;gap:14px;align-items:center;font-weight:800;font-size:1.2rem;min-height:10px}.chgain img{width:58px;height:58px;animation:pop .5s}
 .chtiers{display:flex;justify-content:center;gap:14px;margin:10px 0 2px}.chtiers div{display:grid;justify-items:center;opacity:.35;filter:grayscale(1)}.chtiers div.on{opacity:1;filter:none}.chtiers img{width:44px;height:44px}
-.assist{margin:4px 10px 2px;display:grid;gap:4px}
-.assist .ghead{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:800}
+.assist{display:grid;gap:4px}
+.assist{position:relative;margin:10px 8px 14px;padding:16px 12px 10px;border-radius:20px;border:2px solid #2ef2ff88;background:linear-gradient(180deg,#2ef2ff1c,#8f7bff14);box-shadow:0 0 0 4px #2ef2ff14,0 0 24px #2ef2ff33,inset 0 0 18px #2ef2ff12}
+.assist .ctag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);padding:2px 12px;border-radius:10px;background:#2ef2ff;color:#0b0620;font-size:.7rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 0 12px #2ef2ff}
+.assist .ghead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;font-weight:800;margin:0 4px}.assist .ghead .r{text-align:right}
+#app.trn .clock{visibility:hidden}
 .assist .gnum{font-size:1.15rem;font-weight:900;padding:1px 10px;border-radius:10px;background:#ffffff14;min-width:64px;text-align:center}.assist .gnum.pos{color:#2effa8}.assist .gnum.neg{color:#ff6b8f}.assist .gnum.busy{opacity:.55}
 .gauge2{margin:2px 4px 0}.gtrack{position:relative;height:12px;border-radius:7px;background:#ffffff18;box-shadow:inset 0 0 0 1px #ffffff22}
 .gfill{position:absolute;top:0;bottom:0;border-radius:7px;transition:all .5s cubic-bezier(.2,1.2,.4,1);opacity:.9}
@@ -1296,7 +1304,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 74,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 75,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1906,6 +1914,7 @@ function asNote(v, plies, after){
 }
 const nCoups = n => `${n} ${T(n>1?'coups':'coup')}`;
 const fmtNote = a => a.m ? (a.m>0 ? `${T("Gagne en")} ${a.m}` : `${T("Perd en")} ${-a.m}`) : (a.s>0?'+':a.s<0?'−':'')+String(Math.abs(a.s)).replace('.',',');
+const coachOn = () => !!(P.premium || (M && M.coachOn));
 function coachSay(a, title, text, kind){ a.msg={t:title, x:text, k:kind||'', id:(a.msg?a.msg.id:0)+1}; }
 async function assistTurn(){
   const g=G, ver=G.ver; G.as=G.as||{s:0,m:0}; G.as.busy=true; assistPaint();
@@ -1918,12 +1927,11 @@ async function assistTurn(){
   else if (r.best<=-1000){ const n=Math.max(1,r.bp>>1); tip = [T("Attention !"), `${T("L'adversaire peut te bloquer en")} ${nCoups(n)}. ${T("Tiens le plus longtemps possible, ou annule ton dernier coup.")}`, 'lose']; }
   else if (r.traps && r.tp){ const n=Math.max(1,r.tp>>1); tip = [T("Attention ici"), n<=3 ? `${T("Un mauvais coup et tu perds en")} ${nCoups(n)}.` : T("Certains coups ici sont des pièges."), 'trap']; }
   a.tip = tip || [T("À toi"), a.s>=3 ? T("Tu as l'avantage. Garde plus de sorties que lui.") : a.s<=-3 ? T("Il a plus de liberté que toi. Cherche à lui couper des sorties.") : T("Position équilibrée. Réfléchis bien."), ''];
-  if (P.premium && tip) coachSay(a, ...tip);
-  else if (!P.premium && a.rev===ver) coachSay(a, ...a.tip);
+  if (coachOn() && tip) coachSay(a, ...tip);
   assistPaint();
 }
 async function assistRate(){
-  if (!P.premium) return;
+  if (!coachOn()) return;
   const h=HIST[G.round]||[], e=h[h.length-1]; if (!e || e.turn!==0) return;
   const g=G; G.as=G.as||{s:0,m:0}; G.as.busy=true; assistPaint();
   const r=await ask('assist',{cells:e.cells, pawns:e.pawns, jumps:e.jumps, turn:0, move:e.move, ms:900});
@@ -1943,20 +1951,21 @@ async function assistRate(){
   if (k==='top'||k==='good') vibrate(6); else if (k==='blun'||k==='mist') vibrate([20,40,20]);
   assistPaint();
 }
+// Gratuit : on active le coach pour toute la partie (jusqu'à 3 manches) en utilisant 1 indice des Cours
 function assistHint(){
-  if (!G || !G.as || G.over || G.turn!==0 || G.as.rev===G.ver) return;
+  if (!G || !M || !M.assist || coachOn()) return;
   if (!credUse('h')) return;
-  const a=G.as; a.rev=G.ver; vibrate(6);
-  if (a.at===G.ver && a.tip) coachSay(a, ...a.tip); else { coachSay(a, T("Je regarde…"), '', ''); assistTurn(); }
-  assistPaint(); renderActions();
+  M.coachOn=true; const a=G.as=G.as||{s:0,m:0}; vibrate(6);
+  coachSay(a, T("C'est parti !"), T("Je commente chacun de tes coups jusqu'à la fin de la partie."), 'win');
+  assistPaint(); renderActions(); if (!G.over && G.turn===0) assistTurn();
 }
 function assistPaint(){
   const el=document.getElementById('assist'); if (!el) return;
   const on=!!(view==='game' && G && M && M.assist && !TR); el.hidden=!on; if (!on) return;
   const a=G.as||{s:0,m:0}, pct=50+a.s*5;
   const ticks=[-10,-5,0,5,10].map(t=>`<span style="left:${50+t*5}%">${t>0?'+'+t:t<0?'−'+(-t):'0'}</span>`).join('');
-  const msg=a.msg || (P.premium ? {t:T("Ton coach"), x:T("Joue : je te dis après chaque coup s'il est bon."), k:'', id:0} : {t:T("Ton coach"), x:T("La jauge montre qui mène. Besoin d'aide ? Touche « Conseil »."), k:'', id:0});
-  const html=`<div class="ghead"><span style="color:${S[1].hex}">◀ ${esc(S[1].name)}</span><b class="gnum${a.s>0?' pos':a.s<0?' neg':''}${a.busy?' busy':''}">${fmtNote(a)}</b><span style="color:${S[0].hex}">${T("Toi")} ▶</span></div>
+  const msg=a.msg || (coachOn() ? {t:T("Ton coach"), x:T("Joue : je te dis après chaque coup s'il est bon."), k:'', id:0} : {t:T("Ton coach"), x:T("Active-moi pour toute la partie (1 indice) : je commenterai chacun de tes coups."), k:'', id:0});
+  const html=`<div class="ctag">🎓 ${T("Coach")}</div><div class="ghead"><span style="color:${S[1].hex}">◀ ${esc(S[1].name)}</span><b class="gnum${a.s>0?' pos':a.s<0?' neg':''}${a.busy?' busy':''}">${fmtNote(a)}</b><span class="r" style="color:${S[0].hex}">${T("Toi")} ▶</span></div>
     <div class="gauge2" role="meter" aria-valuemin="-10" aria-valuemax="10" aria-valuenow="${a.s}" aria-label="${T("Jauge du coach")} : ${fmtNote(a)}"><div class="gtrack"><i class="gfill" style="${a.s>=0?`left:50%;width:${pct-50}%`:`left:${pct}%;width:${50-pct}%`};background:${a.s>=0?S[0].hex:S[1].hex}"></i><i class="gmid"></i><i class="gcur" style="left:${pct}%"></i></div><div class="gticks">${ticks}</div></div>
     <div class="cmsg ${msg.k}" data-id="${msg.id}"><div class="cav">${coachSVG()}</div><div class="cbub"><b>${esc(msg.t)}</b>${msg.x?`<span>${esc(msg.x)}</span>`:''}</div></div>`;
   if (el._h!==html){ const prev=el._id; el._h=html; el.innerHTML=html; if (prev!==msg.id && msg.id){ const c=el.querySelector('.cmsg'); c.classList.add('pop'); } el._id=msg.id; }
@@ -1969,7 +1978,7 @@ function undo(){
   const e=h[idx]; h.length=idx;
   if (G.over){ M.wins[G.winner]--; M.rounds.pop(); M.done=false; G.over=false; G.winner=null; $('#party').hidden=true; stopConfetti(); }
   Object.assign(G,{cells:e.cells.slice(), pawns:e.pawns.map(p=>[...p]), J:e.jumps.slice(), turn:0, moves:idx, pick:null, jumpOn:false, hint:null, last:null, msg:(T("Coup annulé."))});
-  if (G.as && P.premium) coachSay(G.as, T("Coup annulé"), T("Cherche mieux, tu as tout ton temps."), '');
+  if (G.as && coachOn()) coachSay(G.as, T("Coup annulé"), T("Cherche mieux, tu as tout ton temps."), '');
   G.ver++; startTurn(); render();
 }
 async function hint(){
@@ -2292,7 +2301,7 @@ function renderGame(){
   const playing=G&&!G.over, seat=humanSeat(), myTurn=playing&&(seat===null||G.turn===seat);
   const bot=bottomSide();
   $('#stripTop').hidden=isParc(); $('#stripTop').innerHTML=isParc()?'':strip(1-bot); $('#stripBot').innerHTML=isParc()?parcStrip():strip(bot);
-  $('#scorebar').hidden=!!TR; $('#coach').hidden=!TR; assistPaint(); $('#app').classList.toggle('tr', !!TR); gbtnSet();
+  $('#scorebar').hidden=!!TR; $('#coach').hidden=!TR; $('#app').classList.toggle('trn', !!(M&&M.assist&&!TR)); assistPaint(); $('#app').classList.toggle('tr', !!TR); gbtnSet();
   if (TR){ $('#coach').innerHTML=`<div class="av">${coachSVG()}</div><div class="bub"><b>${esc(trHead())}</b>${['win','fail'].includes(TR.state)?'':`<p>${trStatus()}</p>`}</div>`; }
   else { const a=bot, b=1-bot, pts=matchPts();
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
@@ -2370,7 +2379,7 @@ function renderActions(){
   const me=seat===null?G.turn:seat, a=[];
   const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`${T("aria-pressed=\"")}${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
   if (playing){
-    if (M.assist && !P.premium) a.push(btn('as-hint','bulb',T("Conseil"),{dis:!myTurn||(G.as&&G.as.rev===G.ver), badge:credBadge('h')}));
+    if (M.assist && !coachOn()) a.push(btn('as-hint','bulb',T("Coach"),{badge:credBadge('h'), cls:'hot'}));
     if (M.train){ a.push(btn('undo','undo',(T("Annuler")),{dis:!(HIST[G.round]||[]).some(h=>h.turn===0)})); }
     if (social && seat!==-1){
       const cd=Date.now()-wzLast<12000;
@@ -2443,7 +2452,7 @@ function sheetHTML(){
     return `<h2>${T("Contre l'ordinateur")}</h2>
     <div class="aimode" role="radiogroup"><button type="button" role="radio" data-act="ai-mode" data-v="0" aria-checked="${!s.assist}"><b>🎮 ${T("Partie libre")}</b><small>${T("Sans aide")}</small></button><button type="button" role="radio" data-act="ai-mode" data-v="1" aria-checked="${!!s.assist}"><b>💡 ${T("Avec le coach")}</b><small>${T("Jauge et conseils en direct")}</small></button></div>
     <p class="note aimnote">${T("Contre l'ordinateur, on s'entraîne : ça ne compte pas pour le classement. Pour gagner des points de classement, il faut battre de vrais joueurs.")}</p>
-    ${s.assist?`<p class="note aimnote">${P.premium?T("Pendant la partie : la jauge chiffrée, ton coach qui commente chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité."):`${T("Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Conseils du coach :")} <b>${credLeft('h')}</b> (${T("+1 chaque semaine")}).`}</p>`:''}
+    ${s.assist?`<p class="note aimnote">${P.premium?T("Pendant la partie : la jauge chiffrée, ton coach qui commente chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité."):`${T("Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Le coach qui commente chaque coup s'active pour toute la partie avec 1 indice. Indices :")} <b>${credLeft('h')}</b> (${T("+1 chaque semaine")}).`}</p>`:''}
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
     ${s.assist?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
     <button class="primary" type="button" data-act="go-ai">${s.assist?`💡 ${T("Lancer l'entraînement")}`:`${T("Jouer ·")} ${tLabel(P.time)}`}</button>`;
@@ -2522,7 +2531,8 @@ function sheetHTML(){
       <div class="chgain">${s.coins?`<span>${ic('coin')} +${s.coins}</span>`:''}${s.chest?`<span>${IMG('coffre-'+s.chest)}</span>`:''}</div>
       <div class="chtiers">${CH_REW.map(([pt,c])=>`<div class="${s.best>=pt?'on':''}">${IMG('coffre-'+c)}<small>${pt} pts</small></div>`).join('')}</div>
       ${nx?`<p class="note">${T("Prochain coffre à")} ${nx[0]} ${T("points")}</p>`:''}</div>
-    <div class="row"><button class="primary" type="button" data-act="rush-again">${T("Rejouer")}</button><button class="secondary" type="button" data-act="rush-out">${T("Retour")}</button></div>`; }
+    ${s.chest&&(P.pendChests||[]).some(c=>c.src==='chrono')?`<button class="primary big2" type="button" data-act="rush-chest" style="width:100%">🎁 ${T("Ouvrir le coffre")}</button>`:''}
+    <div class="row"><button class="${s.chest?'secondary':'primary'}" type="button" data-act="rush-again">${T("Rejouer")}</button><button class="secondary" type="button" data-act="rush-out">${T("Retour")}</button></div>`; }
   if (s.type==='dj'){ const d=djToday(); if (!d) return ("<h2>"+T("Lastep du jour")+"</h2>");
     return `<h2>${T("Lastep #")}${d.n}</h2><div class="bigres">${d.res.map(r=>r?'✅':'❌').join('')}</div><p style="text-align:center">${d.res.reduce((a,b)=>a+b,0)}${T("/3 en")} ${fmt(d.ms)}${(P.djStreak||{}).n>1?` ${T("· série de")} ${P.djStreak.n} jours`:''}</p>
       <button class="primary" type="button" data-act="dj-share">${T("Partager mon résultat")}</button><p class="note" style="text-align:center">${T("Le résultat se partage sans dévoiler la solution. Nouveau puzzle demain.")}</p>`; }
@@ -2728,6 +2738,7 @@ document.addEventListener('click', e=>{
     case 'rush-pick': startRush(); break;
     case 'rush-stop': rushEnd(); break;
     case 'rush-again': startRush(); break;
+    case 'rush-chest': { const i=(P.pendChests||[]).findIndex(c=>c.src==='chrono'); if (i>=0){ const c=P.pendChests.splice(i,1)[0]; saveP(); sheet=null; render(); openChest(c.t, c.why); } break; }
     case 'rush-out': sheet=null; RUSH=null; view='home'; render(); break;
     case 'tr-hint': trHint(); break;
     case 'tr-sol': sheet=null; trSolution(); break;
@@ -2842,7 +2853,15 @@ document.addEventListener('submit', e=>{
 
 /* ---------- Pendule ---------- */
 let lastTick=performance.now(), lastSleep=false;
+// Coffres gagnés mais pas encore ouverts : ils s'ouvrent à l'accueil
+function pendChestCheck(){
+  // rattrapage : coffres du Chrono gagnés avant cette version
+  if (P.chrono && P.chrono.got && !P.chrono.v74){ P.chrono.v74=1; const t=CH_REW[P.chrono.got-1]; if (t) P.pendChests=[...(P.pendChests||[]), {t:t[1], why:T("Défi chrono"), src:'chrono'}]; saveP(); }
+  if (!(P.pendChests||[]).length || view!=='home' || sheet || REWARD || G || TR || document.querySelector('.adbox') || !$('#party').hidden) return;
+  const c=P.pendChests.shift(); saveP(); openChest(c.t, c.why);
+}
 setInterval(()=>{
+  pendChestCheck();
   const now=performance.now(), dt=now-lastTick; lastTick=now;
   onlineWatch();
   if (RUSH && TR && TR.rush && view==='game'){ rushTick(dt); }
@@ -3211,7 +3230,7 @@ function trNext(){
   else if (tr.i+1<LESSONS.length && (!LESSONS[tr.i+1].p || P.premium)) return startLesson(tr.i+1);
   trQuit();
 }
-function lnScroll(){ setTimeout(()=>{ const n=document.querySelector('.lnode.cur'); if (n) n.scrollIntoView({block:'center'}); }, 0); }
+function lnScroll(){ pzScroll(); }
 function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.lv.cur')||document.querySelector('.node.cur')||[...document.querySelectorAll('.lv.done,.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
 function trQuit(){ const kind=TR&&TR.kind; $('#party').hidden=true; stopConfetti(); if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 // Aventure : cherche une suite de pas qui fait tomber toutes les cases depuis la position actuelle
@@ -3244,17 +3263,21 @@ function lessonsHTML(){ return `<h2>${T("Cours")}</h2><p>${T("Une démonstration
 let learnMenu=false;
 const nextLesson = () => { const d=P.lessons||{}, i=LESSONS.findIndex(L=>!d[L.id]); return i<0 ? LESSONS.length-1 : i; };
 function renderLearn(){
-  const d=P.lessons||{}, cur=nextLesson(), L=LESSONS[cur]; let html='';
-  LESSONS.forEach((l,i)=>{ const done=d[l.id], lock=l.p&&!P.premium, x=Math.round(Math.sin(i*1.1)*80);
-    if (i%5===0) html+=`<div class="ustep">${T("Chapitre")} ${i/5+1} · ${CHAPTERS[i/5]||''}</div>`;
-    html+=`<button type="button" class="lnode${done?' done':''}${i===cur?' cur':''}${lock&&!done?' lk':''}" style="--x:${x}px" data-act="lesson" data-v="${i}" aria-label="${T("Cours")} ${i+1} : ${esc(l.t)}${done?(T(", terminé")):lock?(T(", Premium")):''}">${i===cur?("<span class=\"tag\">"+T("Suivant")+"</span>"):''}${done?'✓':lock?'💎':i+1}</button>`; });
-  return `${backHead(T("Cours"),'play')}
-  <div class="coachrow"><div class="av">${coachSVG()}</div><div class="bub"><b>${esc(L.t)}</b><p>${esc(L.d)}</p></div></div>
-  <div class="rrow2 r2">${tile('ai-assist','icone-robot','💡',T("Partie assistée"))}${tile('an-games','icone-parchemin','📊',T("Mes parties"))}</div>
-  <div class="ppath">${html}<div class="ustep">${T("Saison 1 · bientôt")}</div></div>
+  const d=P.lessons||{}, cur=nextLesson(), nDone=LESSONS.filter(l=>d[l.id]).length, ch=Math.floor(cur/5);
+  let html='';
+  LESSONS.forEach((l,i)=>{
+    if (i%5===0) html+=`<div class="chap"><span>${T("Chapitre")} ${i/5+1}</span><b>${esc(CHAPTERS[i/5]||'')}</b></div>`;
+    const done=d[l.id], lock=l.p&&!P.premium&&!done, isCur=i===cur, x=Math.round(Math.sin(i*0.95)*70);
+    html+=`<button type="button" class="lv${done?' done':''}${isCur?' cur':''}${lock?' lk prem':''}" style="--x:${x}px" data-act="lesson" data-v="${i}" aria-label="${T("Cours")} ${i+1} : ${esc(l.t)}${done?(T(", terminé")):lock?(T(", Premium")):''}">
+      ${lock?'<span class="lvgem" aria-hidden="true">💎</span>':`<b>${i+1}</b>`}${done?'<span class="lvok" aria-hidden="true">✓</span>':''}${isCur?`<span class="lvme" aria-hidden="true">${coachSVG()}</span>`:''}</button>`;
+  });
+  const L=LESSONS[cur]||LESSONS[0];
+  return `<div class="pgtop">${backHead(T("Cours"),'play')}
+    <div class="rrow2 r3">${tile('ai-assist','icone-robot','💡',T("Avec le coach"))}${tile('an-games','icone-parchemin','📊',T("Mes parties"))}${tile('badges','icone-trophee','🏅',T("Badges"))}</div></div>
+  <div class="chapcard"><div><small>${T("Chapitre")} ${ch+1}</small><b>${esc(CHAPTERS[ch]||'')}</b></div><div class="chprog"><i style="width:${nDone/LESSONS.length*100}%"></i></div><span>🎓 ${nDone}/${LESSONS.length}</span></div>
+  <div class="lvpath">${html}<div class="chap soon"><span>${T("Bientôt")}</span><b>${T("Saison 1")}</b></div></div>
   <div class="spacer"></div>
-  <div class="playbar"><div class="in">${learnMenu?`<div class="lmenu"><button class="item" type="button" data-act="lessons-sheet">${ic('book')}${T("Tous les cours")}</button><button class="item" type="button" data-act="badges">${T("🏅 Badges")}</button></div>`:''}
-    <div class="lbar"><button class="iconbtn sq" type="button" data-act="learn-menu" aria-label="${learnMenu?(T("Fermer le menu")):(T("Menu"))}" aria-expanded="${learnMenu}">${learnMenu?'✕':ic('list')}</button><button class="big" type="button" data-act="lesson" data-v="${cur}">${T("Leçon suivante")}</button></div></div></div>`;
+  <div class="playbar"><div class="in"><button class="gobig" type="button" data-act="lesson" data-v="${cur}">${T("Cours")} ${cur+1} ▶</button></div></div>`;
 }
 function lessonsList(){
   const done=P.lessons||{};
@@ -3778,7 +3801,7 @@ function rushEnd(){
   // coffre : une fois par jour pour chaque palier atteint
   const d=dayKey(), cd=P.chrono.day===d?(P.chrono.got||0):0; let chest=null, tier=0;
   CH_REW.forEach(([pt,c],k)=>{ if (r.pts>=pt){ tier=k+1; if (k+1>cd) chest=c; } });
-  if (chest){ P.chrono.day=d; P.chrono.got=tier; }
+  if (chest){ P.chrono.day=d; P.chrono.got=tier; P.pendChests=[...(P.pendChests||[]), {t:chest, why:T("Défi chrono"), src:'chrono'}]; }
   saveP(); if (r.pts) xpAdd(r.pts*2);
   if (TR) trClear(TR); TR=null; G=null; M=null; musicStop();
   view='parc'; sheet={type:'rush', r, rec, best:Math.max(best,r.pts), coins, chest}; RUSH=null; render();
@@ -4260,10 +4283,10 @@ function rewardDraw(){
   const R=REWARD, box=$('#party'); if (!R){ box.hidden=true; return; }
   box.style.setProperty('--pc', R.type==='chest' ? CHESTS[R.tier].c : '#ffd75e');
   let body='';
-  if (R.type==='chest' && !R.opened) body=`<p class="lvtag">${esc(R.why)}</p><button type="button" class="chestbtn shake" data-act="chest-pop" aria-label="${T("Ouvrir le coffre")}">${chestSVG(CHESTS[R.tier].c)}</button><h2 class="wtitle">${CHESTS[R.tier].n}</h2><p class="sub">${T("Touche pour ouvrir")}</p>`;
+  if (R.type==='chest' && !R.opened) body=`<p class="lvtag">${esc(R.why)}</p><button type="button" class="chestbtn shake" data-act="chest-pop" aria-label="${T("Ouvrir le coffre")}">${IMG('coffre-'+R.tier)}</button><h2 class="wtitle">${CHESTS[R.tier].n}</h2><p class="sub">${T("Touche pour ouvrir")}</p>`;
   else {
     const it=R.item, itn=it?CAT[it[0]][it[1]]:null;
-    body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${chestSVG(CHESTS[R.tier].c)}</div>`:`<svg class="bigcoin" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>`}
+    body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${IMG('coffre-'+R.tier+'-ouvert')}</div>`:`<svg class="bigcoin" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>`}
       <h2 class="wtitle">${T("Gagné !")}</h2><div class="gain">${ic('coin')} +<b>${R.coins}</b></div>
       ${itn?`<div class="loot"><div class="pv">${it[0]==='theme'?'🎨':it[0]==='trail'||it[0]==='win'?itn.e:pawnSVG({...P.skin,[it[0]]:it[1]})}</div><b>${esc(itn.n)}</b><small>${KIND_N[it[0]]}${rarity(itn.p)?' · '+rarity(itn.p).n:''}</small>${it[0]!=='theme'?`<button class="secondary" type="button" data-act="loot-equip">${T("Équiper")}</button>`:''}</div>`:''}
       ${!R.x2 && R.coins?adBtn('reward-x2',T("×2 pièces")):''}

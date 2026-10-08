@@ -1093,3 +1093,9 @@ Object.assign(window.EN_DICT, {
 "Coup annulé":"Move undone","Cherche mieux, tu as tout ton temps.":"Look for better, take your time.","Quitter":"Quit",
 "tu gagnes 1 indice gratuit chaque semaine (5 gratuits au maximum). Ceux que tu achètes restent jusqu'à ce que tu les utilises.":"you get 1 free hint every week (5 free at most). The ones you buy stay until you use them."
 });
+// v75
+Object.assign(window.EN_DICT, {"Badges":"Badges","Bientôt":"Coming soon","Saison 1":"Season 1","Coach":"Coach","C'est parti !":"Let's go!",
+"Je commente chacun de tes coups jusqu'à la fin de la partie.":"I'll comment on every move until the end of the game.",
+"Active-moi pour toute la partie (1 indice) : je commenterai chacun de tes coups.":"Turn me on for the whole game (1 hint): I'll comment on every move.",
+"Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Le coach qui commente chaque coup s'active pour toute la partie avec 1 indice. Indices :":"During the game: a numbered gauge and unlimited undo. The coach who comments on every move turns on for the whole game with 1 hint. Hints:",
+"Défi chrono":"Chrono challenge","Ouvrir le coffre":"Open the chest"});
