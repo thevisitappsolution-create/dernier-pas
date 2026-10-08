@@ -1059,36 +1059,56 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .mmbar{width:80%;height:8px;border-radius:9px;background:#0008;overflow:hidden}
 .mmbar i{display:block;height:100%;background:linear-gradient(90deg,#2ef2ff,#ff3dd8);transition:width .6s}
 
-.mmw{position:fixed;inset:0;z-index:60;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px calc(30px + env(safe-area-inset-bottom,0px));
-  background:radial-gradient(circle at 50% 30%,#ff8ad8,#c03cff 45%,#3a0f6a 100%);clip-path:circle(0% at 50% 70%);transition:clip-path .6s cubic-bezier(.5,0,.3,1)}
+.mmw{position:fixed;inset:0;z-index:60;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px calc(26px + env(safe-area-inset-bottom,0px));
+  background:radial-gradient(ellipse at 50% 24%,#ffe0f6 0%,#ff8ad8 18%,#c03cff 55%,#3a0f6a 100%);clip-path:circle(0% at 50% 70%);transition:clip-path .6s cubic-bezier(.5,0,.3,1)}
 .mmw.in{clip-path:circle(150% at 50% 70%)}
-.mmw.back{clip-path:circle(0% at 50% 90%);transition-duration:.7s}
-.mmw.land{opacity:0;transform:scale(1.15);transition:opacity .7s,transform .7s}
+.mmw.back{clip-path:circle(0% at 50% 95%);transition-duration:.7s}
+.mmw.land{opacity:0;transform:scale(1.2);transition:opacity .7s,transform .7s}
 .mmsky{position:absolute;inset:0;pointer-events:none}
-.mmsky .cl{position:absolute;border-radius:50%;background:radial-gradient(circle at 40% 40%,#ffe3f6,#ffb3e6 45%,#ff8ad800 70%);filter:blur(2px);opacity:.75;animation:cloud linear infinite}
-.mmsky .c1{width:260px;height:120px;top:8%;animation-duration:9s}
-.mmsky .c2{width:200px;height:90px;top:28%;animation-duration:7s;animation-delay:-3s;opacity:.55}
-.mmsky .c3{width:320px;height:140px;top:52%;animation-duration:11s;animation-delay:-6s}
-.mmsky .c4{width:180px;height:80px;top:70%;animation-duration:6s;animation-delay:-2s;opacity:.5}
-.mmsky .c5{width:240px;height:110px;top:84%;animation-duration:8s;animation-delay:-5s}
-@keyframes cloud{from{transform:translateX(110vw)}to{transform:translateX(-120%)}}
-.mmsky .st{position:absolute;color:#fff;font-size:1.4rem;animation:twk 1.8s ease-in-out infinite;text-shadow:0 0 10px #fff}
-.mmsky .s1{top:12%;left:14%}.mmsky .s2{top:20%;right:16%;animation-delay:-.6s}.mmsky .s3{top:44%;left:8%;animation-delay:-1.2s}.mmsky .s4{top:38%;right:10%;animation-delay:-.3s}
+/* nuages qui partent de l'horizon (vers l'arène) et filent vers nous : impression de vol */
+.mmsky .cl{position:absolute;left:50%;top:24%;width:180px;height:80px;margin:-40px 0 0 -90px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fff2fb,#ffc2ec 45%,#ff8ad800 70%);opacity:0;animation:rush 5s linear infinite;animation-delay:var(--d)}
+@keyframes rush{0%{transform:translate(0,0) scale(.1);opacity:0}15%{opacity:.85}100%{transform:translate(var(--dx),85vh) scale(calc(3 * var(--s)));opacity:.0}}
+.mmsky .wl{position:absolute;left:var(--x);top:-20%;width:2px;height:90px;border-radius:2px;background:linear-gradient(#fff0,#ffffffb0,#fff0);animation:wind 1.1s linear infinite;animation-delay:var(--d)}
+@keyframes wind{from{transform:translateY(0)}to{transform:translateY(130vh)}}
+.mmsky .st{position:absolute;color:#fff;font-size:1.3rem;animation:twk 1.8s ease-in-out infinite;text-shadow:0 0 10px #fff}
+.mmsky .s1{top:8%;left:12%}.mmsky .s2{top:14%;right:14%;animation-delay:-.6s}.mmsky .s3{top:36%;left:6%;animation-delay:-1.2s}.mmsky .s4{top:30%;right:8%;animation-delay:-.3s}
 @keyframes twk{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
-.mmarena{position:absolute;top:10%;left:calc(50% - min(35%,150px));width:70%;max-width:300px;opacity:.35;filter:blur(1px) drop-shadow(0 0 30px #fff8);animation:fl3 5s ease-in-out infinite}
-.mmx{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;width:44px;height:44px;border-radius:50%;border:2px solid #fff8;background:#0004;color:#fff;font-size:1.2rem;cursor:pointer;z-index:3}
-.mmfly{position:absolute;top:34%;left:50%;width:120px;margin-left:-60px;animation:fly 3.2s ease-in-out infinite;z-index:2}
-.mmpawn{width:120px;height:120px;filter:drop-shadow(0 14px 14px #0006)}
+/* l'arène au loin, qui se rapproche pendant la recherche */
+.mmfar{position:absolute;top:9%;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+.mmarena{width:min(46vw,190px);filter:drop-shadow(0 0 24px #fffa);animation:approach 20s cubic-bezier(.3,0,.6,1) forwards,fl3 3s ease-in-out infinite}
+@keyframes approach{from{transform:scale(.45);opacity:.6}to{transform:scale(1.25);opacity:1}}
+.mmx{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;width:44px;height:44px;border-radius:50%;border:2px solid #fff8;background:#0004;color:#fff;font-size:1.2rem;cursor:pointer;z-index:5}
+/* ton pion vole vers l'arène, vu de dos-trois-quarts : il penche, monte et descend */
+.mmfly{position:absolute;top:44%;left:50%;width:130px;margin-left:-65px;z-index:2;animation:bank 2.6s ease-in-out infinite}
+.mmpawn{width:130px;height:130px;filter:drop-shadow(0 18px 14px #0005)}
 .mmpawn svg{width:100%;height:100%;overflow:visible}
-.mmpawn .look{animation:lookside 2.4s ease-in-out infinite}
-@keyframes fly{0%,100%{transform:translate(-70px,0) rotate(-8deg)}25%{transform:translate(0,-26px) rotate(0)}50%{transform:translate(70px,0) rotate(8deg)}75%{transform:translate(0,22px) rotate(0)}}
-.mmtrail{position:absolute;left:50%;top:70%;width:80px;height:24px;margin-left:-40px;border-radius:50%;background:radial-gradient(#fff9,transparent 70%);filter:blur(4px)}
-.mmopp{position:absolute;top:34%;left:50%;width:120px;height:120px;margin-left:-60px;opacity:0;z-index:2}
+.mmpawn .look{transform:translate(0,-4px);transition:transform .3s}
+@keyframes bank{0%,100%{transform:translate(-18px,0) rotate(-7deg)}50%{transform:translate(18px,-14px) rotate(7deg)}}
+.mmjet{position:absolute;left:50%;top:88%;width:46px;height:70px;margin-left:-23px;border-radius:50%;background:radial-gradient(ellipse at 50% 0%,#fff,#ffd6f3aa 40%,#ff8ad800 70%);filter:blur(3px);animation:jet .25s ease-in-out infinite alternate}
+@keyframes jet{from{transform:scaleY(.8);opacity:.7}to{transform:scaleY(1.2);opacity:1}}
+.mmopp{position:absolute;top:18%;left:50%;width:110px;height:110px;margin-left:-55px;opacity:0;z-index:2}
 .mmopp svg{width:100%;height:100%;overflow:visible}
-.mmw[data-state="found"] .mmfly{animation:none;transform:translateX(-80px)}
-.mmw[data-state="found"] .mmopp{opacity:1;animation:oppin .5s cubic-bezier(.2,1.6,.4,1) both;transform:translateX(80px)}
-@keyframes oppin{from{transform:translateX(220px) scale(.3)}to{transform:translateX(80px) scale(1)}}
-.mmw[data-state="noone"] .mmfly{animation:fly 5s ease-in-out infinite;top:16%}
+.mmw[data-state="found"] .mmfly{animation:none;transform:translateX(-70px)}
+.mmw[data-state="found"] .mmfly .mmjet{opacity:0}
+.mmw[data-state="found"] .mmopp{opacity:1;animation:oppdown .6s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes oppdown{from{transform:translate(0,0) scale(.2)}to{transform:translate(70px,26vh) scale(1)}}
+/* personne : le personnage de ton niveau monte par en bas, devant toi, et te défie */
+.mmbot2{position:absolute;left:50%;bottom:-260px;width:150px;margin-left:-75px;z-index:3;transition:bottom .8s cubic-bezier(.2,1.3,.4,1)}
+.mmbot2 .bav{width:150px;height:150px;filter:drop-shadow(0 16px 14px #0007)}
+.mmbot2 .bav svg{width:100%;height:100%;overflow:visible}
+.mmw[data-state="noone"] .mmbot2{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.mmw[data-state="noone"] .mmfly{animation:hover 2.2s ease-in-out infinite;top:30%}
+.mmw[data-state="noone"] .mmfly .mmjet{opacity:.4}
+@keyframes hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.mmsay{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%) scale(0);transform-origin:50% 100%;width:max-content;max-width:min(78vw,300px);padding:10px 14px;border-radius:18px;background:#fff;color:#2a0b4e;font-weight:800;font-size:.95rem;line-height:1.3;text-align:center;box-shadow:0 6px 0 #0004;transition:transform .35s cubic-bezier(.2,1.6,.4,1) .7s}
+.mmsay::after{content:"";position:absolute;top:100%;left:50%;margin-left:-9px;border:9px solid transparent;border-top-color:#fff}
+.mmsay small{color:#a12bd6}
+.mmw[data-state="noone"] .mmbot2 .mmsay{transform:translateX(-50%) scale(1)}
+.mmsay.me{bottom:auto;top:calc(100% + 18px);transition-delay:0s}
+.mmsay.me::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#fff}
+.mmsay.me.on{transform:translateX(-50%) scale(1)}
+.mmbox.hide{opacity:0;pointer-events:none;transform:translateY(20px)}
+.mmbox{transition:opacity .3s,transform .3s}
 .mmw.back .mmfly{animation:none;transform:translateY(60vh) scale(.4);transition:transform .7s ease-in}
 .mmbox{position:relative;z-index:3;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;border-radius:24px;background:#2a0b4ecc;border:2px solid #ffffff55;box-shadow:0 10px 30px #0006;text-align:center;color:#fff}
 .mmbox h2{margin:0;font-family:var(--fun);font-weight:400;font-size:1.5rem;text-shadow:0 3px 0 #0008}
@@ -1103,7 +1123,7 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .row2{display:flex;gap:10px;width:100%}
 .mmno,.mmyes{flex:1;padding:13px;border:0;border-radius:16px;font-family:var(--fun);font-size:1.2rem;cursor:pointer;box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0008}
 .mmno{background:#ffffffdd;color:#4a0f6a}.mmyes{flex:1.6;background:linear-gradient(180deg,#d6ff6b,#6fd92a);color:#0f2a00}
-@media (prefers-reduced-motion:reduce){.mmfly,.mmsky .cl,.mmarena{animation:none}}
+@media (prefers-reduced-motion:reduce){.mmfly,.mmsky .cl,.mmsky .wl,.mmarena{animation:none}}
 </style>
 
 </head>
@@ -1150,7 +1170,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 62,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 63,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2464,9 +2484,9 @@ document.addEventListener('click', e=>{
     case 'match': goMatch(0); break;
     case 'mm-cancel': mmCancel(); break;
     case 'mmw-x': leaveOnline(); mmwClose(); break;
-    case 'mmw-yes': { const lv=mmBotLevel(); mmwClose(true); leaveOnline(); startAI(lv,false); break; }
-    case 'mmw-no': mmwClose(); break;
-    case 'mmw-retry': goMatch(0); break;
+    case 'mmw-yes': { const lv=mmBotLevel(); mmwSay(T("Jamais ! Au combat !")); setTimeout(()=>{ mmwClose(true); leaveOnline(); startAI(lv,false); }, 1100); break; }
+    case 'mmw-no': mmwSay(T("Une autre fois…")); setTimeout(()=>mmwClose(), 900); break;
+    case 'mmw-retry': { const el=document.getElementById('mmw'); if (el){ el.dataset.dlg=''; el.querySelector('.mmbox').classList.remove('hide'); el.querySelector('.mmbox').dataset.h=''; } if (MMW) MMW.t0=Date.now(); else MMW={t0:Date.now(), timer:setInterval(mmwPaint,500)}; goMatch(0); break; }
     case 'addfriend': sheet={type:'addfriend'}; render(); break;
     case 'invite-link': shareFriendLink(); break;
     case 'contacts': fromContacts(); break;
@@ -3261,9 +3281,10 @@ function mmw(state){
   let el=document.getElementById('mmw');
   if (!el){
     el=document.createElement('div'); el.id='mmw'; el.className='mmw'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true');
-    el.innerHTML=`<div class="mmsky"><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i><i class="cl c4"></i><i class="cl c5"></i><span class="st s1">✦</span><span class="st s2">✦</span><span class="st s3">✧</span><span class="st s4">✦</span></div>
-      ${IMG('arene','mmarena')}<button class="mmx" type="button" data-act="mmw-x" aria-label="${T("Annuler la recherche")}">✕</button>
-      <div class="mmfly"><div class="mmpawn">${pawnSVG(P.skin)}</div><div class="mmtrail"></div></div><div class="mmopp"></div><div class="mmbox"></div>`;
+    el.innerHTML=`<div class="mmsky">${[...Array(9)].map((_,k)=>`<i class="cl" style="--dx:${[-60,55,-35,70,-75,30,-50,65,-20][k]}vw;--d:${(k*0.55).toFixed(2)}s;--s:${[1,1.3,.8,1.1,1.4,.9,1.2,1,1.5][k]}"></i>`).join('')}${[...Array(10)].map((_,k)=>`<b class="wl" style="--x:${8+k*9.5}%;--d:${(k*0.21).toFixed(2)}s"></b>`).join('')}<span class="st s1">✦</span><span class="st s2">✦</span><span class="st s3">✧</span><span class="st s4">✦</span></div>
+      <div class="mmfar">${IMG('arene','mmarena')}</div><button class="mmx" type="button" data-act="mmw-x" aria-label="${T("Annuler la recherche")}">✕</button>
+      <div class="mmopp"></div><div class="mmfly"><div class="mmpawn">${pawnSVG(P.skin)}</div><div class="mmjet"></div><div class="mmsay me"></div></div>
+      <div class="mmbot2"><div class="mmsay"></div><div class="bav"></div></div><div class="mmbox"></div>`;
     document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add('in'));
     MMW={t0:Date.now(), timer:setInterval(mmwPaint, 500)};
   }
@@ -3278,12 +3299,14 @@ function mmwPaint(){
       <div class="mmchip">${tLabel(P.time)} · <b>${lo} – ${hi}</b></div><div class="mmbar"><i style="width:${(w+1)/4*100}%"></i></div><small>${left} s</small>`;
     if (box.dataset.h!==html){ box.innerHTML=html; box.dataset.h=html; }
   } else if (st==='noone'){
-    const lv=mmBotLevel(), b=BOTS[lv];
-    const html=`<h2>${T("Personne de ton niveau pour l'instant")}</h2><div class="mmbot"><div class="av">${pawnSVG(b.skin)}</div><div><b>${esc(b.name)}</b><small>${LEVELS[lv].elo} · ${LEVELS[lv].label}</small><p>« ${esc(b.taunt[0])} »</p></div></div>
-      <p class="sub">${esc(b.name)} ${T("te défie. Tu acceptes ?")}</p>
-      <div class="row2"><button class="mmno" type="button" data-act="mmw-no">${T("Non")}</button><button class="mmyes" type="button" data-act="mmw-yes">${T("Oui, au combat !")}</button></div>
-      <button class="linkbtn" type="button" data-act="mmw-retry">${T("Chercher encore")}</button>`;
-    if (box.dataset.h!==html){ box.innerHTML=html; box.dataset.h=html; vibrate([20,40,20]); }
+    if (el.dataset.dlg!=='1'){
+      el.dataset.dlg='1'; const lv=mmBotLevel(), b=BOTS[lv];
+      el.querySelector('.bav').innerHTML=pawnSVG(b.skin);
+      box.innerHTML=''; box.dataset.h=''; box.classList.add('hide');
+      const say=el.querySelector('.mmbot2 .mmsay');
+      say.innerHTML=`<b>${esc(b.name)}</b> <small>${LEVELS[lv].elo}</small><br>${T("Personne n'ose venir… Moi, je ne fuis jamais le combat.")} <b>${T("Et toi ?")}</b>`;
+      setTimeout(()=>{ if (!document.getElementById('mmw')) return; box.innerHTML=`<div class="row2"><button class="mmno" type="button" data-act="mmw-no">${T("Non")}</button><button class="mmyes" type="button" data-act="mmw-yes">${T("Oui !")}</button></div><button class="linkbtn" type="button" data-act="mmw-retry">${T("Chercher encore un joueur")}</button>`; box.classList.remove('hide'); vibrate([20,40,20]); }, 1500);
+    }
   }
   // adversaire trouvé : la partie a démarré derrière, on annonce puis on atterrit
   if (st==='search' && view==='game' && M && online() && net.opp){
@@ -3294,6 +3317,7 @@ function mmwPaint(){
     setTimeout(()=>mmwClose(true), 1700);
   }
 }
+function mmwSay(t){ const el=document.getElementById('mmw'); if (!el) return; const s=el.querySelector('.mmsay.me'); s.textContent=t; s.classList.add('on'); el.querySelector('.mmbox').classList.add('hide'); }
 function mmwClose(land){
   const el=document.getElementById('mmw'); if (!el) return;
   if (MMW){ clearInterval(MMW.timer); MMW=null; }
