@@ -1024,3 +1024,32 @@ Object.assign(window.EN_DICT, {"Fuir":"Run away","Accepter":"Accept"});
 Object.assign(window.EN_DICT, {"Fin dans":"Ends in","Steps des 30 derniers jours. Les personnages 🤖 servent de repères.":"Steps over the last 30 days. Game characters 🤖 are there as benchmarks."});
 Object.assign(window.EN_DICT, {"Steps des 30 derniers jours.":"Steps over the last 30 days.","personnage du jeu, à dépasser":"game character to beat"});
 Object.assign(window.EN_DICT, {"Catégories":"Categories"});
+// v70 : Chrono, mode assisté
+Object.assign(window.EN_DICT, {
+"Temps écoulé !":"Time's up!","Série de 3 : +5 s !":"3 in a row: +5 s!","Nouveau record !":"New record!","points":"points",
+"casse-têtes réussis":"puzzles solved","casse-tête réussi":"puzzle solved","record":"best","Prochain coffre à":"Next chest at","Rejouer":"Play again","Retour":"Back",
+"Gagne en":"Win in","coups":"moves","coup":"move","Bloque l'adversaire. Il défend au mieux.":"Block your opponent. They defend as well as they can.",
+"Excellent !":"Excellent!","Bon coup":"Good move","Imprécis":"Inaccurate","Erreur":"Mistake","Gaffe !":"Blunder!","Bien résisté":"Well held",
+"Assisté":"Assisted","Assistant":"Assistant","Mode assisté : partie hors classement":"Assisted mode: unranked game",
+"Bravo ! Si tu joues bien, tu peux gagner en":"Well done! Play it right and you can win in","À toi de trouver comment.":"Find out how.",
+"Tu as une victoire forcée. Cherche-la !":"You have a forced win. Find it!",
+"Position difficile : l'adversaire peut te bloquer en":"Tough spot: your opponent can block you in",
+"Tiens le plus longtemps possible, ou annule ton dernier coup.":"Hold on as long as you can, or undo your last move.",
+"Attention ici : un mauvais coup et tu perds en":"Careful here: one wrong move and you lose in",
+"Attention : certains coups ici sont des pièges.":"Careful: some moves here are traps.",
+"Tu as l'avantage. Garde plus de sorties que lui.":"You're ahead. Keep more ways out than them.",
+"Il a plus de liberté que toi. Cherche à lui couper des sorties.":"They have more room than you. Try to cut off their ways out.",
+"Position équilibrée. Réfléchis bien.":"Balanced position. Think it through.",
+"L'assistant analyse ton coup…":"The assistant is checking your move…",
+"Tu avais une victoire forcée. Annule et cherche-la !":"You had a forced win. Undo and find it!",
+"Aïe : l'adversaire peut maintenant te bloquer en":"Ouch: your opponent can now block you in","Annule pour corriger.":"Undo to fix it.",
+"Le meilleur coup possible.":"The best possible move.","Bon choix, proche du meilleur.":"Good choice, close to the best.",
+"Il y avait mieux. Tu peux annuler et réessayer.":"There was better. You can undo and try again.",
+"Ce coup lui donne l'avantage. Annule et cherche mieux.":"This move gives them the edge. Undo and look for better.",
+"Jauge de l'assistant":"Assistant gauge","Joue ton coup : l'assistant te dira s'il est bon.":"Make your move: the assistant will tell you if it's good.",
+"Mode assisté · Premium":"Assisted mode · Premium",
+"Une jauge te dit si chaque coup est bon ou mauvais, et l'assistant te prévient quand tu peux gagner ou perdre dans quelques coups. Il ne te donne jamais le coup : c'est à toi de le trouver. Tu peux annuler tes coups pour réussir une partie parfaite.":"A gauge tells you whether each move is good or bad, and the assistant warns you when you can win or lose within a few moves. It never gives you the move: finding it is up to you. You can undo moves to play a perfect game.",
+"Passer en mode assisté ?":"Switch to assisted mode?",
+"La partie est déjà commencée et compte pour ton classement. En mode assisté, elle ne comptera plus : elle est comptée comme abandonnée pour le classement.":"This game has already started and counts for your ranking. In assisted mode it no longer counts: it is scored as a resignation for your ranking.",
+"Activer l'assistant":"Turn on the assistant","· assisté":"· assisted","D'accord":"OK"
+});
