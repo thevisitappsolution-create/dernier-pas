@@ -1067,3 +1067,14 @@ Object.assign(window.EN_DICT, {
 "Manche":"Round","Regarde jusqu'au bout pour gagner la récompense":"Watch to the end to get the reward"
 });
 Object.assign(window.EN_DICT, {"La jauge te montre qui mène, et tu peux annuler tes coups autant que tu veux. Conseils :":"The gauge shows who's ahead, and you can undo your moves as much as you like. Tips:"});
+// v73
+Object.assign(window.EN_DICT, {
+"Plus d'indice pour l'instant":"No hints left for now","analyses gratuites. Elles reviennent le 1er du mois.":"free analyses. They come back on the 1st of the month.",
+"Aventure":"Adventure","Cours":"Lessons","tu gagnes 1 indice gratuit chaque semaine.":"you get 1 free hint every week.",
+"Plus de solution depuis ici : recommence le niveau.":"No solution from here: restart the level.",
+"Contre l'ordinateur":"Vs computer","Classée":"Ranked","Compte pour ton classement":"Counts for your ranking","Entraînement":"Training","Jauge et conseils en direct":"Live gauge and tips",
+"Pendant la partie : la jauge en direct, un avis sur chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité. Hors classement.":"During the game: a live gauge, feedback on every move, “you can win / lose in N moves” alerts and unlimited undo. Unranked.",
+"Pendant la partie : la jauge en direct et le retour en arrière illimité. Conseils :":"During the game: a live gauge and unlimited undo. Tips:",
+"+1 chaque semaine":"+1 every week","Conseil":"Tip","La jauge montre qui mène. Besoin d'aide ? Touche « Conseil ».":"The gauge shows who's ahead. Need help? Tap “Tip”.","Jauge":"Gauge","Toi":"You"
+});
+Object.assign(window.EN_DICT, {"Lancer l'entraînement":"Start training","· entraînement":"· training"});
