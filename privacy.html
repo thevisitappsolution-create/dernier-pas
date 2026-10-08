@@ -9,11 +9,15 @@
 <h2>Données enregistrées sur ton appareil</h2>
 <p>Ton pseudo, ta personnalisation, ton classement, ton historique de matchs et tes réglages sont enregistrés uniquement dans le stockage local de ton appareil. Ils ne sont envoyés à personne. Tu peux les effacer en supprimant les données du site ou en désinstallant l'appli.</p>
 <h2>Parties en ligne</h2>
-<p>Les parties en ligne passent par Supabase (serveurs situés en France, région Paris), qui relaie les messages entre les deux joueurs et voit l'adresse IP de chaque appareil pendant la connexion. Pendant la partie, ton pseudo, l'apparence de ton pion, ton classement, les coups joués et les phrases toutes faites du chat sont transmis à ton adversaire (et à tes amis pour indiquer que tu es en ligne). Rien n'est enregistré dans une base de données : les messages ne font que transiter.</p>
+<p>Les parties en ligne passent par Supabase (serveurs situés en France, région Paris), qui relaie les messages entre les deux joueurs et voit l'adresse IP de chaque appareil pendant la connexion. Pendant la partie, ton pseudo, l'apparence de ton pion, ton classement, les coups joués et les phrases toutes faites du chat sont transmis à ton adversaire (et à tes amis pour indiquer que tu es en ligne). Les coups et les messages ne sont pas enregistrés : ils ne font que transiter.</p>
+<h2>Classements</h2>
+<p>Pour les classements (ligue de la semaine et Arène), Lastep enregistre chez Supabase : ton code ami, ton pseudo, l'apparence de ton pion, tes points d'XP de la semaine, ton nombre d'étoiles et ton niveau en steps. Ces informations sont visibles par les autres joueurs dans les classements. Aucune autre donnée n'est enregistrée (pas d'e-mail, pas de nom réel, pas de position).</p>
 <h2>Chat</h2>
 <p>Les messages ne sont pas enregistrés et disparaissent à la fin de la partie. Tu peux masquer les messages de ton adversaire dans le Profil. Ne partage pas d'informations personnelles dans le chat.</p>
+<h2>Vocal (parties à 4 entre amis)</h2>
+<p>Dans une salle privée à 4 (rejointe avec un code), chaque joueur peut choisir d'activer son micro pour parler avec les autres joueurs de la salle. C'est facultatif et le micro n'est utilisé qu'après ton accord. La voix passe directement d'un téléphone à l'autre : elle n'est ni enregistrée, ni stockée, ni écoutée par Lastep. Supabase sert seulement à mettre les téléphones en relation. Le vocal n'existe pas dans les parties avec des inconnus. Tu peux couper ton micro, couper la voix d'un joueur ou quitter le vocal à tout moment.</p>
 <h2>Enfants</h2>
-<p>Le jeu ne collecte aucune donnée personnelle sur un serveur, quel que soit l'âge du joueur.</p>
+<p>Le jeu ne demande ni nom réel, ni e-mail, ni âge. Seuls le pseudo et les scores du classement sont enregistrés (voir plus haut). Choisis un pseudo qui ne révèle pas ton identité. Le vocal est réservé aux salles privées entre amis.</p>
 <h2>Contact</h2>
 <p>Pour toute question : <a href="mailto:contact@exemple.fr">contact@exemple.fr</a> <!-- À REMPLACER --></p>
 <p><a href="./">Retour au jeu</a></p>

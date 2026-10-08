@@ -275,6 +275,7 @@
     hostRoom('', true, slot);
   }
   function leaveNet() {
+    try { window.Voice && Voice.leave(); } catch (e) {}
     if (!NET) return; const n = NET; NET = null;
     clearTimeout(n.timer);
     try { n.conn && n.conn.close(); } catch (e) {}
@@ -296,6 +297,24 @@
     setTimeout(draw, 3100);
   }
 
+
+  /* ---------- Vocal : seulement dans les salles privées (entre amis, avec le code) ---------- */
+  const VOK = () => !!(window.Voice && Voice.supported());
+  function voiceRoom() { return NET && !NET.quick && NET.code && NET.seat != null ? String(NET.code) : null; }
+  function voiceBar() {
+    if (!VOK() || !voiceRoom()) return '';
+    if (!Voice.active) return `<button class="btn vbtn" data-a="voice">🎙️ ${tr('Rejoindre le vocal')}</button>`;
+    return `<button class="btn vbtn on${Voice.muted ? ' mu' : ''}" data-a="vmute">${Voice.muted ? '🔇 ' + tr('Micro coupé') : '🎙️ ' + tr('Micro ouvert')}</button><button class="btn vbtn" data-a="voff" aria-label="${tr('Quitter le vocal')}">📴</button>`;
+  }
+  const vIcon = (i) => { const v = VOK() && Voice.seatState(i); return !v ? '' : v.deaf ? '🔕 ' : v.muted ? '🔇 ' : '🎙️ '; };
+  const vTalk = (i) => { const v = VOK() && Voice.seatState(i); return v && v.talk ? ' talk' : ''; };
+  let vBound = false;
+  function voiceJoin() {
+    const room = voiceRoom(); if (!room) return;
+    if (!vBound && window.Voice) { vBound = true; Voice.on(() => { if (root) draw(); }); }
+    Voice.join(room, NET.seat, P.name).then(() => { toast(tr('Vocal activé : tes amis t\'entendent')); draw(); })
+      .catch((e) => { toast(e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? tr('Micro refusé : autorise le micro dans les réglages du téléphone.') : tr('Vocal indisponible sur cet appareil.')); });
+  }
 
   /* ---------- Taquineries : toucher le nom d'un joueur → wizz, toc toc ou haha ---------- */
   const WZE = { wizz: '⚡', toc: '✊', haha: '😂' }, WZN = { wizz: 'Wizz', toc: 'Toc toc', haha: 'Haha' };
@@ -346,6 +365,9 @@
 #pt4 .pc b{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pt4 .pc small{font-family:var(--mono,monospace);font-size:.68rem;color:#a39cd0}
 #pt4 .pc .tm{position:absolute;left:8px;right:8px;bottom:3px;height:3px;border-radius:2px;background:var(--sc);transform-origin:left}
+#pt4 .pc.talk,#pt4 .seat.talk{box-shadow:0 0 0 3px #b6ff3b,0 0 22px #b6ff3b;border-color:#b6ff3b}
+#pt4 .vbtn.on{border-color:#b6ff3b;color:#d8ff9a}
+#pt4 .vbtn.mu{border-color:#ff4f6d;color:#ffb3c0}
 #pt4 .pc.tap{cursor:pointer}
 #pt4 .pc.tap::after{content:"⚡";position:absolute;top:-7px;right:-5px;font-size:.75rem;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#15112d;border:1px solid var(--sc)}
 #pt4 .wzpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:5;display:flex;gap:6px;align-items:center;padding:6px;border-radius:14px;background:#0b0820;border:2px solid var(--sc);box-shadow:0 8px 24px #000c}
@@ -426,8 +448,8 @@
     const b = UI.bubbles[i] && UI.bubbles[i].until > Date.now() ? `<div class="bub">${esc4(UI.bubbles[i].tx)}</div>` : '';
     const tag = s.kind === 'ai' ? tr('Ordinateur') : (NET && NET.seat === i) || (!NET && i === mySeat()) ? tr('Toi') : '';
     const me = mySeat(), tap = !PT.over && !out && i !== me && me != null;
-    const pop = UI.wz === i ? `<div class="wzpop">${['wizz', 'toc', 'haha'].map(k => `<button type="button" data-a="wz" data-v="${k}">${WZE[k]}<span>${tr(WZN[k])}</span></button>`).join('')}<small>${UI.wzLeft > 0 ? UI.wzLeft + '/3' : tr('Plus de taquineries')}</small></div>` : '';
-    return `<div class="pc${on ? ' on' : ''}${out ? ' out' : ''}${tap ? ' tap' : ''}${UI.hit && UI.hit.s === i && UI.hit.until > Date.now() ? ' hit-' + UI.hit.k : ''}" style="--sc:${SEATC[i]}"${tap ? ` data-a="seat" data-v="${i}" role="button" aria-label="${tr('Taquiner')} ${esc4(s.name)}"` : ''}>${b}${pop}${av(s.skin)}<div style="min-width:0"><b>${esc4(s.name)}</b><small>${out ? '✖ ' + tr('Éliminé') : (PT.J[i] ? '↷'.repeat(PT.J[i]) + ' ' : '') + tag}</small></div>${on ? `<div class="tm" data-tm="${i}"></div>` : ''}</div>`;
+    const pop = UI.wz === i ? `<div class="wzpop">${['wizz', 'toc', 'haha'].map(k => `<button type="button" data-a="wz" data-v="${k}">${WZE[k]}<span>${tr(WZN[k])}</span></button>`).join('')}${VOK() && Voice.seatState(i) ? `<button type="button" data-a="vdeaf">${Voice.seatState(i).deaf ? '🔊' : '🔕'}<span>${Voice.seatState(i).deaf ? tr('Réécouter') : tr('Couper sa voix')}</span></button>` : ''}<small>${UI.wzLeft > 0 ? UI.wzLeft + '/3' : tr('Plus de taquineries')}</small></div>` : '';
+    return `<div class="pc${on ? ' on' : ''}${out ? ' out' : ''}${tap ? ' tap' : ''}${vTalk(i)}${UI.hit && UI.hit.s === i && UI.hit.until > Date.now() ? ' hit-' + UI.hit.k : ''}" style="--sc:${SEATC[i]}"${tap ? ` data-a="seat" data-v="${i}" role="button" aria-label="${tr('Taquiner')} ${esc4(s.name)}"` : ''}>${b}${pop}${av(s.skin)}<div style="min-width:0"><b>${esc4(s.name)}</b><small>${out ? '✖ ' + tr('Éliminé') : vIcon(i) + (PT.J[i] ? '↷'.repeat(PT.J[i]) + ' ' : '') + tag}</small></div>${on ? `<div class="tm" data-tm="${i}"></div>` : ''}</div>`;
   }
   function canAct() {
     if (!PT || PT.over || PT.turn < 0) return false;
@@ -467,7 +489,7 @@
       <div class="bd${my && !PT.over ? ' spot' : ''}" id="pt4bd">${cells}${pawns}</div>
       <div class="rows bottom">${seatCard(rot)}${seatCard((rot + 3) % 4)}</div>
       <p class="st">${PT.msg ? `<b>${esc4(PT.msg)}</b><br>` : ''}${status}</p>
-      ${end}${PT.over ? '' : `<div class="acts">${chat}</div>${chips}`}`;
+      ${end}${PT.over ? (voiceBar() ? `<div class="acts">${voiceBar()}</div>` : '') : `<div class="acts">${chat}${voiceBar()}</div>${chips}`}`;
   }
   function drawMenu() {
     if (!UI.seats) UI.seats = [meSeat(), { kind: 'ai', ...botSeat(1) }, { kind: 'ai', ...botSeat(2) }, { kind: 'ai', ...botSeat(3) }];
@@ -489,13 +511,14 @@
     const code = host ? NET.code : (UI.lobby ? UI.lobby.code : NET && NET.code);
     const quick = host ? NET.quick : (UI.lobby && UI.lobby.quick) || (NET && NET.quick);
     const wait = host ? Math.max(0, NET.startAt - Date.now()) : UI.lobby ? Math.max(0, (UI.lobby.wait || 0) - (Date.now() - UI.lobbyAt)) : 0;
-    const rows = [0, 1, 2, 3].map(i => { const s = seats && seats[i]; return `<div class="seat" style="--sc:${SEATC[i]}">${s ? av(s.skin) : '<div class="av"></div>'}<b>${s ? esc4(s.name) : `<span class="note">${tr('En attente…')}</span>`}</b>${NET && NET.seat === i ? `<span class="note">${tr('Toi')}</span>` : ''}</div>`; }).join('');
+    const rows = [0, 1, 2, 3].map(i => { const s = seats && seats[i]; return `<div class="seat${vTalk(i)}" style="--sc:${SEATC[i]}">${s ? av(s.skin) : '<div class="av"></div>'}<b>${s ? vIcon(i) + esc4(s.name) : `<span class="note">${tr('En attente…')}</span>`}</b>${NET && NET.seat === i ? `<span class="note">${tr('Toi')}</span>` : ''}</div>`; }).join('');
     const n = (seats || []).filter(Boolean).length;
     return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Retour')}">✕</button><h2>${quick ? tr('Partie rapide') : tr('Salle privée')}</h2></div>
       ${UI.err ? `<p class="err">${esc4(UI.err)}</p>` : ''}
       ${!quick && code ? `<p class="note">${host ? tr('Dis ce code à tes amis : ils le tapent dans Partie à 4.') : tr('Code de la salle')}</p><div class="code">${esc4(String(code).toUpperCase())}</div>${host ? `<div class="acts"><button class="btn" data-a="copy">${tr('Copier le code')}</button><button class="btn" data-a="share">${tr('Partager le lien')}</button></div>` : ''}` : ''}
       ${quick ? `<p class="note" data-wait="1">${tr('Recherche de joueurs…')} ${Math.ceil(wait / 1000)} s · ${tr('ensuite, des ordinateurs complètent la table.')}</p>` : ''}
       ${rows}
+      ${voiceBar() ? `<div class="acts">${voiceBar()}</div><p class="note">${tr('Facultatif : parlez-vous pendant la partie, même chacun chez soi. Rien n\'est enregistré.')}</p>` : ''}
       ${host && !quick ? `<button class="btn pr" style="width:100%;margin-top:12px" data-a="start" ${n < 2 ? 'disabled' : ''}>${tr('Lancer la partie')} (${n}/4)</button><p class="note">${tr('Les places vides seront jouées par l\'ordinateur.')}</p>` : ''}
       ${!host && !quick ? `<p class="note">${tr('L\'hôte lance la partie quand tout le monde est là.')}</p>` : ''}`;
   }
@@ -543,6 +566,10 @@
     if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
     if (a === 'say') return sendPhrase(b.dataset.v);
+    if (a === 'voice') return voiceJoin();
+    if (a === 'vmute') { Voice.toggleMute(); return; }
+    if (a === 'voff') { Voice.leave(); draw(); return; }
+    if (a === 'vdeaf') { e.stopPropagation(); Voice.toggleDeaf(UI.wz); UI.wz = null; draw(); return; }
     if (a === 'wz') { e.stopPropagation(); return sendWz(UI.wz, b.dataset.v); }
     if (a === 'seat') { const i = +b.dataset.v; UI.wz = UI.wz === i ? null : i; draw(); return; }
   }
