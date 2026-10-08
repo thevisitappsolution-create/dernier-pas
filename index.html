@@ -1189,7 +1189,7 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .hlogo .logo{aspect-ratio:900/291}
 .mode3 .art,.mmarena{aspect-ratio:1}
 #screen.pgin{animation:pgin .28s ease-out}
-@keyframes pgin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pgin{from{transform:translateY(10px)}to{transform:none}}
 </style>
 
 </head>
@@ -1236,7 +1236,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 67,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 68,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2242,7 +2242,7 @@ function card(kind,id,o={}){
 function renderTabs(){
   const t=[['home','icone-maison',(T("Accueil"))],['parc','icone-carte',(T("Aventure"))],['play','icone-epees',(T("Arène"))],['shop','coffre-or',(T("Boutique"))],['profile','icone-profil',(T("Profil"))]];
   const on = v => view===v || (v==='parc' && ['puzzles','learn'].includes(view));
-  $('#tabsIn').innerHTML=t.map(([v,e,l])=>`<button type="button" data-act="tab" data-v="${v}" ${on(v)?'aria-current="page"':''}>${IMG(e,'te')}${l}</button>`).join('');
+  { const h=t.map(([v,e,l])=>`<button type="button" data-act="tab" data-v="${v}" ${on(v)?'aria-current="page"':''}>${IMG(e,'te')}${l}</button>`).join(''); const ti=$('#tabsIn'); if (ti.dataset.h!==h){ morphHTML(ti,h); ti.dataset.h=h; } }
 }
 
 /* ---------- Rendu : feuilles ---------- */
@@ -2434,6 +2434,27 @@ function analysisHTML(){
 }
 
 /* ---------- Rendu général ---------- */
+// Mise à jour « en douceur » : on ne remplace que ce qui a changé. Les images déjà affichées restent en place (aucun clignement)
+// et les animations en cours (pion qui rebondit, îles qui flottent) ne redémarrent pas.
+function morphHTML(root, html){
+  const tpl=document.createElement('template'); tpl.innerHTML=html; morphKids(root, tpl.content);
+}
+function morphKids(a, b){
+  const an=[...a.childNodes], bn=[...b.childNodes];
+  for (let i=0;i<bn.length;i++){
+    const x=an[i], y=bn[i];
+    if (!x){ a.appendChild(y.cloneNode(true)); continue; }
+    if (x.nodeType!==y.nodeType || x.nodeName!==y.nodeName || (x.nodeType===1 && x.nodeName==='IMG' && x.getAttribute('src')!==y.getAttribute('src'))){ a.replaceChild(y.cloneNode(true), x); continue; }
+    if (x.nodeType===3 || x.nodeType===8){ if (x.nodeValue!==y.nodeValue) x.nodeValue=y.nodeValue; continue; }
+    if (x.nodeType!==1) continue;
+    for (const at of [...x.attributes]) if (!y.hasAttribute(at.name)) x.removeAttribute(at.name);
+    for (const at of [...y.attributes]) if (x.getAttribute(at.name)!==at.value) x.setAttribute(at.name, at.value);
+    if (x.nodeName==='INPUT' && document.activeElement!==x && x.value!==(y.getAttribute('value')||'')) x.value=y.getAttribute('value')||'';
+    if (x.nodeName==='DETAILS') x.open=y.hasAttribute('open');
+    if (x.nodeName!=='svg' || x.innerHTML!==y.innerHTML) morphKids(x, y);
+  }
+  for (let i=an.length-1;i>=bn.length;i--) a.removeChild(an[i]);
+}
 function render(){
   S=sides(); applyTheme();
   const inGame = view==='game' && M && G;
@@ -2446,7 +2467,7 @@ function render(){
     if (view==='game') view='play';
     const html = view==='home'?renderHome():view==='shop'?renderShop():view==='profile'?renderProfile():view==='puzzles'?renderPuzzles():view==='parc'?renderParc():view==='learn'?renderLearn():renderPlay();
     const scr=$('#screen'), changed=scr.dataset.v!==view;
-    if (changed || scr.innerHTML!==html){ scr.innerHTML=html; scr.dataset.v=view; if (changed && !REDUCED){ scr.classList.remove('pgin'); void scr.offsetWidth; scr.classList.add('pgin'); } }
+    if (changed || scr.dataset.h!==html){ morphHTML(scr, html); scr.dataset.h=html; scr.dataset.v=view; if (changed && !REDUCED){ scr.classList.remove('pgin'); void scr.offsetWidth; scr.classList.add('pgin'); } }
     renderTabs();
   }
   renderSheet();
@@ -4146,7 +4167,7 @@ function lgDueCheck(){
 const nextParc = () => { const i=PARC.findIndex((_,k)=>!parcStars(k)); return i<0 ? PARC.length-1 : i; };
 // dimensions réservées : la page ne « saute » pas pendant le chargement des images
 const IMG_WH = n => n==='logo-lastep' ? [900,291] : [512,512];
-const IMG = (n, cls='', alt='') => { const [w,h]=IMG_WH(n); return `<img class="gimg ${cls}" src="assets/web/${n}.webp" width="${w}" height="${h}" alt="${alt}" draggable="false">`; };
+const IMG = (n, cls='', alt='') => { const [w,h]=IMG_WH(n); return `<img class="gimg ${cls}" src="assets/web/${n}.webp" width="${w}" height="${h}" alt="${alt}" draggable="false" decoding="sync">`; };
 // préchargement de toutes les illustrations dès l'ouverture (elles restent en mémoire)
 const IMG_CACHE=[];
 ['arene','aventure-ile','logo-lastep','fond-nuit','coffre-argent-ouvert','coffre-argent','coffre-bois-ouvert','coffre-bois','coffre-legendaire','coffre-or-ouvert','coffre-or','couronne-royale','icone-cadeau','icone-cadenas','icone-calendrier','icone-carte','icone-epees','icone-maison','icone-parchemin','icone-plus','icone-profil','icone-roue','icone-trophee']
