@@ -1053,3 +1053,16 @@ Object.assign(window.EN_DICT, {
 "La partie est déjà commencée et compte pour ton classement. En mode assisté, elle ne comptera plus : elle est comptée comme abandonnée pour le classement.":"This game has already started and counts for your ranking. In assisted mode it no longer counts: it is scored as a resignation for your ranking.",
 "Activer l'assistant":"Turn on the assistant","· assisté":"· assisted","D'accord":"OK"
 });
+// v71 : crédits, partie assistée, mes parties, pubs
+Object.assign(window.EN_DICT, {
+"indices":"hints","analyses":"analyses","Plus d'indice ce mois-ci":"No hints left this month","Plus d'analyse ce mois-ci":"No analyses left this month",
+"Chaque mois, tu as":"Every month you get","gratuits. Ils reviennent le 1er du mois.":"for free. They come back on the 1st of the month.",
+"Acheter":"Buy","Regarder une pub":"Watch an ad","Premium : indices, analyses et cours illimités, sans publicité.":"Premium: unlimited hints, analyses and lessons, no ads.",
+"Partie assistée":"Assisted game","Mes parties":"My games","Jauge, avis sur chaque coup, alertes et retour en arrière. Hors classement.":"Gauge, feedback on every move, alerts and undo. Unranked.",
+"La jauge te montre qui mène. Indices :":"The gauge shows who's ahead. Hints:","Hors classement.":"Unranked.","Indice":"Hint",
+"La jauge montre qui mène. Besoin d'aide ? Utilise un indice.":"The gauge shows who's ahead. Need help? Use a hint.",
+"Ordinateur":"Computer","En ligne":"Online","Ami":"Friend","Sur ce téléphone":"On this phone",
+"Analyses illimitées avec Premium.":"Unlimited analyses with Premium.","Analyses restantes ce mois-ci :":"Analyses left this month:","Une analyse couvre toute la partie.":"One analysis covers the whole game.",
+"Victoire":"Win","Défaite":"Loss","Voir":"View","Analyser":"Analyze","Joue une partie : elle apparaîtra ici et tu pourras l'analyser coup par coup.":"Play a game: it will show up here and you can analyze it move by move.",
+"Manche":"Round","Regarde jusqu'au bout pour gagner la récompense":"Watch to the end to get the reward"
+});

@@ -838,6 +838,7 @@ body{font-weight:700}
 .adart{font-size:4rem}
 .adn{font-family:var(--fun);font-size:2.4rem;font-weight:400}
 .adskip{color:#a39cd0}
+.adin .adw{display:block;opacity:.75;margin-top:8px;font-size:.8rem}
 .adx{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:#0008;color:#fff;cursor:pointer}
 .pcard{max-height:92vh;overflow:auto}
 .tapfx{animation:tapfx .18s ease-out}
@@ -952,6 +953,13 @@ html:not(.lock) body{background:transparent!important}
 .ptitle .swap{padding:3px 12px;font-size:.85rem}
 .rrow2.r5{grid-template-columns:repeat(5,1fr);gap:6px}
 .rrow2.r3{grid-template-columns:repeat(3,1fr);gap:10px}
+.rrow2.r2{grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
+.glist{display:grid;gap:8px;margin-top:8px}.grow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:#ffffff0d}
+.grow .res{flex:none;font-weight:800;font-size:.75rem;padding:3px 8px;border-radius:9px}.grow .res.w{background:#2effa8;color:#0b0620}.grow .res.l{background:#ff3b7a;color:#fff}
+.grow .gt{flex:1;display:grid;min-width:0}.grow .gt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.grow .gt small{opacity:.7;font-size:.75rem}
+.grow button.sm,.row button.sm{width:auto;padding:7px 12px;font-size:.85rem;margin:0}
+.antabs{flex-wrap:nowrap;gap:6px;margin-right:46px}.antabs button.sm{flex:1;padding:7px 6px}.antabs button.sm:first-child{flex:none;width:40px}
+.credrow{display:flex;justify-content:center;font-size:1.1rem;margin:4px 0 10px}
 .rrow2.r3 .rb .gimg,.rrow2.r3 .rb .emo3{width:50px;height:50px;font-size:2.2rem}
 .rrow2.r5 .rb .gimg,.rrow2.r5 .rb .emo3{width:42px;height:42px;font-size:1.9rem}
 .rrow2.r5 .rb small{font-size:.64rem}
@@ -1275,7 +1283,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 70,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 71,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1513,8 +1521,13 @@ if (!P.v6){ P.v6=true; P.coins+=100;
   if (THEMES[P.theme].p>0 && !P.owned.includes('theme:'+P.theme)) P.owned.push('theme:'+P.theme); }
 saveP();
 const WEEK=168*3600e3;
-function anLeft(){ const now=Date.now(); P.an=P.an.filter(t=>now-t<WEEK); return P.premium ? Infinity : Math.max(0, 3-P.an.length); }
-function anRenewH(){ if (!P.an.length) return 0; return Math.max(1, Math.ceil((Math.min(...P.an)+WEEK-Date.now())/3600e3)); }
+// Gratuit : 3 indices et 3 analyses de parties par mois. Ensuite : packs en pièces (les pièces se gagnent en jouant ou avec les pubs volontaires) ou Premium (illimité).
+const CRED_FREE={h:3, a:3}, CRED_PACK={h:{n:3, price:100}, a:{n:3, price:150}};
+function cred(){ const m=new Date().toISOString().slice(0,7); let c=P.cred; if (!c || c.m!==m) c=P.cred={m, h:0, a:0, xh:(c&&c.xh)||0, xa:(c&&c.xa)||0}; return c; }
+const credLeft = k => P.premium ? Infinity : Math.max(0, CRED_FREE[k]-cred()[k]) + (cred()['x'+k]||0);
+function credUse(k){ if (P.premium) return true; const c=cred(); if (c[k]<CRED_FREE[k]) c[k]++; else if (c['x'+k]>0) c['x'+k]--; else { sheet={type:'nocred', k}; render(); return false; } saveP(); return true; }
+const anLeft = () => credLeft('a');
+const credBadge = k => P.premium ? '' : String(credLeft(k));
 const TIERS=[[900,(T("Bronze")),'#c98a5b'],[1150,(T("Argent")),'#c9d1cf'],[1400,(T("Or")),'#ecd59c'],[1650,(T("Platine")),'#8fd1c9'],[1e9,(T("Diamant")),'#9fb6ff']];
 const tierOf = r => TIERS.find(t => r < t[0]);
 function applyElo(score){
@@ -1730,7 +1743,8 @@ function sides(){
 let S=null;
 const humanSeat = () => online() ? net.seat : vsAI ? 0 : null;
 const bottomSide = () => { const h=humanSeat(); return h===1 ? 1 : 0; };
-const who = p => `<span class="who" style="--pc:${S[p].hex}"><i></i>${esc(S[p].name)}</span>`;
+const who = (p, nm) => `<span class="who" style="--pc:${S[p].hex}"><i></i>${esc(nm||S[p].name)}</span>`;
+const whoS = who;
 
 /* ---------- Règles ---------- */
 const stateOf = () => ({cells:G.cells, pawns:G.pawns, jumps:G.J, turn:G.turn});
@@ -1858,27 +1872,13 @@ function onCell(i){
 }
 /* ---------- Mode assisté (Premium, contre l'ordinateur) ---------- */
 const AS_V={top:"Excellent !",good:"Bon coup",inacc:"Imprécis",mist:"Erreur",blun:"Gaffe !",ok:"Bien résisté"};
-function assistToggle(){
-  if (!M || !vsAI) return;
-  if (M.assist){ M.assist=false; G.as=null; render(); return; }
-  if (!P.premium){ sheet={type:'locked', what:'assist'}; render(); return; }
-  if (!M.train && (M.rounds.length || (G && G.moves>0))){ sheet={type:'assistgo'}; render(); return; }
-  assistOn(false);
-}
-function assistOn(pen){
-  if (!M) return;
-  if (pen && !M.train) applyElo(0);
-  M.assist=true; M.train=true; sheet=null; G.as={g:50, busy:false};
-  toast(T("Mode assisté : partie hors classement")); render();
-  if (!G.over && G.turn===0) assistTurn();
-}
 const asGauge = (v) => Math.abs(v)>=1000 ? (v>0?98:2) : Math.round(50+48*Math.tanh(v/16));
 const nCoups = n => `${n} ${T(n>1?'coups':'coup')}`;
 async function assistTurn(){
   const g=G, ver=G.ver; G.as=G.as||{g:50}; G.as.busy=true; assistPaint();
   const r=await ask('assist',{...stateOf(), ms:800});
   if (G!==g || G.ver!==ver || !M || !M.assist || !r) { if (G===g && G.as) { G.as.busy=false; assistPaint(); } return; }
-  const a=G.as; a.busy=false; a.g=asGauge(r.best);
+  const a=G.as; a.busy=false; a.g=asGauge(r.best); a.at=ver;
   if (r.best>=1000){ const n=(r.bp+1)>>1; a.tip = n<=3 ? `🌟 ${T("Bravo ! Si tu joues bien, tu peux gagner en")} ${nCoups(n)}. ${T("À toi de trouver comment.")}` : `🌟 ${T("Tu as une victoire forcée. Cherche-la !")}`; a.tk='win'; }
   else if (r.best<=-1000){ const n=Math.max(1,r.bp>>1); a.tip = `😰 ${T("Position difficile : l'adversaire peut te bloquer en")} ${nCoups(n)}. ${T("Tiens le plus longtemps possible, ou annule ton dernier coup.")}`; a.tk='lose'; }
   else if (r.traps && r.tp){ const n=Math.max(1,r.tp>>1); a.tip = n<=3 ? `⚠️ ${T("Attention ici : un mauvais coup et tu perds en")} ${nCoups(n)}.` : `⚠️ ${T("Attention : certains coups ici sont des pièges.")}`; a.tk='trap'; }
@@ -1886,6 +1886,7 @@ async function assistTurn(){
   assistPaint();
 }
 async function assistRate(){
+  if (!P.premium) return;
   const h=HIST[G.round]||[], e=h[h.length-1]; if (!e || e.turn!==0) return;
   const g=G, ver=G.ver; G.as=G.as||{g:50}; G.as.busy=true; G.as.vd=null; G.as.vt=T("L'assistant analyse ton coup…"); G.as.tip=''; assistPaint();
   const r=await ask('assist',{cells:e.cells, pawns:e.pawns, jumps:e.jumps, turn:0, move:e.move, ms:900});
@@ -1903,17 +1904,23 @@ async function assistRate(){
   if (k==='top'||k==='good') vibrate(6); else if (k==='blun'||k==='mist') vibrate([20,40,20]);
   assistPaint();
 }
+function assistHint(){
+  if (!G || !G.as || G.over || G.turn!==0 || G.as.rev===G.ver) return;
+  if (!credUse('h')) return;
+  G.as.rev=G.ver; vibrate(6); assistPaint(); renderActions();
+}
 function assistPaint(){
   const el=document.getElementById('assist'); if (!el) return;
   const on=!!(view==='game' && G && M && M.assist && !TR); el.hidden=!on; if (!on) return;
   const a=G.as||{g:50};
   const html=`<div class="gauge${a.busy?' busy':''}" style="--g:${a.g}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${a.g}" aria-label="${T("Jauge de l'assistant")}"><i></i></div>
     ${a.vt?`<div class="al">${a.vd?`<span class="vd ${a.vd}">${T(AS_V[a.vd])}</span>`:''}<span>${esc(a.vt)}</span></div>`:''}
-    <div class="al">${esc(a.tip||(a.busy?'…':T("Joue ton coup : l'assistant te dira s'il est bon.")))}</div>`;
+    ${P.premium ? `<div class="al">${esc(a.tip||(a.busy?'…':T("Joue ton coup : l'assistant te dira s'il est bon.")))}</div>`
+      : a.rev===G.ver && a.at===G.ver && a.tip ? `<div class="al">${esc(a.tip)}</div>` : `<div class="al note">${a.rev===G.ver?'…':`${T("La jauge montre qui mène. Besoin d'aide ? Utilise un indice.")}`}</div>`}`;
   if (el._h!==html){ el._h=html; el.innerHTML=html; }
 }
 function undo(){
-  if (!G || !M || !M.train) return;
+  if (!G || !M || !M.train || (M.assist && !P.premium)) return;
   const h=HIST[G.round]||[]; let idx=-1;
   for (let j=h.length-1;j>=0;j--) if (h[j].turn===0){ idx=j; break; }
   if (idx<0) return;
@@ -1931,10 +1938,9 @@ async function hint(){
   G.hinting=false; G.hint=m; if (m){ G.pick=m[0]; G.jumpOn=!!m[2]; } render();
 }
 async function analyze(r){
-  if (anLeft()<=0){ sheet={type:'locked', what:'analyse'}; render(); return; }
-  if (!P.premium){ P.an.push(Date.now()); saveP(); }
+  if (!M.anOK){ if (!credUse('a')) return; M.anOK=true; const g=(P.games||[]).find(x=>x.gid===M.id); if (g){ g.anOK=1; saveP(); } }
   const list=(HIST[r]||[]).map(h=>({...h}));
-  AN={r,res:null,sel:0}; sheet={type:'analysis'}; render();
+  AN={r,res:null,sel:0,h:HIST[r]}; sheet={type:'analysis'}; render();
   if (!list.length){ AN.res=[]; render(); return; }
   const res=await ask('analyze',{list});
   if (!AN || AN.r!==r) return;
@@ -2322,8 +2328,8 @@ function renderActions(){
   const me=seat===null?G.turn:seat, a=[];
   const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`${T("aria-pressed=\"")}${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
   if (playing){
-    if (vsAI && !TR) a.push(btn('assist','bulb',M.assist?T("Assisté"):T("Assistant"),{cls:M.assist?'on':'', pressed:!!M.assist}));
-    if (M.train){ a.push(btn('undo','undo',(T("Annuler")),{dis:!(HIST[G.round]||[]).some(h=>h.turn===0)})); }
+    if (M.assist && !P.premium) a.push(btn('as-hint','bulb',T("Indice"),{dis:!myTurn||(G.as&&G.as.rev===G.ver), badge:credBadge('h')}));
+    if (M.train && (!M.assist || P.premium)){ a.push(btn('undo','undo',(T("Annuler")),{dis:!(HIST[G.round]||[]).some(h=>h.turn===0)})); }
     if (social && seat!==-1){
       const cd=Date.now()-wzLast<12000;
       a.push(btn('chat','chat',(T("Chat")),{badge:unread||''}));
@@ -2335,7 +2341,7 @@ function renderActions(){
     if (seat!==-1) a.push(btn('resign','flag',online()?(T("Quitter")):(T("Abandon")),{cls:'quit'}));
   } else {
     if (social && seat!==-1) a.push(btn('chat','chat',(T("Chat")),{badge:unread||''}));
-    a.push(btn('analyze','chart',`${T("Analyser")}`,{badge:P.premium?'':String(anLeft())}));
+    a.push(btn('analyze','chart',`${T("Analyser")}`,{badge:M.anOK?'':credBadge('a')}));
     a.push(btn('results','list',(T("Résultats"))));
     a.push(btn('resign','door',(T("Menu"))));
     if (canAct()) a.push(M.done ? btn('new','', (T("Rejouer")),{cls:'primary'}) : btn('next','', `${T("Manche")} ${M.round+1}`,{cls:'primary'}));
@@ -2391,9 +2397,9 @@ function sheetHTML(){
   if (s.type==='lb') return lbHTML();
   if (s.type==='time') return `<h2>${T("Cadence")}</h2><p>${T("Temps par joueur et par manche. Quelle que soit la cadence, chacun commence une manche : il faut 2 manches gagnées.")}</p><div class="timegrid">${TIMES.map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>`;
   if (s.type==='ai'){
-    return `<h2>${T("Choisis ton adversaire")}</h2>
+    return `<h2>${s.assist?`💡 ${T("Partie assistée")}`:T("Choisis ton adversaire")}</h2>${s.assist?`<p class="note">${P.premium?T("Jauge, avis sur chaque coup, alertes et retour en arrière. Hors classement."):`${T("La jauge te montre qui mène. Indices :")} ${credLeft('h')}. ${T("Hors classement.")}`}</p>`:''}
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
-    <label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>
+    ${s.assist?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
     <button class="primary" type="button" data-act="go-ai">${T("Jouer ·")} ${tLabel(P.time)}</button>`;
   }
   if (s.type==='friend'){
@@ -2410,12 +2416,9 @@ function sheetHTML(){
     return `<h2>${T("Connexion à la partie")} ${esc(net.code.toUpperCase())}…</h2><p>${T("Ton ami doit garder l'écran de la partie ouvert.")}</p><button class="secondary" type="button" data-act="leave">${T("Annuler")}</button>`;
   }
   if (s.type==='locked'){
-    if (s.what==='analyse') return `<h2>${T("Plus d'analyse gratuite")}</h2><p>${T("Tu as utilisé tes 3 analyses des 7 derniers jours. La prochaine se libère dans")} ${anRenewH()} ${T("h. Les analyses illimitées arriveront avec Premium.")}</p>`;
     if (s.what==='premiumpz') return `<h2>${T("Puzzles Premium")}</h2><p>${T("Les")} ${PZ_FREE} ${T("premiers puzzles sont gratuits. La suite du parcours fait partie de Premium.")}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`;
     if (s.what==='rushday') return `<h2>${T("Plus d'essai aujourd'hui")}</h2><p>${T("Sans Premium, tu as")} ${RUSH_FREE} ${T("défis chrono par jour. Reviens demain, ou passe Premium pour jouer sans limite.")}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`;
     if (s.what==='premium') return `<h2>${T("Cours Premium")}</h2><p>${T("Ce cours fait partie de Premium : il apprend les techniques des meilleurs joueurs. Premium arrive bientôt en abonnement.")}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`;
-    if (s.what==='assist') return `<div class="modicon">💡</div><h2>${T("Mode assisté · Premium")}</h2><p>${T("Une jauge te dit si chaque coup est bon ou mauvais, et l'assistant te prévient quand tu peux gagner ou perdre dans quelques coups. Il ne te donne jamais le coup : c'est à toi de le trouver. Tu peux annuler tes coups pour réussir une partie parfaite.")}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`;
-    if (s.what==='hint') return `<h2>${T("Indices · Premium")}</h2><p>${T("Les indices et les solutions des cours et des puzzles font partie de Premium. Sans indice, cherche par toi-même : c'est comme ça qu'on progresse le plus.")}</p><button class="primary" type="button" data-act="sheet-close">${T("Je cherche encore")}</button>`;
     if (s.what==='tournament') return true ? `<h2>${T("Tournois · bientôt")}</h2><p>${T("Les tournois, ligues et classements mondiaux arriveront avec les comptes joueurs et le serveur de l'application.")}</p>` : `<h2>${T("Tournois · Premium")}</h2><p>${T("Tournois éclair, ligues et trophées sont réservés aux membres Premium.")}</p><button class="primary" type="button" data-act="go-shop">${T("Voir Premium")}</button>`;
   }
   if (s.type==='buy'){
@@ -2426,7 +2429,13 @@ function sheetHTML(){
       ${can?`<button class="primary" type="button" data-act="buy-ok">${T("Acheter et équiper ·")} ${c} ${T("pièces")}</button>`:`<p class="note">${T("Il te manque")} ${c-P.coins} ${T("pièces. Joue des parties, des puzzles et des cours pour en gagner.")}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`}`;
   }
   if (s.type==='settings') return `<h2>${T("Réglages")}</h2>${settingsBody()}`;
-  if (s.type==='assistgo') return `<div class="modicon">💡</div><h2>${T("Passer en mode assisté ?")}</h2><p>${T("La partie est déjà commencée et compte pour ton classement. En mode assisté, elle ne comptera plus : elle est comptée comme abandonnée pour le classement.")}</p><button class="primary" type="button" data-act="assist-on">${T("Activer l'assistant")}</button><button class="secondary" type="button" data-act="sheet-close">${T("Retour")}</button>`;
+  if (s.type==='nocred'){ const k=s.k, pk=CRED_PACK[k], ad=P.adCoins&&P.adCoins.d===dayKey()?P.adCoins.n:0, nm=k==='h'?T("indices"):T("analyses");
+    return `<div class="modicon">${k==='h'?'💡':'📊'}</div><h2>${k==='h'?T("Plus d'indice ce mois-ci"):T("Plus d'analyse ce mois-ci")}</h2>
+    <p>${T("Chaque mois, tu as")} ${CRED_FREE[k]} ${nm} ${T("gratuits. Ils reviennent le 1er du mois.")}</p>
+    <div class="credrow"><span>${ic('coin')} <b>${P.coins||0}</b></span></div>
+    <button class="primary" type="button" data-act="buy-pack" data-v="${k}" ${(P.coins||0)<pk.price?'disabled':''}>${T("Acheter")} ${pk.n} ${nm} · ${pk.price} ${ic('coin','ic sm')}</button>
+    ${ad<5?adBtn('coins-ad', `${T("Regarder une pub")} : +25 ${T("pièces")}`):''}
+    <p class="note">💎 ${T("Premium : indices, analyses et cours illimités, sans publicité.")}</p>`; }
   if (s.type==='resign') return `<h2>${online()?(T("Quitter la partie ?")):(T("Abandonner la partie ?"))}</h2><p>${vsAI&&M&&!M.train?(T("La partie comptera comme une défaite pour ton classement.")):online()?(T("Ton adversaire gagne la partie et tu perds des points de championnat.")):(T("Tu retournes au menu."))}</p>
     <div class="row"><button class="danger" type="button" data-act="resign-ok">${online()?(T("Quitter")):(T("Abandonner"))}</button><button class="secondary" type="button" data-act="sheet-close">${T("Continuer")}</button></div>`;
   if (s.type==='admin') return `<h2>${T("Accès administrateur")}</h2><p>${P.premium?(T("Premium est actif sur cet appareil.")):(T("Entre le code pour débloquer Premium sur cet appareil."))}</p>
@@ -2531,6 +2540,7 @@ function sheetHTML(){
       <li><span>8</span><div><b>${T("Prémove.")}</b> ${T("Pendant le tour adverse, prépare ton coup : il part tout seul s'il est encore possible.")}</div></li></ol>
       <button class="primary" type="button" data-act="sheet-close">${T("C'est parti")}</button>`;
   if (s.type==='analysis') return analysisHTML();
+  if (s.type==='angames') return gamesHTML();
   if (s.type==='lessons') return lessonsHTML();
   if (s.type==='puzzles') return puzzlesHTML();
   if (s.type==='tr') return trSheetHTML();
@@ -2542,7 +2552,9 @@ function updateChatLog(){
   el.scrollTop=el.scrollHeight;
 }
 function analysisHTML(){
-  const h=HIST[AN.r]||[], head=`<h2>${T("Analyse · manche")} ${AN.r} · ${BOARDS[(M.rounds[AN.r-1]||{bid:G.bid}).bid].name}</h2>`;
+  const h=AN.h||HIST[AN.r]||[], bid=AN.bid!=null?AN.bid:(M&&M.rounds[AN.r-1]||{bid:G?G.bid:0}).bid, who=p=>whoS(p, AN.nm&&AN.nm[p]);
+  const tabs=AN.gi!=null?`<div class="row antabs"><button class="secondary sm" type="button" data-act="an-games" aria-label="${T("Mes parties")}">‹</button>${AN.rounds>1?[...Array(AN.rounds)].map((_,k)=>`<button class="${k+1===AN.r?'primary':'secondary'} sm" type="button" data-act="g-round" data-v="${k+1}">${T("Manche")} ${k+1}</button>`).join(''):''}</div>`:'';
+  const head=`${tabs}<h2>${T("Analyse · manche")} ${AN.r} · ${(BOARDS[bid]||BOARDS[0]).name}</h2>`;
   if (AN.res===null) return `${head}<p>${T("Analyse de")} ${h.length} ${T("coups en cours…")}</p>`;
   if (AN.res==='err'||!h.length) return `${head}<p>${h.length?(T("L'analyse n'a pas pu se faire.")):(T("Aucun coup enregistré sur cet appareil pour cette manche."))}</p>`;
   const cnt=[{blunder:0,mistake:0},{blunder:0,mistake:0}];
@@ -2601,7 +2613,8 @@ function render(){
 }
 
 /* ---------- Événements ---------- */
-function startAI(level){ leaveOnline(); vsAI=level; training=false; startMatch(); }
+function startAI(level, assist){ leaveOnline(); vsAI=level; training=!!assist; const tp=P.trap; if (assist) P.trap=false; startMatch(); P.trap=tp;
+  if (assist && M){ M.assist=true; G.as={g:50}; render(); if (!G.over && G.turn===0) assistTurn(); } }
 document.addEventListener('click', e=>{
   const a=e.target.closest('[data-act]'); if (!a) return;
   const k=a.dataset.act, v=a.dataset.v;
@@ -2679,7 +2692,7 @@ document.addEventListener('click', e=>{
     case 'quick': startAI(P.level,false); break;
     case 'ai-sheet': sheet={type:'ai'}; render(); break;
     case 'level': P.level=v; saveP(); render(); break;
-    case 'go-ai': startAI(P.level,false); break;
+    case 'go-ai': startAI(P.level, !!(sheet&&sheet.assist)); break;
     case 'local': leaveOnline(); vsAI=null; training=false; startMatch(); break;
     case 'friend': sheet={type:'friend'}; render(); break;
     case 'tournament': sheet={type:'locked',what:'tournament'}; render(); break;
@@ -2694,7 +2707,7 @@ document.addEventListener('click', e=>{
     case 'sheet-close': closeSheet(); break;
     case 'settings': sheet={type:'settings'}; render(); break;
     case 'resign': if (M && M.done){ leaveGame(); } else { sheet={type:'resign'}; render(); } break;
-    case 'resign-ok': sheet=null; resignNow(); break;
+    case 'resign-ok': { const pl=matchPlayed(); sheet=null; resignNow(); if (pl) adInter(); break; }
     case 'calm': P.calm=!P.calm; saveP(); render(); break;
     case 'match': goMatch(0); break;
     case 'mm-cancel': mmCancel(); break;
@@ -2721,12 +2734,16 @@ document.addEventListener('click', e=>{
     case 'add-opp': { const op=online()&&PEERS[1-net.seat]; if (op && op.uid && addFriend(op.uid, op.nm)){ toast(`${op.nm} ${T("ajouté à tes amis")}`); a.remove(); } } break;
     case 'menu': sheet={type:'menu'}; render(); break;
     case 'ask-leave': sheet={type:'menu',confirm:true}; render(); break;
-    case 'leave-game': if (M&&M.done){ $('#party').hidden=true; stopConfetti(); adInter().then(leaveGame); } else leaveGame(); break;
+    case 'leave-game': if (matchPlayed()){ $('#party').hidden=true; stopConfetti(); adInter().then(leaveGame); } else leaveGame(); break;
     case 'jump': if (G && G.J[G.turn]){ G.jumpOn=!G.jumpOn; render(); } break;
     case 'hint': hint(); break;
     case 'undo': undo(); break;
-    case 'assist': assistToggle(); break;
-    case 'assist-on': assistOn(true); break;
+    case 'buy-pack': { const pk=CRED_PACK[v]; if ((P.coins||0)>=pk.price){ P.coins-=pk.price; const c=cred(); c['x'+v]=(c['x'+v]||0)+pk.n; saveP(); sfx.win(); toast(`+${pk.n} ${v==='h'?T("indices"):T("analyses")}`); sheet=null; render(); } break; }
+    case 'as-hint': assistHint(); break;
+    case 'ai-assist': sheet={type:'ai', assist:true}; render(); break;
+    case 'an-games': sheet={type:'angames'}; render(); break;
+    case 'g-an': analyzeSaved(+v, 1); break;
+    case 'g-round': analyzeSaved(AN&&AN.gi, +v); break;
     case 'chat': unread=0; sheet={type:'chat'}; render(); break;
     case 'quick-msg': sendChat(v); sheet=null; render(); break;
     case 'chat-tab': sheet={type:'chat', tab:v}; render(); break;
@@ -2743,9 +2760,9 @@ document.addEventListener('click', e=>{
     case 'party-analyze': $('#party').hidden=true; stopConfetti(); analyze(M.rounds.length); break;
     case 'an-sel': AN.sel=+v; render(); break;
     case 'an-prev': AN.sel=Math.max(0,AN.sel-1); render(); break;
-    case 'an-next': AN.sel=Math.min((HIST[AN.r]||[]).length-1,AN.sel+1); render(); break;
+    case 'an-next': AN.sel=Math.min((AN.h||HIST[AN.r]||[]).length-1,AN.sel+1); render(); break;
     case 'prem': P.premium=true; saveP(); toast((T("Premium simulé activé"))); render(); break;
-    case 'unprem': P.premium=false; P.blockTaunts=false; saveP(); toast((T("Premium désactivé"))); render(); break;
+    case 'unprem': P.premium=false; saveP(); toast((T("Premium désactivé"))); render(); break;
     case 'go-shop': sheet=null; if (view==='game') leaveGameSoft(); view='shop'; render(); break;
     case 'buy': if (unlocked(a.dataset.k,v)){ equip(a.dataset.k,v); toast((T("Équipé"))); } else { sheet={type:'buy',k:a.dataset.k,v}; } render(); break;
     case 'equip': if (unlocked(a.dataset.k,v)) equip(a.dataset.k,v); else sheet={type:'buy',k:a.dataset.k,v}; render(); break;
@@ -2760,7 +2777,7 @@ document.addEventListener('change', e=>{
   if (t.id==='pname'){ P.name=cleanName(t.value)===T('Adversaire')&&!t.value.trim()?(T("Toi")):cleanName(t.value); saveP(); presBroadcast(); render(); }
   if (t.id==='o-trap'){ P.trap=t.checked; saveP(); }
   if (t.id==='o-calm'){ P.calm=t.checked; saveP(); render(); }
-  if (t.id==='o-block'){ P.blockTaunts=t.checked && P.premium; saveP(); netSend({t:'nb', v:myBlock()}); render(); }
+  if (t.id==='o-block'){ P.blockTaunts=t.checked; saveP(); netSend({t:'nb', v:myBlock()}); render(); }
   if (t.id==='o-sound'){ P.sound=t.checked; saveP(); if (!P.sound) musicStop(); else if (view==='game' && M) musicStart(); }
   if (t.id==='o-lang'){ P.lang=t.value; saveP(); location.reload(); return; }
   if (t.id==='o-haptic'){ P.haptic=t.checked; saveP(); if (P.haptic) hapticTick(); }
@@ -2805,6 +2822,38 @@ function dailyCard(){
     <span class="sub" style="font-weight:500">${done?(T("Relevé aujourd'hui. Reviens demain pour prolonger ta série.")):`${T("Bats")} ${BOTS[lv].name} (${LEVELS[lv].label}${T(") sur le plateau")} ${b.name}.`}</span></button>`;
 }
 function startDaily(){ leaveOnline(); vsAI=dailyLevel(); training=false; dailyNext=true; startMatch(); }
+// Coups des 10 dernières parties, pour pouvoir les analyser plus tard (une analyse = une partie entière, toutes ses manches)
+const GAMES_KEEP=10;
+function replayRound(rd){
+  const c=[...rd.c].map(Number), pw=rd.p.map(x=>x.slice()), J=rd.j.slice(), out=[];
+  for (let i=0;i<rd.m.length;i+=4){ const t=+rd.m[i], m=[+rd.m[i+1], parseInt(rd.m[i+2],36), +rd.m[i+3]];
+    out.push({cells:c.slice(), pawns:pw.map(x=>x.slice()), jumps:J.slice(), turn:t, move:m});
+    const from=pw[t][m[0]]; c[from]--; pw[t][m[0]]=m[1]; if (m[2]) J[t]=0; }
+  return out;
+}
+function packRounds(){
+  const out=[];
+  for (let r=1; r<=(M?M.rounds.length:0); r++){ const h=HIST[r]||[]; if (!h.length) return null;
+    const rd={b:(M.rounds[r-1]||{}).bid, c:h[0].cells.join(''), p:h[0].pawns.map(x=>x.slice()), j:h[0].jumps.slice(), m:h.map(e=>''+e.turn+e.move[0]+e.move[1].toString(36)+(e.move[2]?1:0)).join('')};
+    const re=replayRound(rd); if (re.some((e,i)=>e.cells.join('')!==h[i].cells.join(''))) return null;   // coups incomplets (ex. partie en ligne reprise) : on n'enregistre pas
+    out.push(rd); }
+  return out.length ? out : null;
+}
+async function analyzeSaved(gi, r){
+  const g=(P.games||[])[gi]; if (!g || !g.mv) return;
+  if (!g.anOK){ if (!credUse('a')) return; g.anOK=1; saveP(); }
+  r=Math.min(Math.max(1,r||1), g.mv.length); const rd=g.mv[r-1], list=replayRound(rd);
+  AN={gi, r, h:list, bid:rd.b, nm:g.nm, rounds:g.mv.length, res:null, sel:0}; sheet={type:'analysis'}; render();
+  const res=await ask('analyze',{list}); if (!AN || AN.gi!==gi || AN.r!==r) return;
+  AN.res=res||'err'; render();
+}
+function gamesHTML(){
+  const L=(P.games||[]).map((g,i)=>[g,i]).filter(([g])=>g.mv).reverse();
+  const src={ia:T("Ordinateur"), online:T("En ligne"), ami:T("Ami"), local:T("Sur ce téléphone")};
+  return `<h2>📊 ${T("Mes parties")}</h2><p class="note">${P.premium?T("Analyses illimitées avec Premium."):`${T("Analyses restantes ce mois-ci :")} <b>${credLeft('a')}</b>. ${T("Une analyse couvre toute la partie.")}`}</p>
+  ${L.length?`<div class="glist">${L.map(([g,i])=>`<div class="grow"><span class="res ${g.w?'w':'l'}">${g.w?T("Victoire"):T("Défaite")}</span><span class="gt"><b>${esc(g.op)}</b><small>${esc(g.d)} · ${g.sc} · ${src[g.src]||''}</small></span><button class="${g.anOK?'secondary':'primary'} sm" type="button" data-act="g-an" data-v="${i}">${g.anOK?T("Voir"):T("Analyser")}</button></div>`).join('')}</div>`
+  :`<p>${T("Joue une partie : elle apparaîtra ici et tu pourras l'analyser coup par coup.")}</p>`}`;
+}
 function recordGame(){
   if (!M || !M.done || REC_ID===M.id) return; REC_ID=M.id; if (!M.aborted) markActive();
   const me=humanSeat(); if (me===-1) return;
@@ -2816,7 +2865,8 @@ function recordGame(){
   const op=S[me===0?1:0], src=online()?(net.mm?'online':'ami'):vsAI?'ia':'local';
   let de=M.eloDelta;
   if (online() && CHAMP_ID!==M.id){ CHAMP_ID=M.id; const o=PEERS[1-me]; LAST_CHAMP=applyChamp(w?1:0, o && o.rc ? (o.rc[P.time]||1000) : 1000); de=LAST_CHAMP; }
-  P.games=[...(P.games||[]), {op:op.name, sk:op.skin, w, sc:`${M.wins[me]}-${M.wins[1-me]}`, d:new Date().toLocaleDateString((T("fr-FR")),{day:'numeric',month:'short'}), de, src, t:P.time, uid: online()&&PEERS[1-me]?PEERS[1-me].uid:''}].slice(-50);
+  P.games=[...(P.games||[]), {gid:M.id, nm:[S[0].name,S[1].name], mv:packRounds(), anOK:M.anOK?1:0, op:op.name, sk:op.skin, w, sc:`${M.wins[me]}-${M.wins[1-me]}`, d:new Date().toLocaleDateString((T("fr-FR")),{day:'numeric',month:'short'}), de, src, t:P.time, uid: online()&&PEERS[1-me]?PEERS[1-me].uid:''}].slice(-50);
+  P.games.forEach((g,i)=>{ if (i<P.games.length-GAMES_KEEP) delete g.mv; });
   if (M.daily && w){ const d=P.daily||{}, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1); if (d.last!==today){ P.daily={last:today, streak: d.last===dayKey(y) ? (d.streak||0)+1 : 1}; } }
   addCoins(w?10:3, true);
   if (w && src==='ia') xpAdd(5); if (w && src==='online') xpAdd(10);
@@ -3092,7 +3142,7 @@ function trStatus(){
 }
 function renderTrActions(){
   const tr=TR, a=[];
-  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.dis?'disabled':''} style="--pc:#2ef2ff">${icon?ic(icon):''}${label}</button>`;
+  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.dis?'disabled':''} style="--pc:#2ef2ff">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
   if (tr.kind==='lesson' && tr.phase==='demo'){ const n=tr.step||0;
     a.push(btn('demo-prev','back',(T("Précédent")),{dis:n<=0}).replace('<button','<button aria-label="'+T('Explication précédente')+'"'));
     const last=n>=tr.L.demo.steps.length-1, hasMv=!!(tr.L.demo.steps[Math.max(0,n)] && stepMove(tr.L, tr.L.demo.steps[Math.max(0,n)]));
@@ -3101,8 +3151,8 @@ function renderTrActions(){
   else if (tr.state==='win'){ if (tr.kind==='parc' && tr.stars<3) a.push(btn('tr-restart','undo',(T("Rejouer")))); a.push(btn('tr-next','', (T("Suivant")),{cls:'primary'})); }
   else if (tr.rush){ a.push(btn('rush-stop','flag',(T("Arrêter le défi")))); }
   else if (tr.mode){ a.push(btn('pz-stop','flag',(T("Abandonner")))); }
-  else if (tr.state==='fail'){ if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-sol',P.premium?'bulb':'lock',(T("Solution")))); a.push(btn('tr-restart','', (T("Réessayer")),{cls:'primary'})); }
-  else { if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-hint',P.premium?'bulb':'lock',(T("Indice")),{dis:G.turn!==0})); a.push(btn('tr-restart','undo',(T("Recommencer")))); }
+  else if (tr.state==='fail'){ if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-sol','bulb',(T("Solution")),{badge:credBadge('h')})); a.push(btn('tr-restart','', (T("Réessayer")),{cls:'primary'})); }
+  else { if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-hint','bulb',(T("Indice")),{dis:G.turn!==0, badge:credBadge('h')})); a.push(btn('tr-restart','undo',(T("Recommencer")))); }
   $('#actions').innerHTML=a.join('');
 }
 function trNext(){
@@ -3117,13 +3167,13 @@ function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.lv.cur')|
 function trQuit(){ const kind=TR&&TR.kind; $('#party').hidden=true; stopConfetti(); if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 function trHint(){
   const tr=TR; if (!G || G.turn!==0) return;
-  if (!P.premium){ sheet={type:'locked', what:'hint'}; render(); return; }
+  if (!credUse('h')) return;
   if (tr.kind==='puzzle' && tr.my===0){ G.hint=tr.z.sol; G.pick=tr.z.sol[0]; render(); return; }
   if (tr.kind==='lesson' && tr.L.ex.z && tr.my===0){ G.hint=tr.L.ex.z.sol; G.pick=G.hint[0]; render(); return; }
   hint();
 }
 function trSolution(){
-  const tr=TR; if (!P.premium){ sheet={type:'locked', what:'hint'}; render(); return; }
+  const tr=TR; if (!credUse('h')) return;
   const z = tr.kind==='puzzle' ? tr.z : tr.L.ex.z;
   if (!z){ sheet={type:'tr'}; render(); return; }
   if (tr.kind==='puzzle') startPuzzle(tr.cat, tr.idx); else startExercise();
@@ -3139,6 +3189,7 @@ function renderLearn(){
     html+=`<button type="button" class="lnode${done?' done':''}${i===cur?' cur':''}${lock&&!done?' lk':''}" style="--x:${x}px" data-act="lesson" data-v="${i}" aria-label="${T("Cours")} ${i+1} : ${esc(l.t)}${done?(T(", terminé")):lock?(T(", Premium")):''}">${i===cur?("<span class=\"tag\">"+T("Suivant")+"</span>"):''}${done?'✓':lock?'💎':i+1}</button>`; });
   return `${backHead(T("Cours"),'play')}
   <div class="coachrow"><div class="av">${coachSVG()}</div><div class="bub"><b>${esc(L.t)}</b><p>${esc(L.d)}</p></div></div>
+  <div class="rrow2 r2">${tile('ai-assist','icone-robot','💡',T("Partie assistée"))}${tile('an-games','icone-parchemin','📊',T("Mes parties"))}</div>
   <div class="ppath">${html}<div class="ustep">${T("Saison 1 · bientôt")}</div></div>
   <div class="spacer"></div>
   <div class="playbar"><div class="in">${learnMenu?`<div class="lmenu"><button class="item" type="button" data-act="lessons-sheet">${ic('book')}${T("Tous les cours")}</button><button class="item" type="button" data-act="badges">${T("🏅 Badges")}</button></div>`:''}
@@ -3305,7 +3356,7 @@ function badgesHTML(){
 }
 
 /* ---------- Taquineries (wizz, toc, haha) ---------- */
-const myBlock = () => !!(P.premium && P.blockTaunts);
+const myBlock = () => !!P.blockTaunts;
 const oppBlock = () => !!(online() && net && (net.seat===0||net.seat===1) && PEERS[1-net.seat] && PEERS[1-net.seat].nb);
 const tauntBlocked = () => myBlock() || oppBlock();
 let TAUNT_ID=null, REC_ID=null, CHAMP_ID=null, LAST_CHAMP=null;
@@ -3792,7 +3843,7 @@ function settingsBody(){
   <label class="toggle"><span>${T("Musique pendant les parties")}</span><input type="checkbox" id="o-music" ${P.music?'checked':''}></label>
   ${CONFIG.themeChoice?`<label class="toggle"><span>${T("Thème calme")}<small class="note">${T("Moins lumineux, plus reposant pour les yeux.")}</small></span><input type="checkbox" id="o-calm" ${P.calm?'checked':''}></label>`:''}
   <label class="toggle"><span>${T("Afficher les messages de l'adversaire")}</span><input type="checkbox" id="o-chat" ${P.chat?'checked':''}></label>
-  <label class="toggle${P.premium?'':' off'}"><span>${T("Bloquer les taquineries")}${P.premium?'':' 💎'}</span><input type="checkbox" id="o-block" ${myBlock()?'checked':''} ${P.premium?'':'disabled'}></label>
+  <label class="toggle"><span>${T("Bloquer les taquineries")}</span><input type="checkbox" id="o-block" ${myBlock()?'checked':''}></label>
   <button class="secondary" type="button" data-act="rules">${T("Règles du jeu")}</button>
   <p class="note" style="text-align:center">${T("Lastep · version")} ${CONFIG.version}</p>`;
 }
@@ -4094,29 +4145,31 @@ const streakNow = () => { const st=P.streak||{}, y=new Date(); y.setDate(y.getDa
    Dans l'appli des stores, un pont natif (Capacitor + AdMob) exposera window.LastepAds.reward() / .inter().
    En attendant, un emplacement de test montre où et quand les pubs apparaîtront. Premium : aucune pub,
    les récompenses « pub » sont données directement. */
-const AD_TEST_S=5;
+const AD_TEST_S={inter:5, reward:15};   // fin de partie : on peut passer après 5 s ; pub volontaire : jusqu'au bout pour être récompensé
 function adShow(kind){
   return new Promise(res=>{
     const nat=window.LastepAds;
     if (nat && typeof nat[kind]==='function'){ Promise.resolve(nat[kind]()).then(r=>res(r!==false)).catch(()=>res(false)); return; }
     musicStop();
     const box=document.createElement('div'); box.className='adbox'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
-    let n=AD_TEST_S, done=false;
+    let n=AD_TEST_S[kind]||5, done=false;
     const draw=()=>{ box.innerHTML=`<div class="adin"><small>${T("Publicité")}</small><div class="adart">📺</div><p>${T("Emplacement de test : la vraie publicité arrivera avec l'appli des stores.")}</p>
       ${kind==='reward' ? (n>0?`<b class="adn">${n}</b>`:`<button class="primary big2" type="button" data-ad="ok">${T("Récupérer la récompense")} ✓</button>`)
         : (n>0?`<span class="adskip">${T("Passer dans")} ${n}</span>`:`<button class="secondary" type="button" data-ad="ok">${T("Passer")} ›</button>`)}
-      ${kind==='reward'&&n>0?`<button class="adx" type="button" data-ad="x" aria-label="${T("Fermer sans récompense")}">✕</button>`:''}</div>`; };
+      ${kind==='reward'&&n>0?`<button class="adx" type="button" data-ad="x" aria-label="${T("Fermer sans récompense")}">✕</button><small class="adw">${T("Regarde jusqu'au bout pour gagner la récompense")}</small>`:''}</div>`; };
     const end=r=>{ if (done) return; done=true; clearInterval(iv); box.remove(); res(r); };
     box.addEventListener('click', e=>{ const b=e.target.closest('[data-ad]'); if (!b) return; e.stopPropagation(); end(b.dataset.ad==='ok'); });
     draw(); document.body.appendChild(box);
     const iv=setInterval(()=>{ n--; draw(); if (n<=0) clearInterval(iv); }, 1000);
   });
 }
-const adReward = () => P.premium ? Promise.resolve(true) : adShow('reward');
-const adBtn = (act,label) => `<button class="adbtn" type="button" data-act="${act}"><span aria-hidden="true">${P.premium?'💎':'📺'}</span> ${label}</button>`;
-// Pub de fin de partie : une partie sur deux, jamais pendant les 3 premières, jamais en Premium
-let adMatches=0;
-function adInter(){ if (P.premium || (P.stat.games||0)<3) return Promise.resolve(); adMatches++; return adMatches%2 ? Promise.resolve() : adShow('inter'); }
+// Pub volontaire : pour tout le monde, Premium compris (Premium enlève les pubs imposées, pas les récompenses à gagner)
+const adReward = () => adShow('reward');
+const adBtn = (act,label) => `<button class="adbtn" type="button" data-act="${act}"><span aria-hidden="true">📺</span> ${label}</button>`;
+// Pub de fin de partie (victoire, défaite, abandon, adversaire parti) : à chaque partie, on peut la passer après quelques secondes,
+// elle ne rapporte rien. Jamais en Premium, jamais pendant les 3 toutes premières parties d'un nouveau joueur.
+function adInter(){ if (P.premium || (P.stat.games||0)<3) return Promise.resolve(); return adShow('inter'); }
+const matchPlayed = () => !!(M && !TR && (M.done || M.rounds.length || (G && G.moves>0)));
 
 /* ---------- Coffres ---------- */
 const CHESTS={bois:{n:(T("Coffre en bois")), c:'#c98a4b', coins:[30,60], item:.15, maxP:2},

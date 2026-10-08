@@ -599,11 +599,13 @@
     mount(); UI.stage = stage || 'menu'; UI.err = ''; draw();
   }
   function close() {
+    const played = !!(PT && (PT.over || PT.moves > 0));
     leaveNet(); clearTimeout(aiTimer); clearInterval(tick); tick = null;
     PT = null; UI = { stage: 'menu', sel: null, seats: null, err: '', bubbles: {} };
     try { musicStop(); } catch (e) {}
     if (root) { root.remove(); root = null; }
     try { render(); } catch (e) {}
+    if (played) { try { if (typeof adInter === 'function') adInter(); } catch (e) {} }   // pub de fin de partie, comme en duel
   }
   window.Party = {
     open, close,
