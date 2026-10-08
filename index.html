@@ -897,6 +897,48 @@ html:not(.lock) body{background:#0b0820 url(assets/web/fond-nuit.webp) center to
 @media (max-height:760px){html.homefix .screen{gap:9px}.htop .pill{min-height:38px}.hlogo{margin:0}.hlogo .logo{width:min(44vw,170px)}.rb{padding:3px 2px 4px}.rb .gimg{width:40px;height:40px}.modes2{gap:10px;margin-top:0}.mode2{min-height:0;padding:10px 12px 10px 16px}.mode2 h2{font-size:1.6rem}.chips2{margin:2px 0 4px}.mbtn{padding:8px 20px;font-size:1.1rem}.mart{width:50%}}
 @media (max-height:640px){.hlogo{display:none}}
 @media (prefers-reduced-motion:reduce){.hlogo .logo,.mart,.rb.hot .gimg{animation:none}}
+
+.modes3{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 2px 0;align-items:start}
+.mode3{position:relative;display:flex;flex-direction:column;align-items:center;padding:0 10px 14px;border-radius:26px;cursor:pointer;text-align:center;transition:transform .12s}
+.mode3:active{transform:translateY(3px) scale(.98)}
+.mode3::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 50% 22%,#ffffff40,transparent 55%);pointer-events:none}
+.mode3::after{content:"";position:absolute;inset:6px;border-radius:21px;border:2px solid #ffffff2a;pointer-events:none}
+.mode3.adv{background:linear-gradient(180deg,#18d08a 0%,#0b7fa8 48%,#1d1660 100%);border:2px solid #b6ff3baa;box-shadow:inset 0 -7px 0 #0006,0 6px 0 #0009,0 0 26px #20f0a055}
+.mode3.arena{background:linear-gradient(180deg,#ff4f9a 0%,#a12bd6 48%,#1d1660 100%);border:2px solid #ffb02eaa;box-shadow:inset 0 -7px 0 #0006,0 6px 0 #0009,0 0 26px #ff3dd855}
+.mode3 .art{position:relative;width:118%;height:auto;max-width:none;margin:-22% 0 -4%;filter:drop-shadow(0 12px 14px #000c);animation:fl3 5s ease-in-out infinite}
+.mode3.arena .art{animation-delay:-2.5s}
+@keyframes fl3{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.mode3.chosen{animation:chosen .5s ease-out}
+.mode3.chosen .art{animation:artpulse .9s ease-out}
+@keyframes chosen{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes artpulse{0%{filter:drop-shadow(0 12px 14px #000c)}60%{filter:drop-shadow(0 0 30px #fff) brightness(1.4)}100%{filter:drop-shadow(0 12px 14px #000c)}}
+.mode3 .ttl{position:relative;z-index:2;margin:0;font-family:var(--fun);font-weight:400;font-size:1.9rem;line-height:1;color:#fff;text-shadow:0 3px 0 #0a0718,0 0 14px #0008}
+.mode3 .sub3{position:relative;z-index:2;font-weight:800;font-size:.74rem;color:#ffffffd9;margin:3px 0 7px}
+.mode3 .chips3{position:relative;z-index:2;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:9px}
+.mode3 .chips3 span{padding:2px 9px;border-radius:999px;background:#0007;font-weight:900;font-size:.72rem;color:#fff}
+.mode3 .go{position:relative;z-index:2;width:100%;padding:11px 0;border-radius:16px;font-family:var(--fun);font-size:1.3rem;color:#1a1000;background:linear-gradient(180deg,#ffe14d,#ffb02e);box-shadow:inset 0 -5px 0 #0004,0 4px 0 #0009}
+.mode3.arena .go{background:linear-gradient(180deg,#fff,#cfe3ff);color:#2a0b3d}
+.mode3 .shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.mode3 .shine::before{content:"";position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:linear-gradient(90deg,transparent,#ffffff30,transparent);transform:rotate(20deg);animation:sh3 4.5s ease-in-out infinite}
+.mode3.arena .shine::before{animation-delay:-2.2s}
+@keyframes sh3{0%,70%{left:-60%}100%{left:130%}}
+.heroz{position:relative;display:flex;flex-direction:column;align-items:center;margin-top:10px;pointer-events:none}
+.herop{width:min(28vw,112px);aspect-ratio:1;position:relative;z-index:3;animation:herobob 2.4s ease-in-out infinite}
+.herop svg{width:100%;height:100%;overflow:visible}
+.herop .look{animation:lookside 4s ease-in-out infinite}
+@keyframes lookside{0%,8%{transform:translate(0,0)}15%,42%{transform:translate(-6px,-2px)}50%,57%{transform:translate(0,0)}65%,92%{transform:translate(6px,-2px)}100%{transform:translate(0,0)}}
+@keyframes herobob{0%,100%{transform:translateY(0) scale(1,1)}45%{transform:translateY(-10px) scale(.97,1.03)}55%{transform:translateY(-10px)}90%{transform:translateY(0) scale(1.05,.95)}}
+.heros{width:min(20vw,80px);height:12px;margin-top:-6px;border-radius:50%;background:radial-gradient(#2ef2ff66,transparent 70%);animation:shad 2.4s ease-in-out infinite}
+@keyframes shad{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.7);opacity:.5}}
+.herop.leap{animation:leap .95s cubic-bezier(.3,0,.4,1) forwards}
+.herop.leap .look{animation:none;transform:translate(calc(var(--lx,0)*6px),-3px)}
+@keyframes leap{0%{transform:translate(0,0) scale(1,1)}14%{transform:translate(0,8px) scale(1.18,.8)}55%{transform:translate(calc(var(--dx) * .55),calc(var(--dy) * .55 - 110px)) scale(.92,1.1) rotate(var(--rot))}100%{transform:translate(var(--dx),var(--dy)) scale(.08) rotate(calc(var(--rot) * 4));opacity:.3}}
+.herop.leap + .heros{animation:none;opacity:0;transition:opacity .2s}
+.warp{position:fixed;left:var(--wx);top:var(--wy);width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;z-index:60;pointer-events:none;background:radial-gradient(#fff,var(--wc) 40%,transparent 70%);animation:warp .85s ease-out forwards}
+@keyframes warp{0%{transform:scale(1);opacity:1}60%{opacity:.9}100%{transform:scale(80);opacity:0}}
+@media (max-height:760px){.modes3{margin-top:22px;gap:12px}.mode3 .ttl{font-size:1.6rem}.mode3 .go{padding:8px 0;font-size:1.1rem}.herop{width:min(20vw,76px)}.heroz{margin-top:4px}}
+@media (max-height:640px){.heroz{display:none}}
+@media (prefers-reduced-motion:reduce){.mode3 .art,.herop,.herop .look,.heros,.mode3 .shine::before{animation:none}}
 </style>
 
 </head>
@@ -942,7 +984,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 58,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 59,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2208,6 +2250,7 @@ document.addEventListener('click', e=>{
     case 'dj-share': if (P.dj) shareText(djShareText(), `${baseURL()}${T("?dj=1")}`); break;
     case 'pz-stop': if (TR && TR.state==='play') (isParc()?parcDone(false):trDone(false)); break;
     case 'parc': if (parcOpen(+v)) startParc(+v); break;
+    case 'pick-mode': pickMode(v); break;
     case 'gift': giftClaim(); if (!giftInfo().can && !REWARD) toast(T("Déjà récupéré. Reviens demain !")); break;
     case 'wheel': wheelOpen(); break;
     case 'wheel-spin': wheelSpin(false); break;
@@ -3789,6 +3832,23 @@ function rewardsRow(){
     ${b('lb-open','icone-trophee', P.lg&&P.lg.rank?`${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue"), false)}
   </div>`;
 }
+
+/* Le personnage de l'accueil regarde une carte puis l'autre ; au choix, il saute dans le monde choisi */
+let heroBusy=false;
+function pickMode(v){
+  if (heroBusy) return; const hp=document.getElementById('herop'), card=document.querySelector(`.mode3.${v==='adv'?'adv':'arena'}`);
+  const go=()=>{ heroBusy=false; if (v==='adv') startParc(nextParc()); else goMatch(0); };
+  if (!hp || !card || REDUCED){ go(); return; }
+  heroBusy=true; vibrate(12);
+  const a=hp.getBoundingClientRect(), art=card.querySelector('.art').getBoundingClientRect();
+  const dx=(art.left+art.width/2)-(a.left+a.width/2), dy=(art.top+art.height*.55)-(a.top+a.height/2);
+  hp.style.setProperty('--lx', dx>0?1:-1); hp.style.setProperty('--ly', -1);
+  hp.style.setProperty('--rot', (dx>0?12:-12)+'deg'); hp.classList.add('leap'); hp.style.setProperty('--dx', dx+'px'); hp.style.setProperty('--dy', dy+'px');
+  try { sfx.jump(); } catch(e){}
+  card.classList.add('chosen');
+  setTimeout(()=>{ const f=document.createElement('div'); f.className='warp'; f.style.setProperty('--wx',(art.left+art.width/2)+'px'); f.style.setProperty('--wy',(art.top+art.height*.55)+'px'); f.style.setProperty('--wc', v==='adv'?'#20f0a0':'#ff3dd8'); document.body.appendChild(f); setTimeout(()=>f.remove(),900); }, 520);
+  setTimeout(go, 1000);
+}
 function renderHome(){
   const t=tierOf(P.elo.r), streak=streakNow(), np=nextParc();
   setTimeout(lgDueCheck, 300);
@@ -3799,20 +3859,11 @@ function renderHome(){
   </div>
   <div class="hlogo">${IMG('logo-lastep','logo','Lastep')}</div>
   ${rewardsRow()}
-  <div class="modes2">
-    <div class="mode2 adv" data-act="tab" data-v="parc" role="button" tabindex="0">
-      <div class="mtxt"><h2>${T("Aventure")}</h2><small>${T("Seul contre le jeu")}</small>
-        <div class="chips2"><span>⭐ ${parcTotal()}</span><span>${T("Niveau")} ${np+1}</span></div>
-        <button class="mbtn" type="button" data-act="parc" data-v="${np}">${T("Jouer")}</button></div>
-      ${IMG('aventure-ile','mart')}
-    </div>
-    <div class="mode2 arena" data-act="tab" data-v="play" role="button" tabindex="0">
-      <div class="mtxt"><h2>${T("Arène")}</h2><small>${T("Contre de vrais joueurs")}</small>
-        <div class="chips2"><span>${t[1]}</span><span>${arenaElo()}</span></div>
-        <button class="mbtn" type="button" data-act="match">${T("Combattre")}</button></div>
-      ${IMG('arene','mart')}
-    </div>
-  </div>`;
+  <div class="modes3">
+    <div class="mode3 adv" data-act="pick-mode" data-v="adv" role="button" tabindex="0" aria-label="${T("Aventure")}"><span class="shine"></span>${IMG('aventure-ile','art')}<h2 class="ttl">${T("Aventure")}</h2><div class="sub3">${T("Seul contre le jeu")}</div><div class="chips3"><span>⭐ ${parcTotal()}</span><span>${T("Niveau")} ${np+1}</span></div><div class="go">${T("Jouer")}</div></div>
+    <div class="mode3 arena" data-act="pick-mode" data-v="arena" role="button" tabindex="0" aria-label="${T("Arène")}"><span class="shine"></span>${IMG('arene','art')}<h2 class="ttl">${T("Arène")}</h2><div class="sub3">${T("Contre de vrais joueurs")}</div><div class="chips3"><span>${t[1]}</span><span>${arenaElo()}</span></div><div class="go">${T("Combattre")}</div></div>
+  </div>
+  <div class="heroz"><div class="herop" id="herop">${pawnSVG(P.skin)}</div><div class="heros"></div></div></div>`;
 }
 function hubBubbles(){
   const d=djToday();
