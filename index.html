@@ -409,7 +409,8 @@ body{background:
 .danger{border-color:var(--alert);color:var(--alert);box-shadow:0 0 12px #ff4f6d44}
 .sheet{background:linear-gradient(180deg,#16112e,#0c0a1c);border-top:1px solid #2ef2ff55;box-shadow:0 -10px 40px #2ef2ff22}
 .pcard{background:linear-gradient(180deg,#16112e,#0c0a1c);box-shadow:0 0 0 2px var(--pc),0 0 40px var(--pc),0 20px 60px #000c}
-.pcard h2{text-shadow:0 0 6px color-mix(in srgb,var(--pc) 70%,transparent),0 0 20px color-mix(in srgb,var(--pc) 45%,transparent)}
+.pcard h2{font-family:var(--fun);font-weight:400;color:#fff;-webkit-text-stroke:0;text-shadow:0 3px 0 #0a0718,0 0 2px #0a0718,0 0 14px color-mix(in srgb,var(--pc) 55%,transparent)}
+.pcard .score{font-family:var(--fun);font-weight:400;font-size:2.2rem;color:#fff}
 .toast{background:#120f26;color:#fff;border:1px solid var(--accent);box-shadow:0 0 18px #2ef2ff77}
 .bubble{background:#fff;color:#0a0718;box-shadow:0 0 18px #ffffff66}
 .band{background:linear-gradient(90deg,transparent,#0a0718f2 18%,#0a0718f2 82%,transparent);box-shadow:0 1px 0 #2ef2ff,0 -1px 0 #ff3dd8,0 0 40px #8f7bff55}
@@ -550,7 +551,7 @@ details.sec>.in{display:flex;flex-direction:column;gap:10px;padding:0 14px 14px}
 .bigstars span.on{color:#ffd75e;text-shadow:0 4px 0 #b07a00,0 0 24px #ffd75ecc;animation:starIn .5s cubic-bezier(.2,1.8,.4,1) both;animation-delay:calc(.38s + var(--k)*.33s)}
 @keyframes starIn{0%{transform:scale(0) rotate(-90deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
 .bigfail{font-size:64px;line-height:1;animation:pop .45s cubic-bezier(.2,1.5,.4,1) both}
-.wtitle{margin:0;font-size:2.3rem;line-height:1;color:#fff;text-shadow:0 4px 0 #0009,0 0 22px var(--pc)}
+.wtitle{margin:0;font-size:2.3rem;line-height:1;color:#fff;text-shadow:0 3px 0 #0a0718,0 0 2px #0a0718,0 0 14px color-mix(in srgb,var(--pc) 55%,transparent)}
 .gain{display:flex;align-items:center;gap:6px;font-size:1.6rem;font-weight:800;color:#ffd75e;animation:pop .5s .9s cubic-bezier(.2,1.6,.4,1) both}
 .gain .ic{width:30px;height:30px}
 .pcard .row{display:flex;gap:10px;width:100%}
@@ -844,6 +845,10 @@ body{font-weight:700}
 #board .cell.tapfx,#pt4bd .cl.tapfx{animation:tapcell .22s ease-out}
 @keyframes tapcell{0%{filter:brightness(1)}35%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 @media (prefers-reduced-motion:reduce){.tapfx{animation:none}}
+.coinic{stroke:none!important;fill:none}
+.gain.sm{font-size:1.2rem;animation-delay:.5s}
+.gain.sm .ic{width:24px;height:24px}
+.bigcoin{width:96px;height:96px;filter:drop-shadow(0 6px 0 #0008) drop-shadow(0 0 16px #ffd75e88);animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
 </style>
 
 </head>
@@ -889,7 +894,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 56,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 57,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1725,7 +1730,8 @@ const I={
   playi:'<path d="M8 5l11 7-11 7z"/>',
   gear:'<path d="M19.03 9.11L22 9.97V14.03L19.03 14.89L20.5 17.64L17.64 20.5L14.93 19.01L14.03 22H9.97L9.11 19.03L6.36 20.5L3.5 17.64L4.99 14.93L2 14.03V9.97L4.97 9.11L3.5 6.36L6.36 3.5L9.07 4.99L9.97 2H14.03L14.89 4.97L17.64 3.5L20.5 6.36Z" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2"/>',
 };
-const ic = (n, cls='ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const COIN_SVG=`<defs><radialGradient id="cg1" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff3b0"/><stop offset=".55" stop-color="#ffcf3a"/><stop offset="1" stop-color="#d68a00"/></radialGradient></defs><circle cx="12" cy="12" r="10.5" fill="#8a5200"/><circle cx="12" cy="11.3" r="10" fill="url(#cg1)" stroke="#7a4600" stroke-width="1.2"/><circle cx="12" cy="11.3" r="6.6" fill="none" stroke="#b86e00" stroke-width="1.2" opacity=".75"/><path d="M10.3 8.2c1-.2 1.6.8 1.4 2.1-.2 1-1 1.6-1.8 1.4-.8-.2-1-1.2-.8-2.1.1-.7.5-1.3 1.2-1.4ZM13.4 11.2c.8 0 1.3.9 1.2 1.9-.1 1-.8 1.6-1.6 1.5-.8-.1-1.1-1-.9-1.9.1-.8.6-1.5 1.3-1.5Z" fill="#b86e00"/><ellipse cx="8.4" cy="7.4" rx="2.6" ry="1.4" fill="#fff" opacity=".55" transform="rotate(-30 8.4 7.4)"/>`;
+const ic = (n, cls='ic') => n==='coin' ? `<svg class="${cls} coinic" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>` : `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
 
 /* ---------- Rendu : plateau de jeu ---------- */
 function buildBoard(){
@@ -2326,7 +2332,7 @@ function recordGame(){
   if (online() && CHAMP_ID!==M.id){ CHAMP_ID=M.id; const o=PEERS[1-me]; LAST_CHAMP=applyChamp(w?1:0, o && o.rc ? (o.rc[P.time]||1000) : 1000); de=LAST_CHAMP; }
   P.games=[...(P.games||[]), {op:op.name, sk:op.skin, w, sc:`${M.wins[me]}-${M.wins[1-me]}`, d:new Date().toLocaleDateString((T("fr-FR")),{day:'numeric',month:'short'}), de, src, t:P.time, uid: online()&&PEERS[1-me]?PEERS[1-me].uid:''}].slice(-50);
   if (M.daily && w){ const d=P.daily||{}, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1); if (d.last!==today){ P.daily={last:today, streak: d.last===dayKey(y) ? (d.streak||0)+1 : 1}; } }
-  addCoins(w?10:3);
+  addCoins(w?10:3, true);
   if (w && src==='ia') xpAdd(5); if (w && src==='online') xpAdd(10);
   if (w && !M.forfeit){ if (M.rounds.length===3) badge('belle'); if (M.wins[1-me]===0) badge('carton'); if (vsAI==='expert' && !M.train) badge('sphinx'); if (TAUNT_ID!==M.id) badge('zen'); }
   if (w && online()) badge('enligne');
@@ -2711,9 +2717,9 @@ function winFx(style, hex, cv, dur=4200){
   const step=now=>{
     const el=now-t0; ctx.clearRect(0,0,W,H);
     if (style==='feux' && el>nextBurst && el<dur-900){ burst(W*(.2+R()*.6), H*(.15+R()*.35)); nextBurst=el+380; }
-    if ((style==='etoiles'||style==='pluie'||style==='couronne') && el<dur-1200) for(let i=0;i<(style==='couronne'?2:4);i++) parts.push({k:style==='pluie'?'coin':'star',x:R()*W,y:-20*dpr,vx:(R()-.5)*1.5*dpr,vy:(2+R()*4)*dpr,rot:R()*6,vr:(R()-.5)*.2,s:(7+R()*9)*dpr,c:style==='pluie'?'#ffd75e':[hex,'#ffd75e','#ffffff'][i%3],l:1});
+    if ((style==='etoiles'||style==='pluie'||style==='couronne') && el<dur-1200) for(let i=0;i<(style==='couronne'?2:style==='pluie'?(R()<.45?1:0):4);i++) parts.push({k:style==='pluie'?'coin':'star',x:R()*W,y:-20*dpr,vx:(R()-.5)*1.5*dpr,vy:(2+R()*4)*dpr,rot:R()*6,vr:(R()-.5)*.2,s:(7+R()*9)*dpr,c:style==='pluie'?'#ffd75e':[hex,'#ffd75e','#ffffff'][i%3],l:1});
     for (const p of parts){ p.x+=p.vx; p.y+=p.vy; if(p.k==='spark'){ p.vy+=.08*dpr; p.vx*=.98; p.l-=.012; ctx.globalAlpha=Math.max(0,p.l); ctx.fillStyle=p.c; ctx.shadowColor=p.c; ctx.shadowBlur=10*dpr; ctx.beginPath(); ctx.arc(p.x,p.y,p.s,0,7); ctx.fill(); }
-      else if(p.k==='coin'){ p.rot+=p.vr; ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.save(); ctx.translate(p.x,p.y); ctx.scale(Math.abs(Math.cos(p.rot*3)),1); const g=ctx.createRadialGradient(-p.s*.3,-p.s*.3,1,0,0,p.s); g.addColorStop(0,'#fff6c8'); g.addColorStop(.5,'#ffd75e'); g.addColorStop(1,'#b8902a'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,p.s,0,7); ctx.fill(); ctx.restore(); }
+      else if(p.k==='coin'){ p.rot+=p.vr; ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.save(); ctx.translate(p.x,p.y); const sx=Math.max(.15,Math.abs(Math.cos(p.rot*3))); ctx.scale(sx,1); ctx.fillStyle='#8a5200'; ctx.beginPath(); ctx.arc(p.s*.12/sx,p.s*.1,p.s,0,7); ctx.fill(); const g=ctx.createRadialGradient(-p.s*.3,-p.s*.35,1,0,0,p.s); g.addColorStop(0,'#fff3b0'); g.addColorStop(.55,'#ffcf3a'); g.addColorStop(1,'#d68a00'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,p.s,0,7); ctx.fill(); ctx.strokeStyle='#b86e00'; ctx.lineWidth=p.s*.14; ctx.beginPath(); ctx.arc(0,0,p.s*.62,0,7); ctx.stroke(); ctx.fillStyle='rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(-p.s*.35,-p.s*.4,p.s*.3,p.s*.16,-.5,0,7); ctx.fill(); ctx.restore(); }
       else { p.rot+=p.vr; ctx.globalAlpha=1; ctx.fillStyle=p.c; ctx.shadowColor=p.c; ctx.shadowBlur=12*dpr; star(p.x,p.y,p.s,p.rot); } }
     ctx.shadowBlur=0; ctx.globalAlpha=1;
     if (crown){ const target=H*.2; crown.vy+=.9*dpr; crown.y=Math.min(target, crown.y+crown.vy); if (crown.y>=target && crown.vy>0){ crown.vy=-crown.vy*.35; if (Math.abs(crown.vy)<2*dpr) crown.vy=0; }
@@ -2736,6 +2742,7 @@ function celebrate(){
   const quote = vsAI ? BOTS[vsAI][iWon?'lose':'win'][0] : '';
   $('#partyCard').innerHTML=`<button class="xclose" type="button" data-act="party-close" aria-label="${T("Fermer")}">✕</button><div class="av">${pawnSVG(S[c].skin,S[c].hex)}</div><h2>${title}</h2><p class="score">${M.wins[c]} – ${M.wins[1-c]}</p>
     <p class="sub">${pts[c]} – ${pts[1-c]} pts</p>
+    ${me!==null&&me!==-1&&!M.aborted?`<div class="gain sm">${ic('coin')} +<b>${iWon?10:3}</b></div>`:''}
     ${vsAI&&M.eloDelta!=null?`<p class="sub">${P.elo.r} ${T("steps (")}${M.eloDelta>=0?'+':''}${M.eloDelta}) · ${tierOf(P.elo.r)[1]}</p>`:''}
     ${online()&&CHAMP_ID===M.id&&LAST_CHAMP!=null?`<p class="sub">${T("Championnat")} ${getR('champ',P.time).r} ${T("steps (")}${LAST_CHAMP>=0?'+':''}${LAST_CHAMP})</p>`:''}
     ${opp&&opp.uid&&!friendById(opp.uid)?`<button class="secondary" type="button" data-act="add-opp" style="width:100%">${T("Ajouter")} ${esc(opp.nm)} ${T("en ami")}</button>`:''}
@@ -3577,7 +3584,7 @@ function rewardDraw(){
   if (R.type==='chest' && !R.opened) body=`<p class="lvtag">${esc(R.why)}</p><button type="button" class="chestbtn shake" data-act="chest-pop" aria-label="${T("Ouvrir le coffre")}">${chestSVG(CHESTS[R.tier].c)}</button><h2 class="wtitle">${CHESTS[R.tier].n}</h2><p class="sub">${T("Touche pour ouvrir")}</p>`;
   else {
     const it=R.item, itn=it?CAT[it[0]][it[1]]:null;
-    body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${chestSVG(CHESTS[R.tier].c)}</div>`:'<div class="bigfail">🪙</div>'}
+    body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${chestSVG(CHESTS[R.tier].c)}</div>`:`<svg class="bigcoin" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>`}
       <h2 class="wtitle">${T("Gagné !")}</h2><div class="gain">${ic('coin')} +<b>${R.coins}</b></div>
       ${itn?`<div class="loot"><div class="pv">${it[0]==='theme'?'🎨':it[0]==='trail'||it[0]==='win'?itn.e:pawnSVG({...P.skin,[it[0]]:it[1]})}</div><b>${esc(itn.n)}</b><small>${KIND_N[it[0]]}${rarity(itn.p)?' · '+rarity(itn.p).n:''}</small>${it[0]!=='theme'?`<button class="secondary" type="button" data-act="loot-equip">${T("Équiper")}</button>`:''}</div>`:''}
       ${!R.x2 && R.coins?adBtn('reward-x2',T("×2 pièces")):''}
