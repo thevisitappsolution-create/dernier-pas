@@ -1283,7 +1283,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 71,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 72,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1920,7 +1920,7 @@ function assistPaint(){
   if (el._h!==html){ el._h=html; el.innerHTML=html; }
 }
 function undo(){
-  if (!G || !M || !M.train || (M.assist && !P.premium)) return;
+  if (!G || !M || !M.train) return;
   const h=HIST[G.round]||[]; let idx=-1;
   for (let j=h.length-1;j>=0;j--) if (h[j].turn===0){ idx=j; break; }
   if (idx<0) return;
@@ -2329,7 +2329,7 @@ function renderActions(){
   const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`${T("aria-pressed=\"")}${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
   if (playing){
     if (M.assist && !P.premium) a.push(btn('as-hint','bulb',T("Indice"),{dis:!myTurn||(G.as&&G.as.rev===G.ver), badge:credBadge('h')}));
-    if (M.train && (!M.assist || P.premium)){ a.push(btn('undo','undo',(T("Annuler")),{dis:!(HIST[G.round]||[]).some(h=>h.turn===0)})); }
+    if (M.train){ a.push(btn('undo','undo',(T("Annuler")),{dis:!(HIST[G.round]||[]).some(h=>h.turn===0)})); }
     if (social && seat!==-1){
       const cd=Date.now()-wzLast<12000;
       a.push(btn('chat','chat',(T("Chat")),{badge:unread||''}));
@@ -2397,7 +2397,7 @@ function sheetHTML(){
   if (s.type==='lb') return lbHTML();
   if (s.type==='time') return `<h2>${T("Cadence")}</h2><p>${T("Temps par joueur et par manche. Quelle que soit la cadence, chacun commence une manche : il faut 2 manches gagnées.")}</p><div class="timegrid">${TIMES.map(t=>`<button type="button" data-act="time" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>`;
   if (s.type==='ai'){
-    return `<h2>${s.assist?`💡 ${T("Partie assistée")}`:T("Choisis ton adversaire")}</h2>${s.assist?`<p class="note">${P.premium?T("Jauge, avis sur chaque coup, alertes et retour en arrière. Hors classement."):`${T("La jauge te montre qui mène. Indices :")} ${credLeft('h')}. ${T("Hors classement.")}`}</p>`:''}
+    return `<h2>${s.assist?`💡 ${T("Partie assistée")}`:T("Choisis ton adversaire")}</h2>${s.assist?`<p class="note">${P.premium?T("Jauge, avis sur chaque coup, alertes et retour en arrière. Hors classement."):`${T("La jauge te montre qui mène, et tu peux annuler tes coups autant que tu veux. Conseils :")} ${credLeft('h')}. ${T("Hors classement.")}`}</p>`:''}
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
     ${s.assist?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
     <button class="primary" type="button" data-act="go-ai">${T("Jouer ·")} ${tLabel(P.time)}</button>`;

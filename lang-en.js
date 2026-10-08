@@ -1066,3 +1066,4 @@ Object.assign(window.EN_DICT, {
 "Victoire":"Win","Défaite":"Loss","Voir":"View","Analyser":"Analyze","Joue une partie : elle apparaîtra ici et tu pourras l'analyser coup par coup.":"Play a game: it will show up here and you can analyze it move by move.",
 "Manche":"Round","Regarde jusqu'au bout pour gagner la récompense":"Watch to the end to get the reward"
 });
+Object.assign(window.EN_DICT, {"La jauge te montre qui mène, et tu peux annuler tes coups autant que tu veux. Conseils :":"The gauge shows who's ahead, and you can undo your moves as much as you like. Tips:"});
