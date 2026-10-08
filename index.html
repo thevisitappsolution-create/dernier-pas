@@ -1184,6 +1184,12 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .lbr2.me .rk2{background:#2ef2ff;color:#0a0718}
 .lbme{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(180deg,#0c0a1c00,#0c0a1c 30%)}
 .lbload{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
+.gimg{height:auto;aspect-ratio:attr(width)/attr(height)}
+.gimg:not(.logo):not(.art):not(.mmarena){aspect-ratio:1}
+.hlogo .logo{aspect-ratio:900/291}
+.mode3 .art,.mmarena{aspect-ratio:1}
+#screen.pgin{animation:pgin .28s ease-out}
+@keyframes pgin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style>
 
 </head>
@@ -1230,7 +1236,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 66,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 67,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2439,7 +2445,8 @@ function render(){
   else {
     if (view==='game') view='play';
     const html = view==='home'?renderHome():view==='shop'?renderShop():view==='profile'?renderProfile():view==='puzzles'?renderPuzzles():view==='parc'?renderParc():view==='learn'?renderLearn():renderPlay();
-    if ($('#screen').dataset.v!==view || $('#screen').innerHTML!==html){ $('#screen').innerHTML=html; $('#screen').dataset.v=view; }
+    const scr=$('#screen'), changed=scr.dataset.v!==view;
+    if (changed || scr.innerHTML!==html){ scr.innerHTML=html; scr.dataset.v=view; if (changed && !REDUCED){ scr.classList.remove('pgin'); void scr.offsetWidth; scr.classList.add('pgin'); } }
     renderTabs();
   }
   renderSheet();
@@ -4137,7 +4144,13 @@ function lgDueCheck(){
 
 /* ---------- Écrans : Accueil, Aventure, Arène ---------- */
 const nextParc = () => { const i=PARC.findIndex((_,k)=>!parcStars(k)); return i<0 ? PARC.length-1 : i; };
-const IMG = (n, cls='', alt='') => `<img class="gimg ${cls}" src="assets/web/${n}.webp" alt="${alt}" draggable="false" decoding="async">`;
+// dimensions réservées : la page ne « saute » pas pendant le chargement des images
+const IMG_WH = n => n==='logo-lastep' ? [900,291] : [512,512];
+const IMG = (n, cls='', alt='') => { const [w,h]=IMG_WH(n); return `<img class="gimg ${cls}" src="assets/web/${n}.webp" width="${w}" height="${h}" alt="${alt}" draggable="false">`; };
+// préchargement de toutes les illustrations dès l'ouverture (elles restent en mémoire)
+const IMG_CACHE=[];
+['arene','aventure-ile','logo-lastep','fond-nuit','coffre-argent-ouvert','coffre-argent','coffre-bois-ouvert','coffre-bois','coffre-legendaire','coffre-or-ouvert','coffre-or','couronne-royale','icone-cadeau','icone-cadenas','icone-calendrier','icone-carte','icone-epees','icone-maison','icone-parchemin','icone-plus','icone-profil','icone-roue','icone-trophee']
+  .forEach(n=>{ const im=new Image(); im.src=`assets/web/${n}.webp`; if (im.decode) im.decode().catch(()=>{}); IMG_CACHE.push(im); });
 function rewardsRow(){
   const g=giftInfo(), w=wheelInfo(), p=ptInfo(), pr=Math.min(1,p.ms/PT_GOAL), ready=p.ms>=PT_GOAL && !p.got;
   const b=(act,img,label,hot,extra='')=>`<button type="button" class="rb${hot?' hot':''}" data-act="${act}">${IMG(img)}${extra}<small>${label}</small></button>`;
