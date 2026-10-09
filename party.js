@@ -546,7 +546,7 @@
     const chat = NET && !PT.over ? `<button class="btn" data-a="chat">💬 ${tr('Chat')}</button>` : '';
     const pows = PT.fol && !PT.over && mySeat() != null ? `<button class="btn" data-a="pwpush">💥 ${tr('Pousser')} <small>${typeof pwLabel === 'function' ? pwLabel('push') : ''}</small></button><button class="btn${UI.dyn ? ' pr' : ''}" data-a="pwdyn" ${my && pwOK('dyn') ? '' : 'disabled'}>🧨 ${typeof pwLabel === 'function' ? pwLabel('dyn') : ''}</button>` : '';
     const hvq = UI.hvAsk && PT.fol && !PT.over ? `<div class="hvq">🏋️ <b>${tr('Poids lourd')}</b><small>${tr('Personne ne pourra te pousser de toute la partie.')}</small><div class="acts"><button class="btn pr" data-a="hvyes">${tr('Utiliser')}</button><button class="btn" data-a="hvno">${tr('Pas cette fois')}</button></div></div>` : '';
-    const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';
+    const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...(typeof myRefs === 'function' ? myRefs().map(id => 'r' + id) : []), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';
     return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Quitter')}">✕</button><h2>${tr('Partie à 4')}${PT.fol ? ' · 🤪' : ''}</h2></div>${hvq}
       <div class="rows">${seatCard((rot + 1) % 4)}${seatCard((rot + 2) % 4)}</div>
       <div class="bd${my && !PT.over ? ' spot' : ''}" id="pt4bd">${cells}${pawns}</div>
