@@ -955,6 +955,15 @@ html:not(.lock) body{background:transparent!important}
 .ptitle .swap{padding:3px 12px;font-size:.85rem}
 .rrow2.r5{grid-template-columns:repeat(5,1fr);gap:6px}
 .rrow2.r3{grid-template-columns:repeat(3,1fr);gap:10px}
+.prow{display:flex;align-items:center;justify-content:space-between;width:100%;margin:0 0 10px;padding:16px 18px;border-radius:20px;border:2px solid #8f7bff44;background:linear-gradient(180deg,#2a2160,#1a1440);color:#fff;font-family:var(--fun);font-size:1.25rem;box-shadow:inset 0 -5px 0 #0005,0 4px 0 #0007;cursor:pointer;text-align:left}
+.prow i{font-style:normal;color:#2ef2ff;font-size:1.6rem;line-height:1}
+.blist{display:grid;gap:8px}.bsub{margin:6px 0 0!important;font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#b9b0ff!important}
+.brow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:#ffffff0c;border:1px solid #ffffff14}
+.brow .bico{width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;background:var(--bc);box-shadow:0 0 14px var(--bc)}
+.brow.lk .bico{background:#2a2350;box-shadow:none;filter:grayscale(1);opacity:.6}.brow .bt{flex:1;display:grid;min-width:0}.brow .bt small{color:var(--muted);font-size:.78rem}
+.brow .bok{width:26px;height:26px;border-radius:50%;background:#2effa8;color:#0b0620;display:grid;place-items:center;font-weight:900}
+.premcard{display:grid;gap:2px;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,#8f7bff33,#2ef2ff22);border:1px solid #8f7bff66;text-align:center}
+.cnt{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#ff3dd8;color:#fff;font-size:.72rem;font-weight:900}
 .rrow2.r2{grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 .glist{display:grid;gap:8px;margin-top:8px}.grow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:#ffffff0d}
 .grow .res{flex:none;font-weight:800;font-size:.75rem;padding:3px 8px;border-radius:9px}.grow .res.w{background:#2effa8;color:#0b0620}.grow .res.l{background:#ff3b7a;color:#fff}
@@ -1011,10 +1020,10 @@ html:not(.lock) body{background:transparent!important}
 .stage{position:relative;height:250px;margin:8px 0 0;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
 .stbg{position:absolute;inset:10px 6px 22px;border-radius:30px;background:radial-gradient(circle at 50% 45%,#8f7bff55,#1a1440cc 70%);border:2px solid #8f7bff55;box-shadow:inset 0 0 40px #2ef2ff22}
 .pedestal{position:absolute;bottom:26px;left:50%;width:150px;height:30px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(#2ef2ff88,#2ef2ff00 70%);box-shadow:0 0 30px #2ef2ff66}
-.center{position:relative;z-index:3;width:170px;height:170px;display:grid;place-items:center;margin-bottom:24px;cursor:default}
-.center>svg,.center .fxstage>svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 12px 12px #000a);animation:herobob 2.4s ease-in-out infinite}
-.center.inR{animation:slR .35s cubic-bezier(.2,1.2,.4,1)}
-.center.inL{animation:slL .35s cubic-bezier(.2,1.2,.4,1)}
+.stage .center{position:relative;z-index:3;width:170px;height:170px;display:grid;place-items:center;margin-bottom:24px;cursor:default}
+.stage .center>svg,.stage .center .fxstage>svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 12px 12px #000a);animation:herobob 2.4s ease-in-out infinite}
+.stage .center.inR{animation:slR .35s cubic-bezier(.2,1.2,.4,1)}
+.stage .center.inL{animation:slL .35s cubic-bezier(.2,1.2,.4,1)}
 @keyframes slR{from{transform:translateX(90px) scale(.6);opacity:.3}to{transform:none;opacity:1}}
 @keyframes slL{from{transform:translateX(-90px) scale(.6);opacity:.3}to{transform:none;opacity:1}}
 .side{position:absolute;z-index:2;top:50%;width:76px;height:76px;margin-top:-50px;border:0;background:none;padding:0;opacity:.45;filter:saturate(.7);cursor:pointer;display:grid;place-items:center}
@@ -1223,11 +1232,11 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .ccdots i{width:6px;height:6px;border-radius:50%;background:#ffffff33}
 .ccdots i.on{width:16px;border-radius:4px;background:#2ef2ff}
 .stage{height:min(230px,30vh)}
-.center{width:min(160px,22vh);height:min(160px,22vh)}
+.stage .center{width:min(160px,22vh);height:min(160px,22vh)}
 .iinfo{gap:2px}
 .iinfo h2{font-size:1.6rem}
 .buybtn{margin-top:4px;padding:11px 22px}
-@media (max-height:700px){.ptitle .pti{width:34px;height:34px}.stbg{inset:4px 6px 14px}.pedestal{bottom:16px}.center{margin-bottom:14px}.catcar{margin-top:4px}.ccs{padding:5px 2px}.ccc{padding:5px 4px 6px}.ccdots{display:none}.iinfo .rar{display:none}.stage{height:170px}.center{width:130px;height:130px}.side{width:60px;height:60px}.iinfo h2{font-size:1.35rem}.buybtn{padding:9px 18px;font-size:1.15rem}.ccc .cce{font-size:1.5rem}.ptitle{margin:2px 0}.ptitle h1{font-size:1.7rem}}
+@media (max-height:700px){.ptitle .pti{width:34px;height:34px}.stbg{inset:4px 6px 14px}.pedestal{bottom:16px}.stage .center{margin-bottom:14px}.catcar{margin-top:4px}.ccs{padding:5px 2px}.ccc{padding:5px 4px 6px}.ccdots{display:none}.iinfo .rar{display:none}.stage{height:170px}.stage .center{width:130px;height:130px}.side{width:60px;height:60px}.iinfo h2{font-size:1.35rem}.buybtn{padding:9px 18px;font-size:1.15rem}.ccc .cce{font-size:1.5rem}.ptitle{margin:2px 0}.ptitle h1{font-size:1.7rem}}
 /* v70 : Chrono, mode assisté */
 .chres{text-align:center}.chres .chico{width:64px;height:64px;margin:0 auto}.chres span.chico{display:block;font-size:3rem;line-height:64px}
 .chpts{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:4px 0}.chpts b{font-size:3.2rem;color:#ffd84a;text-shadow:0 0 18px #ffd84a88}
@@ -1237,7 +1246,7 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .assist{position:relative;margin:10px 8px 14px;padding:16px 12px 10px;border-radius:20px;border:2px solid #2ef2ff88;background:linear-gradient(180deg,#2ef2ff1c,#8f7bff14);box-shadow:0 0 0 4px #2ef2ff14,0 0 24px #2ef2ff33,inset 0 0 18px #2ef2ff12}
 .assist .ctag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);padding:2px 12px;border-radius:10px;background:#2ef2ff;color:#0b0620;font-size:.7rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 0 12px #2ef2ff}
 .assist .ghead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;font-weight:800;margin:0 4px}.assist .ghead .r{text-align:right}
-#app.trn .clock{visibility:hidden}
+
 .assist .gnum{font-size:1.15rem;font-weight:900;padding:1px 10px;border-radius:10px;background:#ffffff14;min-width:64px;text-align:center}.assist .gnum.pos{color:#2effa8}.assist .gnum.neg{color:#ff6b8f}.assist .gnum.busy{opacity:.55}
 .gauge2{margin:2px 4px 0}.gtrack{position:relative;height:12px;border-radius:7px;background:#ffffff18;box-shadow:inset 0 0 0 1px #ffffff22}
 .gfill{position:absolute;top:0;bottom:0;border-radius:7px;transition:all .5s cubic-bezier(.2,1.2,.4,1);opacity:.9}
@@ -1304,7 +1313,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 75,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 76,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1826,7 +1835,7 @@ function endRound(w){
   M.wins[w]++; M.rounds.push({w, sum:G.sum, pts:10+G.sum, lpts:losePts(G.sum), moves:G.moves, bid:G.bid});
   roundBadges(w);
   sfx.round();
-  if (vsAI) setTimeout(()=>{ botSay(w===1 ? 'win' : 'lose', true); if (w===1 && Math.random()<.6) receiveWizz('haha',1); }, 600);
+  if (vsAI) setTimeout(()=>{ botSay(w===1 ? 'win' : 'lose', true);  }, 600);
   if (M.wins[w]>=needW()){
     M.done=true;
     setTimeout(celebrate, 1100); return;
@@ -1947,7 +1956,7 @@ async function assistRate(){
   else if (v>=1000) x=`${T("Continue comme ça : tu peux gagner en")} ${nCoups(a.m)}.`;
   else if (v<=-1000) x=`${T("L'adversaire peut maintenant te bloquer en")} ${nCoups(-a.m)}. ${T("Annule pour corriger.")}`;
   else x = k==='top' ? T("C'était le meilleur coup possible.") : k==='good' ? T("Bon choix, proche du meilleur.") : k==='inacc' ? T("Il y avait mieux. Tu peux annuler et réessayer.") : T("Ce coup lui donne l'avantage. Annule et cherche mieux.");
-  coachSay(a, T(AS_V[k]), x, k);
+  coachSay(a, T(AS_V[k]), x, k); if (k==='mist'||k==='blun') M.coachErr=(M.coachErr||0)+1;
   if (k==='top'||k==='good') vibrate(6); else if (k==='blun'||k==='mist') vibrate([20,40,20]);
   assistPaint();
 }
@@ -1989,7 +1998,7 @@ async function hint(){
   G.hinting=false; G.hint=m; if (m){ G.pick=m[0]; G.jumpOn=!!m[2]; } render();
 }
 async function analyze(r){
-  if (!M.anOK){ if (!credUse('a')) return; M.anOK=true; const g=(P.games||[]).find(x=>x.gid===M.id); if (g){ g.anOK=1; saveP(); } }
+  if (!M.anOK){ if (!credUse('a')) return; M.anOK=true; P.stat.an=(P.stat.an||0)+1; const g=(P.games||[]).find(x=>x.gid===M.id); if (g){ g.anOK=1; saveP(); } }
   const list=(HIST[r]||[]).map(h=>({...h}));
   AN={r,res:null,sel:0,h:HIST[r]}; sheet={type:'analysis'}; render();
   if (!list.length){ AN.res=[]; render(); return; }
@@ -2543,8 +2552,9 @@ function sheetHTML(){
   if (s.type==='tuto') return `<h2>${T("Bien joué !")}</h2><p>${T("L'essentiel tient en trois phrases :")}</p><ul class="recap"><li>${T("Bloque les")} <b>deux</b> ${T("pions adverses pour gagner la manche.")}</li><li>${T("Les cases s'usent et tombent quand on les quitte.")}</li><li>${T("Une fois par manche, ton pion peut")} <b>sauter</b>.</li></ul>
     <button class="primary" type="button" data-act="tuto-play">${T("Jouer ma première partie")}</button><button class="secondary" type="button" data-act="tuto-more">${T("Voir le cours suivant")}</button>`;
   if (s.type==='ldone') return `<div class="modicon">🎓</div><h2 style="padding:0">${T("Leçon terminée !")}</h2><p>${T("Bien joué,")} ${esc(P.name)}. ${T("Tu as maîtrisé")} <b>${esc(TR&&TR.L?TR.L.t:'')}</b>.</p><button class="primary" type="button" data-act="tr-quit">${T("Terminer")}</button>`;
-  if (s.type==='limit') return `<div class="modicon">${s.pz?'🧩':'🎓'}</div><span class="limtag">${s.prem?(T("COURS PREMIUM")):(T("LIMITE QUOTIDIENNE ATTEINTE"))}</span><h2 style="padding:0">${s.pz?(T("Des puzzles illimités")):(T("Des cours illimités"))}</h2><p>${s.prem?(T("Ce cours fait partie de Premium.")):s.pz?`${T("Tes")} ${PZ_DAY} ${T("puzzles du jour sont faits. Reviens demain, ou passe Premium.")}`:(T("Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium."))}</p><button class="primary" type="button" data-act="go-shop">${T("Passer Premium")}</button>`;
-  if (s.type==='badges') return `<h2>${T("Badges")}</h2>${badgesHTML()}`;
+  if (s.type==='limit') return `<div class="modicon">${s.pz?'🧩':'🎓'}</div><span class="limtag">${s.prem?(T("COURS PREMIUM")):(T("LIMITE QUOTIDIENNE ATTEINTE"))}</span><h2 style="padding:0">${s.pz?(T("Des puzzles illimités")):(T("Des cours illimités"))}</h2><p>${s.prem?(T("Ce cours fait partie de Premium.")):s.pz?`${T("Tes")} ${PZ_DAY} ${T("puzzles du jour sont faits. Reviens demain, ou passe Premium.")}`:(T("Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium."))}</p><div class="premcard"><b>💎 ${T("Premium")}</b><small>${T("Cours, indices et analyses illimités, sans publicité.")}</small></div><button class="primary big2" type="button" data-act="go-shop">${T("Passer Premium")}</button><button class="secondary" type="button" data-act="sheet-close">${T("Revenir demain")}</button>`;
+  if (s.type==='badges') return `<h2>${T("Badges")} · ${Object.keys(P.badges).length}/${BADGES.length}</h2>${badgeList()}`;
+  if (s.type==='psec') return psecHTML(s.v);
   if (s.type==='chalin') return `<div class="modicon">🧩</div><h2 style="padding:0">${esc(s.c.n)} ${T("te défie !")}</h2><p>${T("Il a résolu ce puzzle en")} ${s.c.t} ${T("s. Fais mieux ?")}</p><button class="primary" type="button" data-act="chal-go">${T("Relever le défi")}</button>`;
   if (s.type==='info') return `<h2>${esc(s.t)}</h2><p>${esc(s.p)}</p><button class="primary" type="button" data-act="sheet-close">${T("D'accord")}</button>`;
   if (s.type==='games'){
@@ -2670,7 +2680,7 @@ function render(){
 
 /* ---------- Événements ---------- */
 function startAI(level, assist){ leaveOnline(); vsAI=level; training=!!assist; const tp=P.trap; if (assist) P.trap=false; startMatch(); P.trap=tp;
-  if (assist && M){ M.assist=true; G.as={s:0,m:0}; render(); if (!G.over && G.turn===0) assistTurn(); } }
+  if (assist && M){ M.assist=true; M.need=1; G.as={s:0,m:0}; G.clock=[5*60000,5*60000]; render(); if (!G.over && G.turn===0) assistTurn(); } }
 document.addEventListener('click', e=>{
   const a=e.target.closest('[data-act]'); if (!a) return;
   const k=a.dataset.act, v=a.dataset.v;
@@ -2680,6 +2690,7 @@ document.addEventListener('click', e=>{
     case 'learn-menu': learnMenu=!learnMenu; render(); break;
     case 'lessons-sheet': learnMenu=false; sheet={type:'lessons'}; render(); break;
     case 'badges': learnMenu=false; sheet={type:'badges'}; render(); break;
+    case 'psec': sheet=v==='badges'?{type:'badges'}:v==='games'?{type:'games'}:{type:'psec', v}; render(); break;
     case 'lessons': sheet=null; view='learn'; render(); lnScroll(); break;
     case 'puzzles': sheet=null; view='puzzles'; render(); window.scrollTo(0,0); break;
     case 'lesson': startLesson(+v); break;
@@ -2816,7 +2827,7 @@ document.addEventListener('click', e=>{
     case 'next': if (canAct()){ sheet=null; $('#party').hidden=true; stopConfetti(); M.round++; M.starter=M.next; startRound(); } break;
     case 'new': if (canAct()){ $('#party').hidden=true; stopConfetti(); sheet=null; const go=()=>startMatch(); (M&&M.done&&!online()?adInter():Promise.resolve()).then(go); } break;
     case 'party-close': $('#party').hidden=true; stopConfetti(); break;
-    case 'party-analyze': $('#party').hidden=true; stopConfetti(); analyze(M.rounds.length); break;
+    case 'party-analyze': { $('#party').hidden=true; stopConfetti(); const gi=(P.games||[]).findIndex(g=>g.gid===M.id && g.mv); if (gi>=0){ if (M.anOK) P.games[gi].anOK=1; analyzeSaved(gi,1).then(()=>{ if (P.games[gi]&&P.games[gi].anOK) M.anOK=true; }); } else analyze(M.rounds.length); break; }
     case 'an-sel': AN.sel=+v; render(); break;
     case 'an-prev': AN.sel=Math.max(0,AN.sel-1); render(); break;
     case 'an-next': AN.sel=Math.min((AN.h||HIST[AN.r]||[]).length-1,AN.sel+1); render(); break;
@@ -2855,6 +2866,7 @@ document.addEventListener('submit', e=>{
 let lastTick=performance.now(), lastSleep=false;
 // Coffres gagnés mais pas encore ouverts : ils s'ouvrent à l'accueil
 function pendChestCheck(){
+  if (!G && !TR && !sheet && $('#party').hidden && Math.random()<.25) badgeCheck();
   // rattrapage : coffres du Chrono gagnés avant cette version
   if (P.chrono && P.chrono.got && !P.chrono.v74){ P.chrono.v74=1; const t=CH_REW[P.chrono.got-1]; if (t) P.pendChests=[...(P.pendChests||[]), {t:t[1], why:T("Défi chrono"), src:'chrono'}]; saveP(); }
   if (!(P.pendChests||[]).length || view!=='home' || sheet || REWARD || G || TR || document.querySelector('.adbox') || !$('#party').hidden) return;
@@ -2868,7 +2880,7 @@ setInterval(()=>{
   if (isParc() && view==='game') parcTick(dt);
   if (TR && TR.mode && TR.mode!=='rush' && view==='game'){ const el=document.getElementById('clk0'); if (el) el.textContent=fmt(now-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)); }
   if (G && !G.over && view==='game' && !document.hidden){ ptAdd(Math.min(dt,1000)); P.playMs=(P.playMs||0)+Math.min(dt,1000); if (P.playMs>=60000){ P.playMs-=60000; addCoins(2,true); } }
-  if (!G || G.over || now<introUntil || G.noClock || G.bombPhase || (M && M.assist)) return;
+  if (!G || G.over || now<introUntil || G.noClock || G.bombPhase) return;
   G.clock[G.turn]=Math.max(0,G.clock[G.turn]-dt);
   if (G.clock[G.turn]<=0 && (!online()||G.turn===net.seat)){ G.msg=`${T("Temps écoulé pour")} ${S[G.turn].name}.`; endRound(1-G.turn); commit(); return; }
   const el=document.getElementById('clk'+G.turn); if (el){ el.textContent=fmt(G.clock[G.turn]); el.classList.toggle('low',G.clock[G.turn]<30000); }
@@ -2908,7 +2920,7 @@ function packRounds(){
 }
 async function analyzeSaved(gi, r){
   const g=(P.games||[])[gi]; if (!g || !g.mv) return;
-  if (!g.anOK){ if (!credUse('a')) return; g.anOK=1; saveP(); }
+  if (!g.anOK){ if (!credUse('a')) return; g.anOK=1; P.stat.an=(P.stat.an||0)+1; saveP(); }
   r=Math.min(Math.max(1,r||1), g.mv.length); const rd=g.mv[r-1], list=replayRound(rd);
   AN={gi, r, h:list, bid:rd.b, nm:g.nm, rounds:g.mv.length, res:null, sel:0}; sheet={type:'analysis'}; render();
   const res=await ask('analyze',{list}); if (!AN || AN.gi!==gi || AN.r!==r) return;
@@ -2937,6 +2949,7 @@ function recordGame(){
   if (M.daily && w){ const d=P.daily||{}, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1); if (d.last!==today){ P.daily={last:today, streak: d.last===dayKey(y) ? (d.streak||0)+1 : 1}; } }
   addCoins(w?10:3, true);
   if (w && src==='ia') xpAdd(5); if (w && src==='online') xpAdd(10);
+  if (M.assist && coachOn() && !M.forfeit){ badge('coach1'); if (w && !M.coachErr) badge('parfait'); }
   if (w && !M.forfeit){ if (M.rounds.length===3) badge('belle'); if (M.wins[1-me]===0) badge('carton'); if (vsAI==='expert' && !M.assist) badge('sphinx'); if (TAUNT_ID!==M.id) badge('zen'); }
   if (w && online()) badge('enligne');
   if (P.daily && P.daily.streak>=3) badge('enfeu');
@@ -3371,7 +3384,7 @@ function celebrate(){
     ${online()&&CHAMP_ID===M.id&&LAST_CHAMP!=null?`<p class="sub">${T("Championnat")} ${getR('champ',P.time).r} ${T("steps (")}${LAST_CHAMP>=0?'+':''}${LAST_CHAMP})</p>`:''}
     ${opp&&opp.uid&&!friendById(opp.uid)?`<button class="secondary" type="button" data-act="add-opp" style="width:100%">${T("Ajouter")} ${esc(opp.nm)} ${T("en ami")}</button>`:''}
     ${quote?`<p class="quote">« ${esc(quote)} » — ${esc(S[1].name)}</p>`:''}
-    <div class="row">${canAct()?`<button class="primary" type="button" data-act="new">${T("Rejouer")}</button>`:''}<button class="secondary" type="button" data-act="party-analyze">${T("Analyser")}</button></div>
+    <div class="row">${canAct()?`<button class="primary" type="button" data-act="new">${T("Rejouer")}</button>`:''}<button class="secondary" type="button" data-act="party-analyze">📊 ${T("Analyser")}${M.anOK||P.premium?'':` <small class="cnt">${credLeft('a')}</small>`}</button></div>
     ${lastWinMove()&&typeof MediaRecorder!=='undefined'?`<button class="secondary" type="button" data-act="clip" style="width:100%">${T("🎬 Clip du coup gagnant")}</button>`:''}
     <button class="secondary" type="button" data-act="leave-game" style="width:100%">${online()?(T("Quitter")):(T("Retour au menu"))}</button>`;
   box.hidden=false;
@@ -3398,10 +3411,6 @@ function addCoins(n, silent){ P.coins=(P.coins||0)+n; saveP(); if (!silent) toas
 const BADGES=[
   {id:'pas1', n:(T("Premier Pas")), d:(T("Termine le cours 1.")), e:'👣', c:'#2ef2ff', cat:(T("Cours"))},
   {id:'eleve', n:(T("Premier de la classe")), d:(T("Termine les 5 cours.")), e:'🎓', c:'#8f7bff', cat:(T("Cours"))},
-  {id:'isoleur', n:(T("L'Isoleur")), d:(T("Réussis 3 puzzles « Isoler en 1 coup ».")), e:'🧊', c:'#5ec8ff', cat:(T("Puzzles"))},
-  {id:'terminator', n:(T("Terminator")), d:(T("Réussis tous les puzzles « Gagner en 3 coups ».")), e:'🤖', c:'#ff4f6d', cat:(T("Puzzles"))},
-  {id:'stratege', n:(T("Grand Stratège")), d:(T("Réussis 3 puzzles « Prendre l'avantage ».")), e:'♟️', c:'#ffe14d', cat:(T("Puzzles"))},
-  {id:'sniper', n:(T("Sniper")), d:(T("Réussis 5 puzzles du premier coup.")), e:'🎯', c:'#b6ff3b', cat:(T("Puzzles"))},
   {id:'attaque', n:(T("Blitz")), d:(T("Gagne une manche en 10 coups ou moins.")), e:'⚔️', c:'#ff3dd8', cat:(T("Attaque"))},
   {id:'kangourou', n:(T("Kangourou")), d:(T("Gagne une manche avec ton saut au dernier coup.")), e:'🦘', c:'#ffb02e', cat:(T("Attaque"))},
   {id:'mur', n:(T("Mur de briques")), d:(T("Gagne une manche alors qu'un de tes pions était coincé.")), e:'🧱', c:'#e0452d', cat:(T("Défense"))},
@@ -3417,7 +3426,37 @@ const BADGES=[
   {id:'enfeu', n:(T("En feu")), d:(T("Joue le Lastep du jour 3 jours de suite.")), e:'🔥', c:'#ff6b2e', cat:(T("Fun"))},
   {id:'social', n:(T("Pote de tous")), d:(T("Ajoute 3 amis.")), e:'🤝', c:'#b6ff3b', cat:(T("Social"))},
   {id:'enligne', n:(T("Gladiateur")), d:(T("Gagne une partie en ligne.")), e:'🏟️', c:'#ff4f6d', cat:(T("Social"))},
+  {id:'parc10', n:(T("Explorateur")), d:(T("Termine 10 niveaux de l'Aventure.")), e:'🧭', c:'#2ef2ff', cat:(T("Aventure"))},
+  {id:'parc30', n:(T("Aventurier")), d:(T("Termine 30 niveaux de l'Aventure.")), e:'🗺️', c:'#8f7bff', cat:(T("Aventure"))},
+  {id:'parcall', n:(T("Légende du parcours")), d:(T("Termine tous les niveaux de l'Aventure.")), e:'🏔️', c:'#ffd75e', cat:(T("Aventure"))},
+  {id:'perfect20', n:(T("Perfectionniste")), d:(T("Obtiens 3 étoiles sur 20 niveaux.")), e:'🌟', c:'#ffe14d', cat:(T("Aventure"))},
+  {id:'ch8', n:(T("Éclair")), d:(T("Marque 8 points au Chrono.")), e:'⚡', c:'#b6ff3b', cat:(T("Chrono"))},
+  {id:'ch26', n:(T("Foudre")), d:(T("Marque 26 points au Chrono.")), e:'🌩️', c:'#5ec8ff', cat:(T("Chrono"))},
+  {id:'coach1', n:(T("Bon élève")), d:(T("Termine une partie avec le coach.")), e:'🧑‍🏫', c:'#2ef2ff', cat:(T("Coach"))},
+  {id:'parfait', n:(T("Partie parfaite")), d:(T("Gagne une partie avec le coach sans erreur ni gaffe.")), e:'💎', c:'#9fb6ff', cat:(T("Coach"))},
+  {id:'analyste', n:(T("Analyste")), d:(T("Analyse 3 parties.")), e:'📊', c:'#8fd1c9', cat:(T("Coach"))},
+  {id:'win10', n:(T("Vainqueur")), d:(T("Gagne 10 parties contre de vrais joueurs.")), e:'🥇', c:'#ffd75e', cat:(T("Classement"))},
+  {id:'win50', n:(T("Conquérant")), d:(T("Gagne 50 parties contre de vrais joueurs.")), e:'🏆', c:'#ffb02e', cat:(T("Classement"))},
+  {id:'or', n:(T("Ligue d'or")), d:(T("Atteins 1400 steps au classement.")), e:'🥇', c:'#ecd59c', cat:(T("Classement"))},
+  {id:'diamant', n:(T("Diamant")), d:(T("Atteins 1650 steps au classement.")), e:'💠', c:'#9fb6ff', cat:(T("Classement"))},
+  {id:'streak7', n:(T("Assidu")), d:(T("Joue 7 jours de suite.")), e:'📅', c:'#20f0a0', cat:(T("Assiduité"))},
+  {id:'streak30', n:(T("Inarrêtable")), d:(T("Joue 30 jours de suite.")), e:'🚀', c:'#ff3dd8', cat:(T("Assiduité"))},
+  {id:'marathon100', n:(T("Centurion")), d:(T("Termine 100 parties.")), e:'💯', c:'#ff4f6d', cat:(T("Assiduité"))},
+  {id:'coffres10', n:(T("Chasseur de trésors")), d:(T("Ouvre 10 coffres.")), e:'🧰', c:'#c98a4b', cat:(T("Collection"))},
+  {id:'roue10', n:(T("Chanceux")), d:(T("Tourne la roue 10 fois.")), e:'🎡', c:'#ff8a70', cat:(T("Collection"))},
+  {id:'riche', n:(T("Fortune")), d:(T("Possède 1000 pièces en même temps.")), e:'💰', c:'#ffd75e', cat:(T("Collection"))},
+  {id:'collec', n:(T("Collectionneur")), d:(T("Possède 10 objets de la boutique.")), e:'👕', c:'#8f7bff', cat:(T("Collection"))},
+  {id:'fete', n:(T("Fêtard")), d:(T("Termine une partie à 4 joueurs.")), e:'🎉', c:'#ff3dd8', cat:(T("Social"))},
+  {id:'amis10', n:(T("Populaire")), d:(T("Aie 10 amis.")), e:'🌍', c:'#b6ff3b', cat:(T("Social"))},
 ];
+// Badges qui se vérifient sur les statistiques (appelé régulièrement)
+function badgeCheck(){
+  if (!P || !P.badges) return;
+  const pd=Object.values(P.parc||{}).filter(v=>v>0).length, p3=Object.values(P.parc||{}).filter(v=>v>=3).length, rw=(P.games||[]).filter(g=>g.w&&(g.src==='online'||g.src==='ami')).length, el=arenaElo(), st=streakNow(), cb=(P.chrono||{}).best||0;
+  const c=[[pd>=10,'parc10'],[pd>=30,'parc30'],[pd>=PARC.length,'parcall'],[p3>=20,'perfect20'],[cb>=8,'ch8'],[cb>=26,'ch26'],[(P.stat.an||0)>=3,'analyste'],[rw>=10,'win10'],[rw>=50,'win50'],[el>=1400,'or'],[el>=1650,'diamant'],
+    [st>=7,'streak7'],[st>=30,'streak30'],[(P.stat.games||0)>=100,'marathon100'],[(P.stat.chests||0)>=10,'coffres10'],[(P.stat.wheel||0)>=10,'roue10'],[(P.coins||0)>=1000,'riche'],[(P.owned||[]).length>=10,'collec'],[(P.friends||[]).length>=10,'amis10']];
+  for (const [ok,id] of c) if (ok && !P.badges[id]){ badge(id); return; }   // un à la fois : chaque bannière a le temps d'être vue
+}
 function badge(id){
   if (P.badges[id]) return; const b=BADGES.find(x=>x.id===id); if (!b) return;
   P.badges[id]=Date.now(); P.coins=(P.coins||0)+20; saveP(); sfx.round();
@@ -4273,7 +4312,7 @@ function openChest(tier, why){
   REWARD.coins=coins; REWARD.item=it; rewardDraw();
 }
 function chestPop(){
-  const R=REWARD; if (!R || R.opened) return; R.opened=true;
+  const R=REWARD; if (!R || R.opened) return; R.opened=true; P.stat.chests=(P.stat.chests||0)+1;
   P.coins=(P.coins||0)+R.coins; if (R.item){ const key=R.item.join(':'); if (!P.owned.includes(key)) P.owned.push(key); } saveP();
   sfx.win(); vibrate([20,40,20]); rewardDraw();
   const box=$('#party'); fxRun('feux', CHESTS[R.tier].c, box.querySelector('canvas'));
@@ -4341,7 +4380,7 @@ function wheelDraw(){
 }
 function wheelSpin(paid){
   if (WSPIN) return;
-  const w=wheelInfo(); if (paid) w.ads=(w.ads||0)+1; else { if (w.free) return; w.free=true; } P.wheel=w; saveP();
+  const w=wheelInfo(); if (paid) w.ads=(w.ads||0)+1; else { if (w.free) return; w.free=true; } P.wheel=w; P.stat.wheel=(P.stat.wheel||0)+1; saveP();
   const tot=WHEEL.reduce((a,s)=>a+s.w,0); let t=Math.random()*tot, k=0; while ((t-=WHEEL[k].w)>0) k++;
   const g=document.getElementById('wrot'); const deg=360*6 + (360 - (k+.5)*(360/WHEEL.length));
   document.querySelectorAll('#partyCard button').forEach(b=>b.disabled=true);
@@ -4634,9 +4673,24 @@ function coinsSheet(){
 }
 
 /* ---------- Profil : ton pion, ton niveau, tes classements, les réglages ---------- */
+// Badges en liste verticale : obtenus d'abord, puis ceux à débloquer, par catégorie
+function badgeList(){
+  const got=BADGES.filter(b=>P.badges[b.id]), lk=BADGES.filter(b=>!P.badges[b.id]);
+  const row=b=>{ const ok=P.badges[b.id]; return `<div class="brow${ok?'':' lk'}" style="--bc:${b.c}"><span class="bico" aria-hidden="true">${b.e}</span><span class="bt"><b>${esc(b.n)}</b><small>${esc(b.cat)} · ${esc(b.d)}</small></span>${ok?'<span class="bok">✓</span>':''}</div>`; };
+  return `<div class="blist">${got.length?`<p class="bsub">${T("Obtenus")} · ${got.length}</p>${got.map(row).join('')}`:''}<p class="bsub">${T("À débloquer")} · ${lk.length}</p>${lk.map(row).join('')}</div>`;
+}
+function psecHTML(v){
+  if (v==='rank') return `<h2>${T("Classements par cadence")}</h2>${cadHTML()}`;
+  if (v==='friends') return `<h2>${T("Amis")} · ${P.friends.length}</h2>
+    <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>${T("Ajouter")}</b><small class="bonus">+100 ${ic('coin','ic sm')}</small></button>${[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a))||(b.last||0)-(a.last||0)).map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?(T("En ligne")):lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">${T("Défier")}</button></div>`).join('')}</div>
+    <div class="fbtns"><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${T("🖼️ Affiche")}</button></div>`;
+  if (v==='set') return `<h2>⚙️ ${T("Réglages")}</h2>${settingsBody()}`;
+  if (v==='about') return `<h2>${T("À propos")}</h2>${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`;
+  return '';
+}
 function renderProfile(){
   const t=tierOf(P.elo.r), nb=Object.keys(P.badges).length;
-  const sec=(id,title,body)=>`<details class="sec2" data-sec="${id}" ${OPEN.has(id)?'open':''}><summary>${title}</summary><div class="in">${body}</div></details>`;
+  const sec=(id,title,body)=>`<button type="button" class="prow" data-act="psec" data-v="${id}"><span>${title}</span><i aria-hidden="true">›</i></button>`;
   const stat=(v,l)=>`<div class="st2"><b>${v}</b><small>${l}</small></div>`;
   return `${pillsTop()}
   <div class="prohead">
@@ -4646,7 +4700,7 @@ function renderProfile(){
     <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?' · 💎 '+T("Premium"):''}</p>
     <div class="arow"><button class="pill tpill" type="button" data-act="closet">👕 ${T("Vestiaire")}</button><button class="pill tpill" type="button" data-act="lb-open">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
   </div>
-  <div class="stats2">${stat(P.stat.games||0,T("parties"))}${stat(P.elo.g,T("matchs classés"))}${stat(pzDone(),T("puzzles"))}${stat(P.stat.fell||0,T("cases détruites"))}${stat(nb+'/'+BADGES.length,T("badges"))}${stat(streakNow(),T("jours de suite"))}</div>
+  <div class="stats2">${stat(P.stat.games||0,T("parties"))}${stat(P.elo.g,T("matchs classés"))}${stat(Object.values(P.parc||{}).filter(v=>v>0).length,T("niveaux Aventure"))}${stat(P.stat.fell||0,T("cases détruites"))}${stat(nb+'/'+BADGES.length,T("badges"))}${stat(streakNow(),T("jours de suite"))}</div>
   ${sec('rank',T("Classements par cadence"), cadHTML())}
   ${sec('badges',`${T("Badges")} · ${nb}/${BADGES.length}`, badgesHTML())}
   ${sec('friends',`${T("Amis")} · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}${T("Ajouter")}</button><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${ic('image')}${T("Mon poster")}</button></div>`)}

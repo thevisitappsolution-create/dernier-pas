@@ -141,6 +141,7 @@
     PT.msg = PT.winner === mySeat() && !(!NET && PT.seats.filter(x => x.kind === 'human').length > 1) ? tr('Tu fais le dernier pas !') : `${PT.seats[PT.winner].name} ${tr('fait le dernier pas !')}`; PT.ver++;
     try { sfx.round(); } catch (e) {}
     reward(); broadcast(); draw();
+    try { if (mySeat() != null && typeof badge === 'function') badge('fete'); } catch (e) {}
   }
   function reward() {
     const me = mySeat(); if (me == null || !PT.rank) return;

@@ -1099,3 +1099,17 @@ Object.assign(window.EN_DICT, {"Badges":"Badges","Bientôt":"Coming soon","Saiso
 "Active-moi pour toute la partie (1 indice) : je commenterai chacun de tes coups.":"Turn me on for the whole game (1 hint): I'll comment on every move.",
 "Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Le coach qui commente chaque coup s'active pour toute la partie avec 1 indice. Indices :":"During the game: a numbered gauge and unlimited undo. The coach who comments on every move turns on for the whole game with 1 hint. Hints:",
 "Défi chrono":"Chrono challenge","Ouvrir le coffre":"Open the chest"});
+// v76
+Object.assign(window.EN_DICT, {"Cours, indices et analyses illimités, sans publicité.":"Unlimited lessons, hints and analyses, no ads.","Revenir demain":"Come back tomorrow",
+"Explorateur":"Explorer","Termine 10 niveaux de l'Aventure.":"Finish 10 Adventure levels.","Aventurier":"Adventurer","Termine 30 niveaux de l'Aventure.":"Finish 30 Adventure levels.",
+"Légende du parcours":"Path legend","Termine tous les niveaux de l'Aventure.":"Finish every Adventure level.","Perfectionniste":"Perfectionist","Obtiens 3 étoiles sur 20 niveaux.":"Get 3 stars on 20 levels.",
+"Éclair":"Lightning","Marque 8 points au Chrono.":"Score 8 points in Chrono.","Foudre":"Thunder","Marque 26 points au Chrono.":"Score 26 points in Chrono.",
+"Bon élève":"Good student","Termine une partie avec le coach.":"Finish a game with the coach.","Partie parfaite":"Perfect game","Gagne une partie avec le coach sans erreur ni gaffe.":"Win a game with the coach without a mistake or blunder.",
+"Analyste":"Analyst","Analyse 3 parties.":"Analyze 3 games.","Vainqueur":"Winner","Gagne 10 parties contre de vrais joueurs.":"Win 10 games against real players.",
+"Conquérant":"Conqueror","Gagne 50 parties contre de vrais joueurs.":"Win 50 games against real players.","Ligue d'or":"Gold league","Atteins 1400 steps au classement.":"Reach 1400 steps in the ranking.",
+"Diamant":"Diamond","Atteins 1650 steps au classement.":"Reach 1650 steps in the ranking.","Assidu":"Regular","Joue 7 jours de suite.":"Play 7 days in a row.",
+"Inarrêtable":"Unstoppable","Joue 30 jours de suite.":"Play 30 days in a row.","Centurion":"Centurion","Termine 100 parties.":"Finish 100 games.",
+"Chasseur de trésors":"Treasure hunter","Ouvre 10 coffres.":"Open 10 chests.","Chanceux":"Lucky","Tourne la roue 10 fois.":"Spin the wheel 10 times.",
+"Fortune":"Fortune","Possède 1000 pièces en même temps.":"Hold 1000 coins at once.","Collectionneur":"Collector","Possède 10 objets de la boutique.":"Own 10 shop items.",
+"Fêtard":"Party animal","Termine une partie à 4 joueurs.":"Finish a 4-player game.","Populaire":"Popular","Aie 10 amis.":"Have 10 friends.",
+"Chrono":"Chrono","Coach":"Coach","Classement":"Ranking","Assiduité":"Regularity","Collection":"Collection","niveaux Aventure":"Adventure levels","Obtenus":"Earned","À débloquer":"To unlock"});
