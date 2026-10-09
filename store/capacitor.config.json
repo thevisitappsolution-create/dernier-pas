@@ -1,0 +1,12 @@
+{
+  "appId": "app.lastep.jeu",
+  "appName": "Lastep",
+  "webDir": "www",
+  "backgroundColor": "#0b0820",
+  "ios": { "contentInset": "never", "backgroundColor": "#0b0820" },
+  "android": { "backgroundColor": "#0b0820", "allowMixedContent": false },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 600, "backgroundColor": "#0b0820", "showSpinner": false },
+    "AdMob": { "appIdIos": "ca-app-pub-3940256099942544~1458002511", "appIdAndroid": "ca-app-pub-3940256099942544~3347511713" }
+  }
+}

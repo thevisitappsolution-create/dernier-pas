@@ -984,6 +984,10 @@ html:not(.lock) body{background:transparent!important}
 .iinfo .spd{max-width:320px;text-align:center;opacity:.85;line-height:1.3}.iinfo h2.refh{font-size:1.15rem;max-width:330px;text-align:center}
 .buybtn.eur{background:linear-gradient(180deg,#5cff9d,#18b863);color:#06210f}
 .toggle.folie{border:2px solid #ff3dd855;background:#ff3dd814}
+.prow.acc{flex-wrap:nowrap;border-color:#2ef2ff66;background:linear-gradient(180deg,#123a5a,#0e1f40)}.prow.acc span{display:grid;gap:2px}.prow.acc small{font-family:var(--body,inherit);font-size:.72rem;opacity:.8;font-weight:600;line-height:1.25}.prow.acc.on{border-color:#2effa866}
+.accbox{display:flex;justify-content:space-around;gap:8px;padding:10px;border-radius:14px;background:#ffffff0c;font-size:.9rem}
+.mailin{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:2px solid #ffffff2a;background:#0c0a1c;color:#fff;font:inherit;font-size:1.05rem}
+.oauth{width:100%;padding:13px;border-radius:14px;border:0;font:inherit;font-weight:800;font-size:1rem}.oauth.apple{background:#fff;color:#000}.oauth.google{background:#fff;color:#1a1a1a}
 .perks{list-style:none;margin:4px 0;padding:0;display:grid;gap:6px;text-align:left}.perks li{padding:8px 12px;border-radius:12px;background:#ffffff0d;font-weight:700}
 .plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0}.plans button{position:relative;display:grid;gap:2px;padding:12px 8px;border-radius:16px;border:2px solid #ffffff22;background:#ffffff0a;color:inherit;font:inherit}
 .plans button span{font-family:var(--fun);font-size:1.5rem}.plans button small{opacity:.7}.plans button[aria-checked="true"]{border-color:#ffd75e;background:#ffd75e1c;box-shadow:0 0 16px #ffd75e55}
@@ -1337,11 +1341,13 @@ document.documentElement.lang=LANG;
 if (LANG==='en') document.querySelectorAll('[aria-label]').forEach(el=>{ const v=el.getAttribute('aria-label'); if (EN_DICT[v]) el.setAttribute('aria-label',EN_DICT[v]); });
 /* ---------- Réglages de lancement ---------- */
 const CONFIG = {
+  store: !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()),   // appli des stores : pas d'accès administrateur
+  oauth: {apple:false, google:false},   // passer à true quand Apple / Google sont configurés dans Supabase (Authentication > Providers)
   premiumPrices: {month:'4,99 €', year:'49,99 €', save:'−17 %'},   // prix affichés ; les vrais prix viennent de l'App Store / Google Play
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 80,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 81,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1565,6 +1571,7 @@ function loadP(){
   return p;
 }
 let P=loadP();
+if (CONFIG.store) P.premium=false;   // dans l'appli des stores, Premium vient seulement du compte (serveur)
 /* Classements : Ordinateur (entraînement) et Championnat (en ligne), par cadence et taille de plateau */
 const BOARD_SIZE=5;
 const rKey = (mode,t) => `${mode}-${t}-${BOARD_SIZE}x${BOARD_SIZE}`;
@@ -1577,7 +1584,7 @@ function applyChamp(score, oppR){
   const R=getR('champ',P.time), exp=1/(1+Math.pow(10,(oppR-R.r)/400)), K=R.g<20?40:24, d=Math.round(K*(score-exp));
   R.r+=d; R.g++; if (score) R.w++; R.hist=[...(R.hist||[]),R.r].slice(-30); saveP(); return d;
 }
-function saveP(){ try { localStorage.setItem(P_KEY, JSON.stringify(P)); } catch(e){} }
+function saveP(){ try { localStorage.setItem(P_KEY, JSON.stringify(P)); } catch(e){} if (window.Acc) Acc.dirty(); }
 // Pouvoirs du mode folie : 1500 pièces les 15 utilisations, ou « Gold » 3000 pièces = illimité pendant 7 jours. 1 offert de chaque au départ.
 const PW_PRICE=1500, PW_PACK=15, PW_GOLD=3000, PW_GOLD_DAYS=7;
 const PW={push:{n:"Pousser",e:'💥',d:"Choisis au début de la partie le pion qui pousse. Une fois dans la partie, il pousse un pion adverse collé à lui : l'autre recule d'une case et tu prends sa place. S'il tombe dans un trou, il perd ce pion."},
@@ -1588,11 +1595,13 @@ const PW={push:{n:"Pousser",e:'💥',d:"Choisis au début de la partie le pion q
   wall:{n:"Mur",e:'🧱',d:"Défense : choisis en secret un pion. Activé pour une manche, personne ne peut sauter par-dessus. Au premier essai, le sauteur perd son tour et le mur s'éteint."},
   jump:{n:"Saut",e:'🦘',d:"Active-le pendant une manche : tu gagnes un saut de plus. Deux sauts dans la même manche !"},
   vision:{n:"Vision",e:'👁️',d:"Les autres voient seulement qu'un joueur a un pouvoir, pas lequel. Avec Vision, tu vois les pouvoirs de chacun. Elle ne se voit pas (sauf par ceux qui l'ont aussi) et ne compte pas dans tes 2 pouvoirs : c'est la seule façon d'en avoir 3."}};
-const PW_ACTIVE=['push','swap','dyn','jump'], PW_DEF=['heavy','ghost','wall'], PW_KEYS=['push','swap','dyn','jump','heavy','ghost','wall','vision'];
+// Pouvoirs ouverts au lancement ; Fantôme, Mur, Saut et Vision arriveront en « saisons » (le code est prêt)
+const PW_ON=['push','dyn','swap','heavy'];
+const PW_ACTIVE=['push','swap','dyn','jump'], PW_DEF=['heavy','ghost','wall'], PW_KEYS=['push','swap','dyn','jump','heavy','ghost','wall','vision'].filter(k=>PW_ON.includes(k));
 const pwPass = k => P.pw && P.pw[k] && P.pw[k].u > Date.now();
-const pwLeft = k => !P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
+const pwLeft = k => !PW_ON.includes(k)||!P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
 const pwHas = k => pwLeft(k) > 0;
-function pwUse(k){ if (pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); saveP(); }
+function pwUse(k){ if (pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); if (window.Acc) Acc.queuePwUse(k); saveP(); }
 const pwLabel = k => pwPass(k) ? `Gold · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
 const unlocked = (kind,id) => CONFIG.season0 || CAT[kind][id].p===0 || P.owned.includes(kind+':'+id);
 if (!P.uid){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let u=''; for (let i=0;i<8;i++) u+=abc[Math.floor(Math.random()*abc.length)]; P.uid=u; }
@@ -1607,6 +1616,7 @@ if (!P.v6){ P.v6=true; P.coins+=100;
 if (!P.v77shop){ P.v77shop=1; P.owned=[]; P.premium=false; for (const kk of ['color','fur','eyes','acc','fin','trail','win']) if (P.skin[kk] && CAT[kk] && CAT[kk][P.skin[kk]] && CAT[kk][P.skin[kk]].p>0) P.skin[kk]=P0.skin[kk]||Object.keys(CAT[kk]).find(id=>CAT[kk][id].p===0); if (THEMES[P.theme] && THEMES[P.theme].p>0) P.theme='classique'; }
 // Pouvoirs du mode folie (parties entre amis) : 1 utilisation offerte de chacun, ensuite avec des pièces
 P.pw=P.pw||{}; for (const k of ['push','heavy','ghost','swap','dyn','wall','jump','vision']) if (!P.pw[k]) P.pw[k]={n:1,u:0};
+P.time=3; P.trap=false;
 saveP();
 const WEEK=168*3600e3;
 // Indices : 3 offerts au départ, puis +1 gratuit chaque semaine, séparément pour l'Aventure ('pa') et les Cours ('h').
@@ -2014,7 +2024,7 @@ function look(p,k,from,to){ LOOK[p][k]={x:Math.sign(to%5-from%5), y:Math.sign(((
 /* ---------- Partie ---------- */
 function shuffled(n){ const a=[...Array(n).keys()]; for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function startMatch(){
-  M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, fol:!!(online() && net && !net.mm && P.folie), trap:!!(vsAI&&P.trap), mt:Date.now()};
+  M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, fol:!!(online() && net && !net.mm && P.folie), trap:false, mt:Date.now()};
   if (dailyNext){ M.daily=true; const db=dailyBoard(); M.order=[db, ...M.order.filter(x=>x!==db)]; dailyNext=false; }
   HIST={}; AN=null; CHAT=[]; unread=0; LD=[null,null];
   view='game'; sheet=null; S=sides(); buildBoard(); startRound();
@@ -2645,14 +2655,13 @@ function sheetHTML(){
     <p class="note aimnote">${T("Contre l'ordinateur, on s'entraîne : ça ne compte pas pour le classement. Pour gagner des points de classement, il faut battre de vrais joueurs.")}</p>
     ${s.assist?`<p class="note aimnote">${P.premium?T("Pendant la partie : la jauge chiffrée, ton coach qui commente chaque coup, des alertes « tu peux gagner / perdre en N coups » et le retour en arrière illimité."):`${T("Pendant la partie : la jauge chiffrée et le retour en arrière illimité. Le coach qui commente chaque coup s'active pour toute la partie avec 1 indice. Indices :")} <b>${credLeft('h')}</b> (${T("+1 chaque semaine")}).`}</p>`:''}
     <div class="bots">${Object.entries(LEVELS).map(([k,l])=>`<button type="button" class="card" data-act="level" data-v="${k}" aria-pressed="${P.level===k}"><div class="pv">${pawnSVG(BOTS[k].skin)}</div><b>${BOTS[k].name}</b><small>${l.elo} steps</small></button>`).join('')}</div>
-    ${s.assist?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
+    ${true?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
     <button class="primary" type="button" data-act="go-ai">${s.assist?`💡 ${T("Lancer l'entraînement")}`:`${T("Jouer ·")} ${tLabel(P.time)}`}</button>`;
   }
   if (s.type==='friend'){
     if (!net){
       if (!peerOK()) return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Le module en ligne n'a pas pu se charger. Vérifie ta connexion internet et relance l'appli.")}</p>`;
       return `<h2>${T("Jouer avec un ami")}</h2>
-      <div class="timegrid t3">${TIMES.map(t=>`<button type="button" data-act="ftime" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>
       <label class="toggle folie"><span>🤪 ${T("Mode folie")}<small class="note">${T("Pousser, poids lourd, dynamite. Pour rire, sans classement.")}</small></span><input type="checkbox" id="o-folie" ${P.folie?'checked':''}></label>
       <button class="primary" type="button" data-act="host" style="margin-top:10px">${T("Créer une partie")} · ${tLabel(P.time)}${P.folie?' · 🤪':''}</button>
       <form class="joinrow" id="joinform" autocomplete="off"><input class="code-input" id="code" maxlength="5" inputmode="numeric" placeholder="• • • •" aria-label="${T("Code de la partie")}" autocapitalize="characters"><button type="submit" class="secondary">${T("Rejoindre")}</button></form>
@@ -2694,7 +2703,7 @@ function sheetHTML(){
     <p>${T("Ton code ami")}</p><div class="code" style="font-size:1.8rem;letter-spacing:.12em">${fmtUid(P.uid)}</div>
     <form class="joinrow" id="frform" autocomplete="off"><input class="code-input" id="frcode" maxlength="9" placeholder="${T("CODE AMI")}" aria-label="${T("Code ami de ton ami")}" autocapitalize="characters" style="letter-spacing:.12em"><button type="submit" class="secondary">${T("Ajouter")}</button></form>
     <p class="note" id="fr-err" hidden>${T("Un code ami fait 8 caractères, par exemple ABCD-EFGH.")}</p>
-    <div class="fbtns"><button type="button" data-act="invite-link">${ic('link')}${T("Partager mon lien")}</button><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${ic('image')}${T("Mon poster")}</button></div>
+    <div class="fbtns"><button type="button" data-act="invite-link">${ic('link')}${T("Partager mon lien")}</button></div>
     <p class="note">${T("La recherche par pseudo arrivera avec les comptes joueurs (serveur). En attendant : code ami, lien ou répertoire.")}</p>`;
   if (s.type==='fr'){
     const f=friendById(s.id); if (!f) return ("<h2>"+T("Ami introuvable")+"</h2>"); const on=isOn(f);
@@ -2742,7 +2751,9 @@ function sheetHTML(){
     <p class="note">${T("Les objets de la boutique ne sont pas inclus : ils s'achètent avec les pièces gagnées en jouant.")}</p>
     ${P.premium?'':`<div class="plans" role="radiogroup"><button type="button" role="radio" data-act="prem-plan" data-v="month" aria-checked="${pl==='month'}"><b>${T("Mensuel")}</b><span>${pr.month}</span><small>${T("par mois")}</small></button><button type="button" role="radio" data-act="prem-plan" data-v="year" aria-checked="${pl==='year'}"><i class="save">${pr.save}</i><b>${T("Annuel")}</b><span>${pr.year}</span><small>${T("par an")}</small></button></div>
     <button class="primary big2" type="button" data-act="prem-buy" data-v="${pl}">${T("S'abonner")}</button>
-    <p class="note">${T("Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.")}</p>`}`; }
+    <p class="note">${T("Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.")}</p>`}
+    ${window.LastepIAP&&LastepIAP.restore?`<button class="linkbtn" type="button" data-act="iap-restore">${T("Restaurer mes achats")}</button>`:''}
+    <p class="note"><a href="cgu.html" style="color:inherit">${T("Conditions")}</a> · <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a></p>`; }
   if (s.type==='loadout'){ const seat=net?net.seat:0, sl=s.sel, pk=k=>`${T("Pion en")} ${sq(START[seat][k])}`;
     const own=PW_KEYS.filter(k=>k!=='vision' && pwHas(k)), full=sl.pw.length>=2, hasDef=sl.pw.some(k=>PW_DEF.includes(k));
     const chip=k=>{ const on=sl.pw.includes(k), dis=!on && (full || (PW_DEF.includes(k) && hasDef)); return `<button type="button" class="ldo" data-act="ld-tog" data-v="${k}" aria-pressed="${on}" ${dis?'disabled':''}>${PW[k].e} ${T(PW[k].n)}<small>${pwLabel(k)}</small></button>`; };
@@ -2753,6 +2764,27 @@ function sheetHTML(){
     ${hasDef?`<div class="ldg"><b>🤫 ${T("Pion protégé (secret)")}</b><div class="ldr">${opt('dk',0,pk(0),sl.dk===0)}${opt('dk',1,pk(1),sl.dk===1)}</div></div>`:''}
     ${pwHas('vision')?`<div class="ldg"><b>👁️ ${T("Vision")} <small>${pwLabel('vision')}</small></b><small>${T("En plus de tes 2 pouvoirs : tu vois ceux des autres, et personne ne voit ta Vision.")}</small><div class="ldr">${opt('vis',1,T("Prendre"),!!sl.vis)}${opt('vis',0,T("Non"),!sl.vis)}</div></div>`:''}
     <button class="primary big2" type="button" data-act="ld-ok">${T("C'est parti !")}</button>`; }
+  if (s.type==='account'){ const A=window.Acc;
+    if (!A) return `<h2>${T("Compte")}</h2><p>${T("Connexion impossible pour le moment.")}</p>`;
+    if (A.on){
+      if (s.del) return `<div class="modicon">⚠️</div><h2>${T("Supprimer mon compte ?")}</h2><p>${T("Ta progression, tes pièces, tes objets et tes pouvoirs seront effacés du serveur. C'est définitif.")}</p><button class="danger" type="button" data-act="acc-del-ok">${T("Supprimer définitivement")}</button><button class="secondary" type="button" data-act="account">${T("Annuler")}</button>`;
+      return `<div class="modicon">☁️</div><h2>${T("Ton compte")}</h2><p>${T("Connecté avec")} <b>${esc(A.email||'')}</b></p>
+      <div class="accbox"><span>${T("Code ami")} <b>${fmtUid(P.uid)}</b></span><span>${ic('coin')} <b>${P.coins||0}</b></span><span>${P.premium?'💎 Premium':''}</span></div>
+      <p class="note">${A.err?esc(A.err):A.syncing?T("Synchronisation…"):T("Ta partie est sauvegardée automatiquement. Connecte-toi avec la même adresse sur un autre appareil pour la retrouver.")}</p>
+      <button class="secondary" type="button" data-act="acc-out">${T("Se déconnecter")}</button><button class="linkbtn" type="button" data-act="acc-del" style="color:#ff6b8f">${T("Supprimer mon compte")}</button>`;
+    }
+    const why = s.why==='buy' ? `<p class="note">🔒 ${T("Pour acheter, connecte-toi : tes achats seront liés à ton compte et jamais perdus.")}</p>` : '';
+    if (A.step==='code') return `<div class="modicon">✉️</div><h2>${T("Entre le code")}</h2><p>${T("On t'a envoyé un e-mail à")} <b>${esc(A.email)}</b>. ${T("Tape le code à 6 chiffres, ou touche le lien dans l'e-mail.")}</p>
+      <input class="code-input" id="acccode" inputmode="numeric" maxlength="8" autocomplete="one-time-code" placeholder="••••••" aria-label="${T("Code reçu par e-mail")}">
+      ${A.err?`<p class="note" style="color:#ff6b8f">${esc(A.err)}</p>`:''}
+      <button class="primary" type="button" data-act="acc-verify">${T("Valider")}</button><button class="linkbtn" type="button" data-act="acc-back">${T("Changer d'adresse")}</button>`;
+    return `<div class="modicon">☁️</div><h2>${T("Sauvegarder ma partie")}</h2>${why}<p>${T("Avec un compte, tu retrouves ta progression, tes pièces et tes achats sur tous tes appareils : téléphone, tablette ou web. Gratuit, sans mot de passe.")}</p>
+      ${CONFIG.oauth.apple?`<button class="oauth apple" type="button" data-act="acc-oauth" data-v="apple"> ${T("Continuer avec Apple")}</button>`:''}
+      ${CONFIG.oauth.google?`<button class="oauth google" type="button" data-act="acc-oauth" data-v="google">G ${T("Continuer avec Google")}</button>`:''}
+      <input class="mailin" id="accmail" type="email" inputmode="email" autocomplete="email" placeholder="${T("ton@email.fr")}" value="${esc(A.email||'')}" aria-label="${T("Adresse e-mail")}">
+      ${A.err?`<p class="note" style="color:#ff6b8f">${esc(A.err)}</p>`:''}
+      <button class="primary" type="button" data-act="acc-send">${T("Recevoir mon code")}</button>
+      <p class="note">${T("Ton adresse sert uniquement à te connecter.")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a></p>`; }
   if (s.type==='badges') return `<h2>${T("Badges")} · ${Object.keys(P.badges).length}/${BADGES.length}</h2>${badgeList()}`;
   if (s.type==='psec') return psecHTML(s.v);
   if (s.type==='chalin') return `<div class="modicon">🧩</div><h2 style="padding:0">${esc(s.c.n)} ${T("te défie !")}</h2><p>${T("Il a résolu ce puzzle en")} ${s.c.t} ${T("s. Fais mieux ?")}</p><button class="primary" type="button" data-act="chal-go">${T("Relever le défi")}</button>`;
@@ -2891,6 +2923,14 @@ document.addEventListener('click', e=>{
     case 'learn-menu': learnMenu=!learnMenu; render(); break;
     case 'lessons-sheet': learnMenu=false; sheet={type:'lessons'}; render(); break;
     case 'badges': learnMenu=false; sheet={type:'badges'}; render(); break;
+    case 'account': sheet={type:'account'}; render(); break;
+    case 'acc-send': { const v2=($('#accmail')||{}).value; const b=a; b.disabled=true; Acc.sendCode(v2).then(()=>render()); break; }
+    case 'acc-verify': { const v2=($('#acccode')||{}).value; Acc.verify(v2).then(ok=>{ if (ok){ sheet=null; toast(T("Connecté ! Ta partie est sauvegardée.")); } render(); }); break; }
+    case 'acc-back': Acc.step='email'; Acc.err=''; render(); break;
+    case 'acc-oauth': Acc.oauth(v); break;
+    case 'acc-out': Acc.signOut().then(()=>{ sheet=null; toast(T("Déconnecté")); }); break;
+    case 'acc-del': sheet={type:'account', del:true}; render(); break;
+    case 'acc-del-ok': Acc.deleteAccount().then(ok=>{ sheet=null; toast(ok?T("Compte supprimé"):T("La suppression a échoué. Réessaie.")); render(); }); break;
     case 'psec': sheet=v==='badges'?{type:'badges'}:v==='games'?{type:'games'}:{type:'psec', v}; render(); break;
     case 'lessons': sheet=null; view='learn'; render(); lnScroll(); break;
     case 'puzzles': sheet=null; view='puzzles'; render(); window.scrollTo(0,0); break;
@@ -3049,6 +3089,7 @@ document.addEventListener('click', e=>{
     case 'premium': sheet={type:'premium', plan:'year'}; render(); break;
     case 'prem-plan': if (sheet && sheet.type==='premium'){ sheet.plan=v; render(); } break;
     case 'prem-buy': premBuy(v); break;
+    case 'iap-restore': if (!window.Acc||!Acc.on){ sheet={type:'account', why:'buy'}; render(); break; } LastepIAP.restore().then(()=>toast(T("Achats restaurés"))); break;
     case 'go-shop': sheet=null; if (view==='game') leaveGameSoft(); view='shop'; render(); break;
     case 'buy': if (unlocked(a.dataset.k,v)){ equip(a.dataset.k,v); toast((T("Équipé"))); } else { sheet={type:'buy',k:a.dataset.k,v}; } render(); break;
     case 'equip': if (unlocked(a.dataset.k,v)) equip(a.dataset.k,v); else sheet={type:'buy',k:a.dataset.k,v}; render(); break;
@@ -3074,7 +3115,7 @@ document.addEventListener('change', e=>{
 document.addEventListener('submit', e=>{
   e.preventDefault();
   if (e.target.id==='joinform'){ const v=($('#code').value||'').trim().toLowerCase(); if (!/^([0-9]{4}|[a-z0-9]{5})$/.test(v)){ $('#join-err').hidden=false; return; } goOnline(v,false); }
-  if (e.target.id==='adminform'){ const v=($('#admcode').value||'').trim(); if (v==='2026'){ P.premium=true; saveP(); sheet=null; toast((T("Premium débloqué (administrateur)"))); render(); } else { $('#adm-err').hidden=false; $('#admcode').value=''; } }
+  if (e.target.id==='adminform' && !CONFIG.store){ const v=($('#admcode').value||'').trim(); if (v==='2026'){ P.premium=true; saveP(); sheet=null; toast((T("Premium débloqué (administrateur)"))); render(); } else { $('#adm-err').hidden=false; $('#admcode').value=''; } }
   if (e.target.id==='frform'){ const v=($('#frcode').value||'').toLowerCase().replace(/[^a-z0-9]/g,''); if (v.length!==8 || v===P.uid){ $('#fr-err').hidden=false; return; } if (addFriend(v)){ sheet=null; toast((T("Ami ajouté. Il apparaîtra en ligne dès qu'il ouvre le jeu."))); render(); } else { sheet=null; toast((T("Cet ami est déjà dans ta liste."))); render(); } }
   
 });
@@ -3154,7 +3195,7 @@ function recordGame(){
   if (!M || !M.done || REC_ID===M.id) return; REC_ID=M.id; if (!M.aborted) markActive();
   const me=humanSeat(); if (me===-1) return;
   const c=mWinner(), w=me===null ? null : me===c;
-  P.stat.games=(P.stat.games||0)+1;
+  P.stat.games=(P.stat.games||0)+1; if (window.Acc) Acc.log('match_end', {src:online()?(net.mm?'online':'ami'):vsAI?'ia':'local', w:me===null?null:me===mWinner(), fol:!!M.fol, as:!!M.assist});
   if (new Date().getHours()<5) badge('insomniaque');
   if (P.stat.games>=20) badge('marathon');
   if (w===null){ saveP(); return; }
@@ -3602,7 +3643,6 @@ function celebrate(){
     ${opp&&opp.uid&&!friendById(opp.uid)?`<button class="secondary" type="button" data-act="add-opp" style="width:100%">${T("Ajouter")} ${esc(opp.nm)} ${T("en ami")}</button>`:''}
     ${quote?`<p class="quote">« ${esc(quote)} » — ${esc(S[1].name)}</p>`:''}
     <div class="row">${canAct()?`<button class="primary" type="button" data-act="new">${T("Rejouer")}</button>`:''}<button class="secondary" type="button" data-act="party-analyze">📊 ${T("Analyser")}${M.anOK||P.premium?'':` <small class="cnt">${credLeft('a')}</small>`}</button></div>
-    ${lastWinMove()&&typeof MediaRecorder!=='undefined'?`<button class="secondary" type="button" data-act="clip" style="width:100%">${T("🎬 Clip du coup gagnant")}</button>`:''}
     <button class="secondary" type="button" data-act="leave-game" style="width:100%">${online()?(T("Quitter")):(T("Retour au menu"))}</button>`;
   box.hidden=false;
   if (iWon) sfx.win(); else sfx.round();
@@ -4237,7 +4277,7 @@ document.addEventListener('keydown', e=>{
 /* ---------- Accès administrateur : appui long 5 s sur le pion de l'accueil ---------- */
 let admT=null;
 document.addEventListener('pointerdown', e=>{
-  const a=e.target.closest('[data-admin]'); if (!a) return;
+  const a=e.target.closest('[data-admin]'); if (!a || CONFIG.store) return;
   clearTimeout(admT); a.classList.add('pressing');
   admT=setTimeout(()=>{ admT=null; document.querySelectorAll('.pressing').forEach(x=>x.classList.remove('pressing')); vibrate(80); sheet={type:'admin'}; render(); setTimeout(()=>{ const i=$('#admcode'); if (i) i.focus(); }, 150); }, 5000);
 });
@@ -4247,7 +4287,7 @@ document.addEventListener('contextmenu', e=>{ if (e.target.closest('[data-admin]
 
 
 /* ---------- v7 : cadences, puzzle du jour, défis par lien, clip, bombe ---------- */
-const TIMES=[1,3,5];
+const TIMES=[3];   // une seule cadence au lancement : toute la file d'attente au même endroit
 if (!TIMES.includes(P.time)){ P.time=5; saveP(); }
 const tLabel = t => t===1 ? (T("Éclair · 1 min")) : `${t} min`;
 const needW = () => (M && M.need) || 2;
@@ -4530,7 +4570,7 @@ function openChest(tier, why){
 }
 function chestPop(){
   const R=REWARD; if (!R || R.opened) return; R.opened=true; P.stat.chests=(P.stat.chests||0)+1;
-  P.coins=(P.coins||0)+R.coins; if (R.item){ const key=R.item.join(':'); if (!P.owned.includes(key)) P.owned.push(key); } saveP();
+  P.coins=(P.coins||0)+R.coins; if (R.item){ const key=R.item.join(':'); if (!P.owned.includes(key)){ P.owned.push(key); if (window.Acc) Acc.queueLoot(key); } } saveP();
   sfx.win(); vibrate([20,40,20]); rewardDraw();
   const box=$('#party'); fxRun('feux', CHESTS[R.tier].c, box.querySelector('canvas'));
 }
@@ -4809,7 +4849,7 @@ function renderPlay(){
   <div class="mode3 arena wide" data-act="match" role="button" tabindex="0" aria-label="${T("Combattre")}"><span class="shine"></span>${IMG('arene','art')}
     <div class="chips3"><span style="color:${t[2]}">${t[1]}</span><span>${arenaElo()} ${T("steps")}</span></div>
     <div class="go">${T("Combattre")}</div></div>
-  <div class="arow"><button class="pill tpill" type="button" data-act="time-sheet">${ic('bolt')}${tLabel(P.time)} ▾</button><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
+  <div class="arow"><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
   <div class="grid4">
     ${tile('friend','icone-amis','🤝',T("Avec un ami"))}
     ${tile('party','icone-groupe','👥',T("À 4 joueurs"))}
@@ -4831,7 +4871,8 @@ const GOLD={g500:{c:500, eur:'0,99 €', img:'coffre-bois', n:"Petit coffre"}, g
 async function goldBuy(id){
   const g=GOLD[id], iap=window.LastepIAP; if (!g) return;
   if (iap && typeof iap.buy==='function'){
-    try { const ok=await iap.buy('lastep_coins_'+g.c); if (ok){ P.coins=(P.coins||0)+g.c; saveP(); openChest(g.img==='coffre-legendaire'?'or':g.img.replace('coffre-',''), T("Achat")); REWARD.coins=g.c; REWARD.item=null; rewardDraw(); } } catch(e){ toast(T("Paiement annulé")); }
+    if (!window.Acc || !Acc.on){ sheet={type:'account', why:'buy'}; render(); return; }
+    try { const ok=await iap.buy('lastep_coins_'+g.c); if (ok){ Acc.log('purchase',{p:'coins_'+g.c}); toast(T("Achat validé : tes pièces arrivent…")); setTimeout(()=>Acc.refresh(),3000); setTimeout(()=>Acc.refresh(),12000); } } catch(e){ toast(T("Paiement annulé")); }
     return;
   }
   sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
@@ -4841,7 +4882,7 @@ function pwBuy(k, gold){
   if ((P.coins||0)<price){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
   P.coins-=price;
   if (gold) P.pw[k].u=Math.max(Date.now(), P.pw[k].u||0)+PW_GOLD_DAYS*864e5; else P.pw[k].n=(P.pw[k].n||0)+PW_PACK;
-  saveP(); sfx.win(); vibrate([20,40,20]); toast(`${PW[k].e} ${T(PW[k].n)} : ${gold?T("Gold, illimité pendant 7 jours !"):`+${PW_PACK} !`}`); render();
+  if (window.Acc) Acc.queuePwBuy(k, gold?'gold':'pack'); saveP(); sfx.win(); vibrate([20,40,20]); toast(`${PW[k].e} ${T(PW[k].n)} : ${gold?T("Gold, illimité pendant 7 jours !"):`+${PW_PACK} !`}`); render();
 }
 function refBuy(id){
   const r=REFS[id]; if (!r) return; if ((P.coins||0)<r.p){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
@@ -4855,7 +4896,7 @@ function specialView(k,id,big){
 }
 const KIND_PL={pw:T("Pouvoirs"),ref:T("Réfs"),gold:T("Pièces"),color:T("Couleur"),fur:T("Forme"),fin:T("Finition"),eyes:T("Yeux"),acc:T("Accessoire"),trail:T("Traînée"),win:T("Célébration"),theme:T("Plateau")};
 let SHOP={mode:'shop', k:'color', i:0, dir:0};
-const shopList = (k, mode) => k==='pw' ? Object.keys(PW) : k==='ref' ? Object.keys(REFS).filter(id=>mode==='shop' ? !(P.refs||[]).includes(id) : (P.refs||[]).includes(id)) : k==='gold' ? Object.keys(GOLD) : Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
+const shopList = (k, mode) => k==='pw' ? PW_KEYS : k==='ref' ? Object.keys(REFS).filter(id=>mode==='shop' ? !(P.refs||[]).includes(id) : (P.refs||[]).includes(id)) : k==='gold' ? Object.keys(GOLD) : Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
 const isEq = (k,id) => k==='theme' ? P.theme===id : P.skin[k]===id;
 function itemView(k, id, big){
   const it=CAT[k][id];
@@ -4867,7 +4908,8 @@ function itemView(k, id, big){
 async function premBuy(plan){
   const iap=window.LastepIAP;
   if (iap && typeof iap.buy==='function'){
-    try { const ok=await iap.buy(plan); if (ok){ P.premium=true; saveP(); sheet=null; sfx.win(); toast(T("Bienvenue dans Premium !")); render(); } } catch(e){ toast(T("Paiement annulé")); }
+    if (!window.Acc || !Acc.on){ sheet={type:'account', why:'buy'}; render(); return; }
+    try { const ok=await iap.buy(plan); if (ok){ Acc.log('purchase',{p:'premium_'+plan}); P.premium=true; saveP(); sheet=null; sfx.win(); toast(T("Bienvenue dans Premium !")); render(); setTimeout(()=>Acc.refresh(),4000); } } catch(e){ toast(T("Paiement annulé")); }
     return;
   }
   sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
@@ -4950,14 +4992,16 @@ function psecHTML(v){
   if (v==='rank') return `<h2>${T("Classements par cadence")}</h2>${cadHTML()}`;
   if (v==='friends') return `<h2>${T("Amis")} · ${P.friends.length}</h2>
     <div class="hscroll"><button type="button" class="fc add" data-act="addfriend">${ic('plus')}<b>${T("Ajouter")}</b><small class="bonus">+100 ${ic('coin','ic sm')}</small></button>${[...P.friends].sort((a,b)=>(+isOn(b))-(+isOn(a))||(b.last||0)-(a.last||0)).map(f=>`<div class="fc"><div class="av">${pawnSVG(cleanSkin(f.sk))}</div><b>${esc(f.name)}</b><small><span class="dot${isOn(f)?' on':''}" aria-hidden="true"></span>${isOn(f)?(T("En ligne")):lastSeen(f.last)}</small><button class="secondary" type="button" data-act="${isOn(f)?'defier':'fr'}" data-v="${f.id}">${T("Défier")}</button></div>`).join('')}</div>
-    <div class="fbtns"><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${T("🖼️ Affiche")}</button></div>`;
+`;
   if (v==='set') return `<h2>⚙️ ${T("Réglages")}</h2>${settingsBody()}`;
-  if (v==='about') return `<h2>${T("À propos")}</h2>${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`;
+  if (v==='about') return `<h2>${T("À propos")}</h2>${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="cgu.html" style="color:inherit">${T("Conditions")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`;
   return '';
 }
 function renderProfile(){
   const t=tierOf(P.elo.r), nb=Object.keys(P.badges).length;
   const sec=(id,title,body)=>`<button type="button" class="prow" data-act="psec" data-v="${id}"><span>${title}</span><i aria-hidden="true">›</i></button>`;
+  const acc=window.Acc&&Acc.on ? `<button type="button" class="prow acc on" data-act="account"><span>☁️ ${T("Compte")}<small>${esc(Acc.email||'')}${Acc.syncing?' · '+T("synchro…"):' · '+T("sauvegardé")}</small></span><i aria-hidden="true">›</i></button>`
+    : `<button type="button" class="prow acc" data-act="account"><span>☁️ ${T("Sauvegarder ma partie")}<small>${T("Crée ton compte : tu retrouves tout sur un autre téléphone, une tablette ou le web.")}</small></span><i aria-hidden="true">›</i></button>`;
   const stat=(v,l)=>`<div class="st2"><b>${v}</b><small>${l}</small></div>`;
   return `${pillsTop()}
   <div class="prohead">
@@ -4967,13 +5011,14 @@ function renderProfile(){
     <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?' · 💎 '+T("Premium"):''}</p>
     <div class="arow"><button class="pill tpill" type="button" data-act="premium">💎 ${P.premium?T("Premium"):T("Passer Premium")}</button><button class="pill tpill" type="button" data-act="closet">👕 ${T("Vestiaire")}</button><button class="pill tpill" type="button" data-act="lb-open">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
   </div>
+  ${acc}
   <div class="stats2">${stat(P.stat.games||0,T("parties"))}${stat(P.elo.g,T("matchs classés"))}${stat(Object.values(P.parc||{}).filter(v=>v>0).length,T("niveaux Aventure"))}${stat(P.stat.fell||0,T("cases détruites"))}${stat(nb+'/'+BADGES.length,T("badges"))}${stat(streakNow(),T("jours de suite"))}</div>
-  ${sec('rank',T("Classements par cadence"), cadHTML())}
+  ${sec('rank',T("Mon classement"), cadHTML())}
   ${sec('badges',`${T("Badges")} · ${nb}/${BADGES.length}`, badgesHTML())}
-  ${sec('friends',`${T("Amis")} · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}${T("Ajouter")}</button><button type="button" data-act="contacts">${ic('contacts')}${T("Répertoire")}</button><button type="button" data-act="poster">${ic('image')}${T("Mon poster")}</button></div>`)}
+  ${sec('friends',`${T("Amis")} · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}${T("Ajouter")}</button></div>`)}
   ${sec('games',`${T("Parties contre de vrais joueurs ·")} ${realGames().length}`, realGames().length?`<div class="list">${realGames().slice(-5).reverse().map(gameRow).join('')}</div><button class="linkbtn" type="button" data-act="games">${T("Tout voir ›")}</button>`:("<p class=\"sub\">"+T("Tes parties en ligne et contre tes amis apparaîtront ici.")+"</p>"))}
   ${sec('set',`⚙️ ${T("Réglages")}`, settingsBody())}
-  ${sec('about',T("À propos"), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}`;
+  ${sec('about',T("À propos"), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="cgu.html" style="color:inherit">${T("Conditions")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}`;
 }
 
 const backHead = (title, to) => `<div class="pagehead"><button class="iconbtn" type="button" data-act="tab" data-v="${to}" aria-label="${T("Retour")}">${ic('back')}</button><h1 class="logo">${title}</h1>${topRight()}</div>`;
@@ -4999,6 +5044,8 @@ if ('serviceWorker' in navigator && location.protocol==='https:'){
 }
 </script>
 <script src="party.js"></script>
-<script src="voice.js"></script>
+<script src="account.js"></script>
+<script src="native.js"></script>
+
 </body>
 </html>

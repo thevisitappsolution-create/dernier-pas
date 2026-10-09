@@ -148,7 +148,7 @@
     if (NET && !NET.host) { try { NET.conn.send({ t: 'ld', ld }); } catch (e) {} } else if (PT && PT.ld) { PT.ld[mySeat()] = ld; PT.ver++; broadcast(); }
     draw();
   }
-  const PWK = ['push', 'swap', 'dyn', 'jump', 'heavy', 'ghost', 'wall'];
+  const PWK = ['push', 'swap', 'dyn', 'jump', 'heavy', 'ghost', 'wall'].filter(k => typeof PW_ON === 'undefined' || PW_ON.includes(k));
   const cleanLd = (d) => { if (!d || typeof d !== 'object') return null; const pw = (Array.isArray(d.pw) ? d.pw : []).filter(k => PWK.includes(k)).slice(0, 2); return { pw, def: pw.find(k => DEFS.includes(k)) || null, vis: !!d.vis }; };
   const PWE = { push: '💥', swap: '🔄', dyn: '🧨', jump: '🦘', heavy: '🏋️', ghost: '👻', wall: '🧱', vision: '👁️' };
   function powIcons(i) {

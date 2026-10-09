@@ -1167,3 +1167,18 @@ Object.assign(window.EN_DICT, {"Mur":"Wall","Saut":"Jump","Vision":"Vision",
 "En plus de tes 2 pouvoirs : tu vois ceux des autres, et personne ne voit ta Vision.":"On top of your 2 powers: you see everyone else's, and nobody sees your Vision.","Prendre":"Take","Non":"No",
 "🤫 Ton pion protégé est secret : retiens bien lequel !":"🤫 Your protected pawn is secret: remember which one!","active un pouvoir":"activates a power",
 "a un mur : impossible de sauter par-dessus !":"has a wall: can't jump over!","2 pouvoirs au plus, un seul utilisé dans la partie.":"Up to 2 powers, only one used per game."});
+// v81 : comptes
+Object.assign(window.EN_DICT, {"Mon classement":"My ranking","Compte":"Account","synchro…":"syncing…","sauvegardé":"saved","Sauvegarder ma partie":"Save my progress",
+"Crée ton compte : tu retrouves tout sur un autre téléphone, une tablette ou le web.":"Create your account: get everything back on another phone, a tablet or the web.",
+"Connecté ! Ta partie est sauvegardée.":"Signed in! Your progress is saved.","Déconnecté":"Signed out","Compte supprimé":"Account deleted","La suppression a échoué. Réessaie.":"Deletion failed. Try again.",
+"Supprimer mon compte ?":"Delete my account?","Ta progression, tes pièces, tes objets et tes pouvoirs seront effacés du serveur. C'est définitif.":"Your progress, coins, items and powers will be erased from the server. This is permanent.",
+"Supprimer définitivement":"Delete permanently","Ton compte":"Your account","Connecté avec":"Signed in as","Code ami":"Friend code","Synchronisation…":"Syncing…",
+"Ta partie est sauvegardée automatiquement. Connecte-toi avec la même adresse sur un autre appareil pour la retrouver.":"Your progress is saved automatically. Sign in with the same address on another device to get it back.",
+"Se déconnecter":"Sign out","Supprimer mon compte":"Delete my account","Pour acheter, connecte-toi : tes achats seront liés à ton compte et jamais perdus.":"To buy, sign in: your purchases will be tied to your account and never lost.",
+"Entre le code":"Enter the code","On t'a envoyé un e-mail à":"We sent an email to","Tape le code à 6 chiffres, ou touche le lien dans l'e-mail.":"Type the 6-digit code, or tap the link in the email.",
+"Code reçu par e-mail":"Code received by email","Valider":"Confirm","Changer d'adresse":"Change address",
+"Avec un compte, tu retrouves ta progression, tes pièces et tes achats sur tous tes appareils : téléphone, tablette ou web. Gratuit, sans mot de passe.":"With an account, you keep your progress, coins and purchases on all your devices: phone, tablet or web. Free, no password.",
+"Continuer avec Apple":"Continue with Apple","Continuer avec Google":"Continue with Google","ton@email.fr":"you@email.com","Adresse e-mail":"Email address","Recevoir mon code":"Get my code",
+"Ton adresse sert uniquement à te connecter.":"Your address is only used to sign you in.","Partie récupérée depuis ton compte":"Progress restored from your account",
+"Adresse e-mail invalide.":"Invalid email address.","Code incorrect ou expiré.":"Wrong or expired code.","Achat validé : tes pièces arrivent…":"Purchase confirmed: your coins are on the way…",
+"Restaurer mes achats":"Restore purchases","Achats restaurés":"Purchases restored","Conditions":"Terms","Achats indisponibles pour le moment.":"Purchases unavailable right now."});
