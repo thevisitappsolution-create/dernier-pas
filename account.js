@@ -119,7 +119,7 @@
   }
   async function verify(code) {
     const db = client(); if (!db) return false;
-    const { data, error } = await db.auth.verifyOtp({ email: A.email, token: String(code || '').trim(), type: 'email' });
+    const { data, error } = await db.auth.verifyOtp({ email: A.email, token: String(code || '').replace(/\D/g, ''), type: 'email' });
     if (error) { A.err = T('Code incorrect ou expiré.'); return false; }
     A.err = ''; if (data && data.user) await onSignedIn(data.user); return true;
   }
