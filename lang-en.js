@@ -1156,3 +1156,14 @@ Object.assign(window.EN_DICT, {"Fantôme":"Ghost","Inversion":"Swap","tu en as":
 "🤫 Ta défense est secrète : retiens bien quel pion !":"🤫 Your defence is secret: remember which pawn!","Ton équipement":"Your loadout","Un seul pouvoir par manche, et chacun une seule fois dans la partie.":"One power per round, and each one only once per game.",
 "Le pion qui pousse":"The pushing pawn","Aucun":"None","Défense secrète":"Secret defence","Aucune":"None","disponibles pendant la partie.":"available during the game.",
 "est un fantôme :":"is a ghost:","passe à travers et tombe !":"passes through and falls!","Touche le pion adverse avec qui échanger.":"Tap the opponent pawn to swap with.","Un seul pouvoir dans la partie.":"One power per game.","Défense":"Defence"});
+// v80
+Object.assign(window.EN_DICT, {"Mur":"Wall","Saut":"Jump","Vision":"Vision",
+"Défense : choisis en secret un pion. Activé pour une manche, personne ne peut sauter par-dessus. Au premier essai, le sauteur perd son tour et le mur s'éteint.":"Defence: secretly pick a pawn. Activated for a round, nobody can jump over it. On the first try, the jumper loses their turn and the wall goes down.",
+"Active-le pendant une manche : tu gagnes un saut de plus. Deux sauts dans la même manche !":"Activate it during a round: you get one more jump. Two jumps in the same round!",
+"Les autres voient seulement qu'un joueur a un pouvoir, pas lequel. Avec Vision, tu vois les pouvoirs de chacun. Elle ne se voit pas (sauf par ceux qui l'ont aussi) et ne compte pas dans tes 2 pouvoirs : c'est la seule façon d'en avoir 3.":"Others only see that a player has a power, not which one. With Vision you see everyone's powers. It's invisible (except to players who also have it) and doesn't count toward your 2 powers: it's the only way to have 3.",
+"Mur ! Impossible de sauter par-dessus. Tour perdu.":"Wall! You can't jump over it. Turn lost.","Un saut de plus pour cette manche !":"One more jump this round!","activé pour cette manche":"activated for this round","active":"activates",
+"Pouvoir mystère":"Mystery power","Choisis 2 pouvoirs au plus. Un seul par manche, chacun une seule fois dans la partie.":"Pick up to 2 powers. One per round, each only once per game.",
+"Tes pouvoirs":"Your powers","Aucun pouvoir : passe par la boutique.":"No powers: visit the shop.","Pion protégé (secret)":"Protected pawn (secret)",
+"En plus de tes 2 pouvoirs : tu vois ceux des autres, et personne ne voit ta Vision.":"On top of your 2 powers: you see everyone else's, and nobody sees your Vision.","Prendre":"Take","Non":"No",
+"🤫 Ton pion protégé est secret : retiens bien lequel !":"🤫 Your protected pawn is secret: remember which one!","active un pouvoir":"activates a power",
+"a un mur : impossible de sauter par-dessus !":"has a wall: can't jump over!","2 pouvoirs au plus, un seul utilisé dans la partie.":"Up to 2 powers, only one used per game."});
