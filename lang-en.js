@@ -1122,3 +1122,24 @@ Object.assign(window.EN_DICT, {"Tu es Premium":"You're Premium","Lastep Premium"
 "Bienvenue dans Premium !":"Welcome to Premium!","Paiement annulé":"Payment cancelled","Bientôt disponible":"Coming soon",
 "Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.":"Payment will go through the App Store and Google Play once the app is published. This web version is a test version.",
 "Passer Premium":"Go Premium"});
+// v78
+Object.assign(window.EN_DICT, {"Pousser":"Push","Poids lourd":"Heavyweight","Dynamite":"Dynamite","illimité":"unlimited","j":"d",
+"À ton tour, touche un pion adverse collé au tien : il recule d'une case et tu prends sa place. S'il tombe dans un trou, il perd ce pion.":"On your turn, tap an opponent pawn right next to yours: it moves back one square and you take its place. If it falls into a hole, that pawn is lost.",
+"Au début de la partie, choisis en secret un de tes pions : personne ne pourra le pousser. Même toi, tu dois te souvenir duquel.":"At the start of the game, secretly pick one of your pawns: nobody can push it. Even you have to remember which one.",
+"Au lieu de bouger, pose une dynamite sur une case où tu pourrais aller. Visible de tous, elle bloque la case pendant 3 tours : un pion poussé dessus saute.":"Instead of moving, place dynamite on a square you could reach. Everyone sees it; it blocks the square for 3 turns, and a pawn pushed onto it blows up.",
+"Pas assez de pièces":"Not enough coins","illimité pendant 7 jours !":"unlimited for 7 days!","Réf débloquée : tu peux l'envoyer en partie !":"Ref unlocked: you can send it in games!",
+"Mode folie":"Crazy mode","7 jours illimité":"7 days unlimited","Réf française":"French ref","Réf anglaise":"English ref","Coffres de pièces":"Coin chests",
+"Petit coffre":"Small chest","Coffre d'argent":"Silver chest","Coffre d'or":"Gold chest","Coffre légendaire":"Legendary chest","Achat":"Purchase",
+"Réfs":"Refs","Tu n'as pas encore de réfs. Achète-les dans la boutique, catégorie Réfs.":"You don't have any refs yet. Buy them in the shop, Refs category.","Voir les réfs":"See refs",
+"Après la partie, va dans la boutique : catégorie Réfs.":"After the game, go to the shop: Refs category.",
+"pousse":"pushes","dans le vide : un pion de moins !":"into the void: one pawn down!","Poids lourd ! Impossible de pousser ce pion.":"Heavyweight! This pawn can't be pushed.","pose une dynamite (3 tours)":"places dynamite (3 turns)",
+"Touche une case où tu pourrais aller pour poser la dynamite.":"Tap a square you could reach to place the dynamite.","Touche le pion adverse qui clignote pour le pousser.":"Tap the flashing opponent pawn to push it.",
+"Pour pousser : place-toi juste à côté d'un pion adverse. Derrière lui, il faut une case libre ou un trou.":"To push: stand right next to an opponent pawn. Behind it there must be a free square or a hole.",
+"🏋️ C'est ton secret : retiens bien lequel !":"🏋️ It's your secret: remember which one!",
+"Choisis en secret le pion que personne ne pourra pousser pendant toute la partie. Aucun signe ne le montrera, même pas à toi : retiens-le !":"Secretly pick the pawn nobody can push for the whole game. Nothing will show it, not even to you: remember it!",
+"Pion en":"Pawn on","Pas cette fois":"Not this time","Il te reste":"You have","Pousser, poids lourd, dynamite. Pour rire, sans classement.":"Push, heavyweight, dynamite. Just for fun, unranked.","Folie":"Crazy",
+"est un poids lourd : impossible de le pousser !":"is a heavyweight: can't be pushed!","dans le vide : éliminé !":"into the void: eliminated!","est éliminé !":"is eliminated!",
+"Personne ne pourra te pousser de toute la partie.":"Nobody can push you for the whole game.","Utiliser":"Use","Mode folie activé par l'hôte":"Crazy mode turned on by the host",
+"Touche un pion adverse collé au tien (il clignote) pour le pousser.":"Tap an opponent pawn next to yours (it flashes) to push it.","Plus de « Pousser » : achète-le dans la boutique, catégorie Pouvoirs.":"No more “Push”: buy it in the shop, Powers category.",
+"🏋️ Personne ne pourra te pousser !":"🏋️ Nobody can push you!"});
+Object.assign(window.EN_DICT, {"Pouvoirs":"Powers","Pièces":"Coins","Réf culte":"Cult ref","À envoyer pendant tes parties en ligne":"Send it during your online games"});

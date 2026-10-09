@@ -962,6 +962,20 @@ html:not(.lock) body{background:transparent!important}
 .brow .bico{width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;background:var(--bc);box-shadow:0 0 14px var(--bc)}
 .brow.lk .bico{background:#2a2350;box-shadow:none;filter:grayscale(1);opacity:.6}.brow .bt{flex:1;display:grid;min-width:0}.brow .bt small{color:var(--muted);font-size:.78rem}
 .brow .bok{width:26px;height:26px;border-radius:50%;background:#2effa8;color:#0b0620;display:grid;place-items:center;font-weight:900}
+.cell.pushme::after{content:"";position:absolute;inset:3px;border-radius:12px;border:3px solid #ff3dd8;box-shadow:0 0 14px #ff3dd8;animation:pushp .8s ease-in-out infinite;pointer-events:none;z-index:4}
+@keyframes pushp{50%{transform:scale(.9);opacity:.5}}
+.cell.dyntarget{box-shadow:inset 0 0 0 3px #ffb02e,0 0 14px #ffb02e!important}
+.cell .dynm{position:absolute;inset:0;display:grid;place-items:center;font-size:1.6rem;z-index:2;filter:drop-shadow(0 0 6px #ff6b2e);pointer-events:none}
+.cell .dynm i{position:absolute;right:4px;bottom:2px;font-style:normal;font-size:.7rem;font-weight:900;background:#ff3b3b;color:#fff;border-radius:8px;padding:0 5px}
+.cell.dyncell{animation:dynb 1s ease-in-out infinite}@keyframes dynb{50%{box-shadow:0 0 18px #ff6b2e}}
+.cell.heavyhit{animation:hvy .45s ease-in-out 2}@keyframes hvy{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.spv{display:grid;place-items:center;width:100%;height:100%}.spv .spe{font-size:3.2rem;filter:drop-shadow(0 6px 10px #000a)}.spv.big .spe{font-size:6rem;animation:herobob 2.4s ease-in-out infinite}
+.spv .gimg2{width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 8px 12px #000a)}.spv.big .gimg2{width:100%;height:100%}
+.spv.ref .rbub{background:#fff;color:#141028;border-radius:16px 16px 16px 4px;padding:6px 10px;font-weight:900;font-size:1.3rem;box-shadow:0 6px 14px #0008}
+.spv.ref.big .rbub{font-size:1.15rem;max-width:150px;text-align:center;line-height:1.2;padding:12px 14px}
+.iinfo .spd{max-width:320px;text-align:center;opacity:.85;line-height:1.3}.iinfo h2.refh{font-size:1.15rem;max-width:330px;text-align:center}
+.buybtn.eur{background:linear-gradient(180deg,#5cff9d,#18b863);color:#06210f}
+.toggle.folie{border:2px solid #ff3dd855;background:#ff3dd814}
 .perks{list-style:none;margin:4px 0;padding:0;display:grid;gap:6px;text-align:left}.perks li{padding:8px 12px;border-radius:12px;background:#ffffff0d;font-weight:700}
 .plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0}.plans button{position:relative;display:grid;gap:2px;padding:12px 8px;border-radius:16px;border:2px solid #ffffff22;background:#ffffff0a;color:inherit;font:inherit}
 .plans button span{font-family:var(--fun);font-size:1.5rem}.plans button small{opacity:.7}.plans button[aria-checked="true"]{border-color:#ffd75e;background:#ffd75e1c;box-shadow:0 0 16px #ffd75e55}
@@ -1315,11 +1329,11 @@ document.documentElement.lang=LANG;
 if (LANG==='en') document.querySelectorAll('[aria-label]').forEach(el=>{ const v=el.getAttribute('aria-label'); if (EN_DICT[v]) el.setAttribute('aria-label',EN_DICT[v]); });
 /* ---------- Réglages de lancement ---------- */
 const CONFIG = {
-  premiumPrices: {month:'2,99 €', year:'19,99 €', save:'−44 %'},   // prix affichés ; les vrais prix viennent de l'App Store / Google Play
+  premiumPrices: {month:'4,99 €', year:'49,99 €', save:'−17 %'},   // prix affichés ; les vrais prix viennent de l'App Store / Google Play
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 77,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 78,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1349,7 +1363,7 @@ const AI_TIMEOUT={};
 function aiGen(cells,P,J,t){
   const a=P[0][0],b=P[0][1],c=P[1][0],d=P[1][1],out=[];
   for(let k=0;k<2;k++){
-    const pos=P[t][k],r0=(pos/5)|0,q0=pos%5;
+    const pos=P[t][k]; if(pos<0) continue; const r0=(pos/5)|0,q0=pos%5;
     for(let dd=0;dd<4;dd++){
       const dr=DIRS[dd][0],dq=DIRS[dd][1]; let crossed=false;
       for(let s=1;s<=3;s++){
@@ -1365,7 +1379,7 @@ function aiGen(cells,P,J,t){
 function aiMob(cells,P,t){
   const a=P[0][0],b=P[0][1],c=P[1][0],d=P[1][1]; let n=0;
   for(let k=0;k<2;k++){
-    const pos=P[t][k],r0=(pos/5)|0,q0=pos%5;
+    const pos=P[t][k]; if(pos<0) continue; const r0=(pos/5)|0,q0=pos%5;
     for(let dd=0;dd<4;dd++){
       for(let s=1;s<=3;s++){
         const r=r0+DIRS[dd][0]*s,q=q0+DIRS[dd][1]*s; if(r<0||q<0||r>4||q>4) break;
@@ -1510,6 +1524,17 @@ const PHRASES={
     q10:(T("C'était ton plan, ça ?")),q11:(T("Il te reste combien de cases ?")),q12:(T("Tu sens le plateau se refermer ?")),q13:(T("Prends ton temps… ou pas.")),
     q14:(T("Un seul saut. Tu l'as gaspillé.")),q15:(T("Tu veux un indice ?")),q16:(T("Je t'attends au prochain coup.")),q17:(T("Le sol tremble sous tes pieds.")),
     q18:(T("Ça sent la fin.")),q19:(T("Zéro case, zéro chance.")),q20:(T("Bloqué. Comme prévu."))}}};
+// Réfs : répliques cultes à acheter avec des pièces et à envoyer en partie (texte d'origine, non traduit)
+const REFS={
+  f1:{t:"On ne pleure pas ! C'est interdit de pleurer !",l:'fr',p:300}, f2:{t:"C'est toujours ma faute, tu dis hein ?",l:'fr',p:300}, f3:{t:"Quoicoubeh ?",l:'fr',p:200},
+  f4:{t:"Il est où le respect ?",l:'fr',p:200}, f5:{t:"Je suis dans la sauce…",l:'fr',p:200}, f6:{t:"Oh la boulette !",l:'fr',p:150}, f7:{t:"C'est chaud cacao.",l:'fr',p:150},
+  f8:{t:"Même pas mal !",l:'fr',p:150}, f9:{t:"Mais tu m'expliques ?",l:'fr',p:200}, f10:{t:"Ça passe crème.",l:'fr',p:150}, f11:{t:"Le seum…",l:'fr',p:200},
+  f12:{t:"C'est carré dans l'axe.",l:'fr',p:200}, f13:{t:"Wesh alors !",l:'fr',p:150}, f14:{t:"Allez, au lit !",l:'fr',p:200}, f15:{t:"La honte…",l:'fr',p:150}, f16:{t:"Tu t'es vu quand t'as bu ?",l:'fr',p:300},
+  e1:{t:"Fahhh",l:'en',p:300}, e2:{t:"Damnnnnn",l:'en',p:300}, e3:{t:"Bruh.",l:'en',p:200}, e4:{t:"Skill issue.",l:'en',p:300}, e5:{t:"Emotional damage!",l:'en',p:300},
+  e6:{t:"Sheesh!",l:'en',p:200}, e7:{t:"No cap.",l:'en',p:150}, e8:{t:"Touch grass.",l:'en',p:200}, e9:{t:"L + ratio.",l:'en',p:200}, e10:{t:"GG EZ.",l:'en',p:200},
+  e11:{t:"Big brain move.",l:'en',p:150}, e12:{t:"It's over.",l:'en',p:150}, e13:{t:"We're so back.",l:'en',p:150}, e14:{t:"Sus.",l:'en',p:150}, e15:{t:"Ok boomer.",l:'en',p:200}, e16:{t:"Rizz level: zero.",l:'en',p:200}};
+PHRASES.ref={n:'Réfs', l:Object.fromEntries(Object.entries(REFS).map(([k,v])=>['r'+k, v.t]))};
+const myRefs = () => (P.refs||[]).filter(id=>REFS[id]);
 const PH_MAX=5, PH_DEF=['q1','q2','q3','q4','q5'];
 const phText = id => { for (const g of Object.values(PHRASES)) if (g.l[id]) return g.l[id]; return null; };
 const myPiques = () => (Array.isArray(P.piques) ? P.piques.filter(id=>PHRASES.pique.l[id]) : PH_DEF).slice(0,PH_MAX);
@@ -1545,6 +1570,14 @@ function applyChamp(score, oppR){
   R.r+=d; R.g++; if (score) R.w++; R.hist=[...(R.hist||[]),R.r].slice(-30); saveP(); return d;
 }
 function saveP(){ try { localStorage.setItem(P_KEY, JSON.stringify(P)); } catch(e){} }
+const PW={push:{n:"Pousser",e:'💥',d:"À ton tour, touche un pion adverse collé au tien : il recule d'une case et tu prends sa place. S'il tombe dans un trou, il perd ce pion.",price:1500,pass:7},
+  heavy:{n:"Poids lourd",e:'🏋️',d:"Au début de la partie, choisis en secret un de tes pions : personne ne pourra le pousser. Même toi, tu dois te souvenir duquel.",price:1500,pass:7},
+  dyn:{n:"Dynamite",e:'🧨',d:"Au lieu de bouger, pose une dynamite sur une case où tu pourrais aller. Visible de tous, elle bloque la case pendant 3 tours : un pion poussé dessus saute.",price:1000,pack:10}};
+const pwPass = k => P.pw && P.pw[k] && P.pw[k].u > Date.now();
+const pwLeft = k => !P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
+const pwHas = k => pwLeft(k) > 0;
+function pwUse(k){ if (pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); saveP(); }
+const pwLabel = k => pwPass(k) ? `${T("illimité")} · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
 const unlocked = (kind,id) => CONFIG.season0 || CAT[kind][id].p===0 || P.owned.includes(kind+':'+id);
 if (!P.uid){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let u=''; for (let i=0;i<8;i++) u+=abc[Math.floor(Math.random()*abc.length)]; P.uid=u; }
 if (!Array.isArray(P.friends)) P.friends=[];
@@ -1556,6 +1589,8 @@ if (!P.v6){ P.v6=true; P.coins+=100;
   for (const k of ['color','fur','eyes','acc']) if (CAT[k][P.skin[k]].p>0 && !P.owned.includes(k+':'+P.skin[k])) P.owned.push(k+':'+P.skin[k]);
   if (THEMES[P.theme].p>0 && !P.owned.includes('theme:'+P.theme)) P.owned.push('theme:'+P.theme); }
 if (!P.v77shop){ P.v77shop=1; P.owned=[]; P.premium=false; for (const kk of ['color','fur','eyes','acc','fin','trail','win']) if (P.skin[kk] && CAT[kk] && CAT[kk][P.skin[kk]] && CAT[kk][P.skin[kk]].p>0) P.skin[kk]=P0.skin[kk]||Object.keys(CAT[kk]).find(id=>CAT[kk][id].p===0); if (THEMES[P.theme] && THEMES[P.theme].p>0) P.theme='classique'; }
+// Pouvoirs du mode folie (parties entre amis) : 1 utilisation offerte de chacun, ensuite avec des pièces
+if (!P.pw) P.pw={push:{n:1,u:0}, heavy:{n:1,u:0}, dyn:{n:1}};
 saveP();
 const WEEK=168*3600e3;
 // Indices : 3 offerts au départ, puis +1 gratuit chaque semaine, séparément pour l'Aventure ('pa') et les Cours ('h').
@@ -1801,13 +1836,13 @@ const whoS = who;
 
 /* ---------- Règles ---------- */
 const stateOf = () => ({cells:G.cells, pawns:G.pawns, jumps:G.J, turn:G.turn});
-const movesFor = t => { const ms=aiGen(G.cells, G.pawns, G.J, t); return TR && TR.kind==='parc' ? ms.filter(m=>m[0]===0) : ms; };
+const movesFor = t => { let cl=G.cells; if (G.dyn && G.dyn.length){ cl=cl.slice(); for (const d of G.dyn) cl[d.i]=0; } const ms=aiGen(cl, G.pawns, G.J, t); return TR && TR.kind==='parc' ? ms.filter(m=>m[0]===0) : ms; };
 // Somme des chiffres visibles : les cases sous les pions ne comptent pas (on ne les voit pas)
 const boardSum = () => G.cells.reduce((a,v,i)=>a+(G.pawns.some(p=>p.includes(i))?0:v),0);
 function newRound(){
   const bid=M.order[(M.round-1)%M.order.length];
   return {round:M.round, bid, cells:BOARDS[bid].cells.slice(), pawns:START.map(p=>[...p]), J:[1,1], turn:M.starter, pick:null, jumpOn:false,
-    moves:0, msg:'', clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
+    moves:0, msg:'', dyn:[], ev:null, clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
 }
 function startTurn(){
   if (isParc()){ G.turnAt=performance.now(); G.pick=0; return; }
@@ -1818,6 +1853,47 @@ function startTurn(){
   G.pick = ks.length===1 ? ks[0] : null;
   if (ks.length===1){ G.msg=`${T("Un pion de")} ${S[G.turn].name} ${T("est bloqué : il joue l'autre.")}`; (G.stuck=G.stuck||[0,0])[G.turn]=1; }
   if (M && M.assist && vsAI && !TR && G.turn===0) assistTurn();
+}
+/* ---------- Mode folie (parties entre amis, sans classement) : pousser, poids lourd, dynamite ---------- */
+let HV=[-1,-1], HVASK=null;
+const folie = () => !!(M && M.fol && G && !TR && !vsAI);
+function pushTargets(t){
+  const out=[]; if (!folie()) return out;
+  for (let k=0;k<2;k++){ const a=G.pawns[t][k]; if (a<0) continue; const r=(a/5)|0, q=a%5;
+    for (const [dr,dq] of DIRS){ const br=r+dr, bq=q+dq; if (br<0||bq<0||br>4||bq>4) continue; const b=br*5+bq, k2=G.pawns[1-t].indexOf(b); if (k2<0) continue;
+      const cr=br+dr, cq=bq+dq; if (cr<0||cq<0||cr>4||cq>4) continue; const c=cr*5+cq; if (G.pawns[0].includes(c)||G.pawns[1].includes(c)) continue;
+      out.push({k,k2,a,b,c}); } }
+  return out;
+}
+function dynTick(){ if (G.dyn && G.dyn.length){ G.dyn.forEach(d=>d.left--); G.dyn=G.dyn.filter(d=>d.left>0); } }
+function endPower(t){ dynTick(); G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.dynOn=false; premove=null; G.turn=1-t; startTurn(); commit(); }
+function doPush(tg){
+  const t=G.turn; pwUse('push');
+  if (HV[1-t]===tg.k2){ G.ev={k:'heavy', by:t, at:tg.b, n:G.round+':'+G.moves}; playEv(G.ev); endPower(t); return; }
+  const dead = G.cells[tg.c]===0 || (G.dyn||[]).some(d=>d.i===tg.c);
+  G.cells[tg.a]--; G.pawns[t][tg.k]=tg.b; G.pawns[1-t][tg.k2] = dead ? -1 : tg.c;
+  if (dead) G.dyn=(G.dyn||[]).filter(d=>d.i!==tg.c);
+  look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0}; fx(tg.a,tg.b,t,G.cells[tg.a]===0);
+  G.ev={k:'push', by:t, from:tg.b, to:tg.c, dead, n:G.round+':'+G.moves}; playEv(G.ev);
+  endPower(t);
+}
+function placeDyn(i){
+  const t=G.turn; if (!pwHas('dyn') || !movesFor(t).some(m=>m[1]===i)) return;
+  pwUse('dyn'); dynTick(); (G.dyn=G.dyn||[]).push({i, by:t, left:6});
+  G.ev={k:'dyn', by:t, at:i, n:G.round+':'+G.moves}; playEv(G.ev);
+  G.moves++; G.ver++; G.msg=''; G.pick=null; G.dynOn=false; premove=null; G.turn=1-t; startTurn(); commit();
+}
+function playEv(ev){
+  if (!ev || !S[ev.by]) return; const who=S[ev.by].name, vic=S[1-ev.by].name;
+  if (ev.k==='push'){ sfx.wizz(); vibrate([30,30,60]);
+    if (ev.dead){ setTimeout(()=>boom(ev.to, 1-ev.by), 250); toast(`💥 ${who} ${T("pousse")} ${vic} ${T("dans le vide : un pion de moins !")}`); }
+    else toast(`💥 ${who} ${T("pousse")} ${vic} !`); }
+  else if (ev.k==='heavy'){ sfx.round(); vibrate([60,40,60]); toast(`🏋️ ${T("Poids lourd ! Impossible de pousser ce pion.")}`); const el=cellEls&&cellEls[ev.at]; if (el){ el.classList.add('heavyhit'); setTimeout(()=>el.classList.remove('heavyhit'),900); } }
+  else if (ev.k==='dyn'){ sfx.jump(); toast(`🧨 ${who} ${T("pose une dynamite (3 tours)")}`); }
+}
+function heavyAsk(){
+  if (!M || !M.fol || !online() || HVASK===M.id || (net.seat!==0 && net.seat!==1)) return; HVASK=M.id;
+  if (!pwHas('heavy')) return; sheet={type:'heavy'}; render();
 }
 function doMove(m){
   (HIST[G.round]=HIST[G.round]||[]).push({cells:G.cells.slice(), pawns:G.pawns.map(p=>[...p]), jumps:G.J.slice(), turn:G.turn, move:m.slice()});
@@ -1832,6 +1908,7 @@ function doMove(m){
   if (fell) burst(from, '#2ef2ff'); if (t===humanSeat()) vibrate(6);
   if (isParc()){ G.turn=0; G.pick=0; G.turnAt=performance.now(); commit(); parcAfter(); return; }
   if (trapCheck(t, m[1])) return;
+  if (G.dyn && G.dyn.length) dynTick(); G.dynOn=false;
   G.turn=1-t; startTurn(); commit();
   if (M && M.assist && vsAI && !TR && t===0) assistRate();
   if (vsAI && t===1 && !G.over) botAfterMove();
@@ -1859,10 +1936,11 @@ function look(p,k,from,to){ LOOK[p][k]={x:Math.sign(to%5-from%5), y:Math.sign(((
 /* ---------- Partie ---------- */
 function shuffled(n){ const a=[...Array(n).keys()]; for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function startMatch(){
-  M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, trap:!!(vsAI&&P.trap), mt:Date.now()};
+  M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, fol:!!(online() && net && !net.mm && P.folie), trap:!!(vsAI&&P.trap), mt:Date.now()};
   if (dailyNext){ M.daily=true; const db=dailyBoard(); M.order=[db, ...M.order.filter(x=>x!==db)]; dailyNext=false; }
-  HIST={}; AN=null; CHAT=[]; unread=0;
+  HIST={}; AN=null; CHAT=[]; unread=0; HV=[-1,-1];
   view='game'; sheet=null; S=sides(); buildBoard(); startRound();
+  if (M.fol) setTimeout(heavyAsk, INTRO_MS+400);
 }
 function startRound(){
   premove=null; AN=null; wzLeft=3; wzLast=0; botTalk=0; resetLook();
@@ -1914,6 +1992,11 @@ function onCell(i){
     if (premove && premove.i===i){ premove=null; render(); return; }
     if (premove && aiGen(G.cells,G.pawns,[0,0],seat).some(m=>m[0]===premove.k && m[1]===i)){ premove.i=i; render(); }
     return;
+  }
+  if (folie()){
+    if (G.dynOn){ if (movesFor(G.turn).some(m=>m[1]===i)) placeDyn(i); else { G.dynOn=false; render(); } return; }
+    const tg=pwHas('push') ? pushTargets(G.turn).filter(x=>x.b===i) : [];
+    if (tg.length){ doPush(tg.find(x=>x.k===G.pick)||tg[0]); return; }
   }
   if (hitP===G.turn){ const k=G.pawns[G.turn].indexOf(i); G.pick = G.pick===k ? null : k; G.hint=null; render(); return; }
   if (G.pick===null) return;
@@ -2100,16 +2183,16 @@ const peerOK = () => typeof Peer!=='undefined';
 const online = () => !!net;
 const PEER_PREFIX='dernierpas-v1-';
 function pack(){
-  return {t:P.time, M:M&&{...M, train:false, eloDelta:null, daily:false}, G:G&&{r:G.round,b:G.bid,c:G.cells.join(''),p:G.pawns,j:G.J,tu:G.turn,mv:G.moves,ms:G.msg,ck:G.clock.map(x=>Math.round(x)),o:G.over,w:G.winner,s:G.sum}};
+  return {t:P.time, M:M&&{...M, train:false, eloDelta:null, daily:false}, G:G&&{r:G.round,b:G.bid,c:G.cells.join(''),p:G.pawns,j:G.J,tu:G.turn,mv:G.moves,ms:G.msg,ck:G.clock.map(x=>Math.round(x)),o:G.over,w:G.winner,s:G.sum,dy:G.dyn||[],ev:G.ev||null}};
 }
 function unpack(st){
   const prevG=G, prevM=M;
   if (TIMES.includes(st.t)) P.time=st.t;
   M=st.M;
   if (!M){ G=null; HIST={}; return; }
-  if (!prevM || prevM.id!==M.id){ HIST={}; AN=null; view='game'; sheet=null; S=sides(); buildBoard(); }
+  if (!prevM || prevM.id!==M.id){ HIST={}; AN=null; view='game'; sheet=null; S=sides(); buildBoard(); if (M.fol){ HV=[-1,-1]; setTimeout(heavyAsk, INTRO_MS+400); } }
   const g=st.G;
-  G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
+  G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,dyn:Array.isArray(g.dy)?g.dy:[],ev:g.ev||null,last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
   if (!G) return;
   if (!prevG || prevG.round!==G.round || (prevM && prevM.id!==M.id)){ premove=null; AN=null; wzLeft=3; resetLook(); playIntro(); musicStart(); }
   else if (G.moves===prevG.moves+1){
@@ -2120,6 +2203,7 @@ function unpack(st){
       look(t,k,from,to); G.last={p:t,from,to,jump}; const fell=G.cells[from]===0; fx(from,to,t,fell); sfx.move(); if (fell) setTimeout(sfx.fall,200);
     }
   } else if (prevG.last && G.moves===prevG.moves) G.last=prevG.last;
+  if (G.ev && prevG && G.round===prevG.round && (!prevG.ev || prevG.ev.n!==G.ev.n)) playEv(G.ev);
   if (G.over && !(prevG && prevG.over)) sfx.round();
   G.turnAt = prevG && prevG.turn===G.turn && prevG.round===G.round && !prevG.over ? prevG.turnAt : performance.now();
   if (!G.over){ const ks=[...new Set(movesFor(G.turn).map(m=>m[0]))]; if (ks.length===1) G.pick=ks[0]; }
@@ -2147,6 +2231,7 @@ function onNetData(d){
     render(); afterChange(); return;
   }
   if (d.t==='full'){ if (net.mm && !net.opp){ const i=net.slot; try { net.peer.destroy(); } catch(e){} net=null; goMatch(i+1); return; } net.err=(T("Cette partie a déjà deux joueurs.")); render(); return; }
+  if (d.t==='hv'){ HV[other]=(d.k===0||d.k===1)?d.k:-1; return; }
   if (d.t==='nb'){ if (PEERS[other]) PEERS[other].nb=!!d.v; renderActions(); return; }
   if (d.t==='resign' && M && !M.done && (net.seat===0||net.seat===1)){
     forfeitWin(`${S[other].name} ${T("abandonne la partie.")}`); return; }
@@ -2323,7 +2408,7 @@ function renderGame(){
     $('#scorebar').innerHTML=`<div class="sd" style="--pc:${S[a].hex}"><span class="nm2"><i></i><span>${esc(S[a].name)}</span></span><b class="pts">${pts[a]} pts</b></div>`+
       `<div class="mid"><b>${M.wins[a]} – ${M.wins[b]}</b></div>`+
       `<div class="sd r" style="--pc:${S[b].hex}"><span class="nm2"><span>${esc(S[b].name)}</span><i></i></span><b class="pts">${pts[b]} pts</b></div>`; }
-  $('#phase').textContent= TR ? trTitle() : `${T("Manche")} ${M.round} · ${BOARDS[G.bid].name}${M.assist?(" "+T("· entraînement")):M.train?(" "+T("· entraînement")):''}${online()?` · ${net.mm?(T("en ligne")):net.code.toUpperCase()}`:''}`;
+  $('#phase').textContent= TR ? trTitle() : `${T("Manche")} ${M.round} · ${BOARDS[G.bid].name}${M.fol?" · 🤪 "+T("Folie"):""}${M.assist?(" "+T("· entraînement")):M.train?(" "+T("· entraînement")):''}${online()?` · ${net.mm?(T("en ligne")):net.code.toUpperCase()}`:''}`;
   // plateau
   const pickMoves = myTurn && G.pick!==null ? movesFor(G.turn).filter(m=>m[0]===G.pick) : [];
   const targets=new Set(pickMoves.filter(m=>!m[2]).map(m=>m[1]));
@@ -2332,8 +2417,10 @@ function renderGame(){
   const pt=new Set(preSeat!==null && premove && premove.i==null ? aiGen(G.cells,G.pawns,[0,0],preSeat).filter(m=>m[0]===premove.k).map(m=>m[1]) : []);
   const b=$('#board');
   b.style.setProperty('--pc', S[G.turn].hex); b.style.setProperty('--mc', S[preSeat!==null?preSeat:0].hex); b.style.setProperty('--lc', G.last ? S[G.last.p].hex : 'transparent');
+  const fol=folie() && playing && myTurn, pushSet=new Set(fol && pwHas('push') ? pushTargets(G.turn).map(x=>x.b) : []), dynT=new Set(fol && G.dynOn ? movesFor(G.turn).map(m=>m[1]) : []), dynMap=new Map((G.dyn||[]).map(d=>[d.i,d]));
   G.cells.forEach((v,i)=>{
     let cls='cell '+(v===0?'hole':'v'+v);
+    if (pushSet.has(i)) cls+=' pushme'; if (dynT.has(i)) cls+=' dyntarget'; if (dynMap.has(i)) cls+=' dyncell';
     if (targets.has(i)) cls+=' target'; if (jt.has(i)) cls+=' jtarget'; if (pt.has(i)) cls+=' ptarget';
     if (premove && premove.i===i && preSeat!==null) cls+=' pre';
     if (G.hint && G.hint[1]===i && myTurn) cls+=' hint';
@@ -2341,7 +2428,7 @@ function renderGame(){
     if (TR && TR.goal===i) cls+=' goal';
     if (G.bombs && ((G.bombs[0]===i && humanSeat()===0) || (G.over && G.bombs.includes(i)))) cls+=' bomb';
     const el=cellEls[i]; if (el.className!==cls) el.className=cls;
-    const html=v===0?'':`<span class="num">${v}</span>`; if (el.innerHTML!==html) el.innerHTML=html;
+    const dd=dynMap.get(i), html=(v===0?'':`<span class="num">${v}</span>`)+(dd?`<span class="dynm" aria-hidden="true">🧨<i>${Math.ceil(dd.left/2)}</i></span>`:''); if (el.innerHTML!==html) el.innerHTML=html;
     const hp=[0,1].find(p=>G.pawns[p].includes(i));
     el.setAttribute('aria-label', `${sq(i)} : ${v===0?T('trou'):T('case')+' '+v}${hp!==undefined?(T(", pion de")+" ")+S[hp].name:''}`);
   });
@@ -2405,6 +2492,10 @@ function renderActions(){
       a.push(btn('toc','fist',(T("Toc toc")),{dis:blk||wzLeft<=0||cd}));
       a.push(btn('haha','laugh',(T("Haha")),{dis:blk||wzLeft<=0||cd}));
     }
+    if (M.fol && (seat===0||seat===1)){
+      a.push(btn('pw-push','',`💥 ${T("Pousser")}`,{badge:pwPass('push')?'∞':String(pwLeft('push')), dis:!pwHas('push')}));
+      a.push(btn('pw-dyn','',`🧨 ${T("Dynamite")}`,{badge:String(pwLeft('dyn')), dis:!myTurn||!pwHas('dyn'), cls:G.dynOn?'on':''}));
+    }
     if (M.assist) a.push(btn('leave-train','door',T("Quitter"),{cls:'quit'}));
     else if (seat!==-1) a.push(btn('resign','flag',online()?(T("Quitter")):(T("Abandon")),{cls:'quit'}));
   } else {
@@ -2447,7 +2538,7 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
-  w.classList.toggle('center', ['ldone','limit','chalin','premium'].includes(sheet.type));
+  w.classList.toggle('center', ['ldone','limit','chalin','premium','heavy'].includes(sheet.type));
   w.hidden=false;
   const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>")+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
@@ -2478,7 +2569,8 @@ function sheetHTML(){
       if (!peerOK()) return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Le module en ligne n'a pas pu se charger. Vérifie ta connexion internet et relance l'appli.")}</p>`;
       return `<h2>${T("Jouer avec un ami")}</h2>
       <div class="timegrid t3">${TIMES.map(t=>`<button type="button" data-act="ftime" data-v="${t}" aria-pressed="${P.time===t}">${tLabel(t)}</button>`).join('')}</div>
-      <button class="primary" type="button" data-act="host" style="margin-top:10px">${T("Créer une partie")} · ${tLabel(P.time)}</button>
+      <label class="toggle folie"><span>🤪 ${T("Mode folie")}<small class="note">${T("Pousser, poids lourd, dynamite. Pour rire, sans classement.")}</small></span><input type="checkbox" id="o-folie" ${P.folie?'checked':''}></label>
+      <button class="primary" type="button" data-act="host" style="margin-top:10px">${T("Créer une partie")} · ${tLabel(P.time)}${P.folie?' · 🤪':''}</button>
       <form class="joinrow" id="joinform" autocomplete="off"><input class="code-input" id="code" maxlength="5" inputmode="numeric" placeholder="• • • •" aria-label="${T("Code de la partie")}" autocapitalize="characters"><button type="submit" class="secondary">${T("Rejoindre")}</button></form>
       <p class="note" id="join-err" hidden>${T("Le code fait 4 chiffres.")}</p>`;
     }
@@ -2567,6 +2659,10 @@ function sheetHTML(){
     ${P.premium?'':`<div class="plans" role="radiogroup"><button type="button" role="radio" data-act="prem-plan" data-v="month" aria-checked="${pl==='month'}"><b>${T("Mensuel")}</b><span>${pr.month}</span><small>${T("par mois")}</small></button><button type="button" role="radio" data-act="prem-plan" data-v="year" aria-checked="${pl==='year'}"><i class="save">${pr.save}</i><b>${T("Annuel")}</b><span>${pr.year}</span><small>${T("par an")}</small></button></div>
     <button class="primary big2" type="button" data-act="prem-buy" data-v="${pl}">${T("S'abonner")}</button>
     <p class="note">${T("Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.")}</p>`}`; }
+  if (s.type==='heavy'){ const seat=net?net.seat:0;
+    return `<div class="modicon">🏋️</div><h2 style="padding:0">${T("Poids lourd")}</h2><p>${T("Choisis en secret le pion que personne ne pourra pousser pendant toute la partie. Aucun signe ne le montrera, même pas à toi : retiens-le !")}</p>
+    <div class="row">${[0,1].map(k=>`<button class="primary" type="button" data-act="hv-pick" data-v="${k}">${T("Pion en")} ${sq(START[seat][k])}</button>`).join('')}</div>
+    <button class="secondary" type="button" data-act="sheet-close">${T("Pas cette fois")}</button><p class="note">${T("Il te reste")} ${pwLabel('heavy')}</p>`; }
   if (s.type==='badges') return `<h2>${T("Badges")} · ${Object.keys(P.badges).length}/${BADGES.length}</h2>${badgeList()}`;
   if (s.type==='psec') return psecHTML(s.v);
   if (s.type==='chalin') return `<div class="modicon">🧩</div><h2 style="padding:0">${esc(s.c.n)} ${T("te défie !")}</h2><p>${T("Il a résolu ce puzzle en")} ${s.c.t} ${T("s. Fais mieux ?")}</p><button class="primary" type="button" data-act="chal-go">${T("Relever le défi")}</button>`;
@@ -2586,11 +2682,12 @@ function sheetHTML(){
     <label class="toggle"><span>${T("Vibrations")}</span><input type="checkbox" id="o-haptic" ${P.haptic!==false?'checked':''}></label>
     ${M&&M.done&&!online()?`<button class="secondary" type="button" data-act="leave-game">${T("Retour au menu")}</button>`:s.confirm?`<button class="danger" type="button" data-act="leave-game">${online()?(T("Quitter la partie")):(T("Confirmer l'abandon"))}${vsAI&&M&&!M.train?(" "+T("(compte comme une défaite)")):''}</button>`:`<button class="danger" type="button" data-act="ask-leave">${online()?(T("Quitter")):(T("Abandonner"))}</button>`}`;
   if (s.type==='chat'){
-    const tab=s.tab||'pique', ids = tab==='pique' ? myPiques() : [...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)];
+    const tab=s.tab||'pique', ids = tab==='pique' ? myPiques() : tab==='ref' ? myRefs().map(id=>'r'+id) : [...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)];
     const last=CHAT.filter(m=>!m.mine).slice(-1)[0];
     return `<h2>${T("Messages")}</h2>
     ${last?`<p class="lastmsg"><small>${esc(S[last.side]?S[last.side].name:'')}</small>${esc(last.text)}</p>`:''}
-    <div class="seg"><button type="button" data-act="chat-tab" data-v="pique" aria-pressed="${tab==='pique'}">😏 ${T("Piques")}</button><button type="button" data-act="chat-tab" data-v="nice" aria-pressed="${tab==='nice'}">🙂 ${T("Sympa")}</button></div>
+    <div class="seg"><button type="button" data-act="chat-tab" data-v="pique" aria-pressed="${tab==='pique'}">😏 ${T("Piques")}</button><button type="button" data-act="chat-tab" data-v="nice" aria-pressed="${tab==='nice'}">🙂 ${T("Sympa")}</button><button type="button" data-act="chat-tab" data-v="ref" aria-pressed="${tab==='ref'}">🔥 ${T("Réfs")}</button></div>
+    ${tab==='ref'&&!ids.length?`<p class="note">${T("Tu n'as pas encore de réfs. Achète-les dans la boutique, catégorie Réfs.")}</p><button class="secondary" type="button" data-act="shop-refs">🛍️ ${T("Voir les réfs")}</button>`:''}
     <div class="qgrid">${ids.map(id=>`<button type="button" data-act="quick-msg" data-v="${id}">${esc(phText(id))}</button>`).join('')}</div>
     ${tab==='pique'?`<button class="linkbtn" type="button" data-act="piques" style="display:block;margin:12px auto 0">✎ ${T("Changer mes piques")}</button>`:''}`;
   }
@@ -2730,10 +2827,14 @@ document.addEventListener('click', e=>{
     case 'shop-next': shopMove(1); break;
     case 'shop-buy': shopBuy(); break;
     case 'shop-equip': { const id=shopList(SHOP.k,'closet')[SHOP.i]; if (id){ equip(SHOP.k,id); vibrate(15); toast(T("Équipé !")); render(); } break; }
-    case 'shop-mode': SHOP.mode=SHOP.mode==='shop'?'closet':'shop'; SHOP.i=SHOP.mode==='closet'?Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))):0; render(); break;
+    case 'shop-mode': SHOP.mode=SHOP.mode==='shop'?'closet':'shop'; if (SHOP.mode==='closet' && SHOP_SPECIAL.includes(SHOP.k)) SHOP.k='color'; SHOP.i=SHOP.mode==='closet'?Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))):0; render(); break;
     case 'shop-preview': { const id=shopList(SHOP.k,SHOP.mode)[SHOP.i]; if (id) previewWin(id); break; }
-    case 'closet': SHOP.mode='closet'; SHOP.i=Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))); view='shop'; sheet=null; render(); window.scrollTo(0,0); break;
-    case 'coins-shop': sheet={type:'coins'}; render(); break;
+    case 'closet': SHOP.mode='closet'; if (SHOP_SPECIAL.includes(SHOP.k)) SHOP.k='color'; SHOP.i=Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))); view='shop'; sheet=null; render(); window.scrollTo(0,0); break;
+    case 'coins-shop': sheet=null; view='shop'; SHOP.mode='shop'; SHOP.k='gold'; SHOP.i=1; render(); break;
+    case 'shop-refs': sheet=null; if (view==='game'){ toast(T("Après la partie, va dans la boutique : catégorie Réfs.")); break; } view='shop'; SHOP.mode='shop'; SHOP.k='ref'; SHOP.i=0; render(); break;
+    case 'pw-buy': pwBuy(v); break;
+    case 'ref-buy': refBuy(v); break;
+    case 'gold-buy': goldBuy(v); break;
     case 'pack': { const k=PACKS.find(x=>x.id===v); if (window.LastepIAP && LastepIAP.buy){ LastepIAP.buy(k.id).then(ok=>{ if (ok){ P.coins+=k.c; saveP(); sheet=null; giveCoins(0,''); rewardClose(); toast(`+${k.c} ${T("pièces")}`); render(); } }); } else toast(T("Paiement bientôt disponible avec l'appli des stores.")); break; }
     case 'coins-ad': adReward().then(ok=>{ if (!ok) return; const d=dayKey(), a=P.adCoins&&P.adCoins.d===d?P.adCoins.n:0; P.adCoins={d,n:a+1}; P.coins+=25; saveP(); sfx.win(); toast(`+25 ${T("pièces")}`); render(); }); break;
     case 'gift': giftClaim(); if (!giftInfo().can && !REWARD) toast(T("Déjà récupéré. Reviens demain !")); break;
@@ -2822,6 +2923,9 @@ document.addEventListener('click', e=>{
     case 'undo': undo(); break;
     case 'buy-pack': { const pk=CRED_PACK[v]; if ((P.coins||0)>=pk.price){ P.coins-=pk.price; credAdd(v, pk.n); sfx.win(); toast(`+${pk.n} ${v==='a'?T("analyses"):T("indices")}`); sheet=null; render(); } break; }
     case 'as-hint': assistHint(); break;
+    case 'pw-dyn': if (G && folie() && G.turn===humanSeat() && pwHas('dyn')){ G.dynOn=!G.dynOn; if (G.dynOn) toast(T("Touche une case où tu pourrais aller pour poser la dynamite.")); render(); } break;
+    case 'pw-push': { const n=G&&folie()?pushTargets(humanSeat()).length:0; toast(n ? T("Touche le pion adverse qui clignote pour le pousser.") : T("Pour pousser : place-toi juste à côté d'un pion adverse. Derrière lui, il faut une case libre ou un trou.")); break; }
+    case 'hv-pick': { const k=+v; if (M && (k===0||k===1) && pwHas('heavy')){ pwUse('heavy'); HV[net.seat]=k; netSend({t:'hv', k}); toast(T("🏋️ C'est ton secret : retiens bien lequel !")); } sheet=null; render(); break; }
     case 'leave-train': { const pl=matchPlayed(); leaveGame(); if (pl) adInter(); break; }
     case 'ai-assist': sheet={type:'ai', assist:true}; render(); break;
     case 'ai-mode': if (sheet && sheet.type==='ai'){ sheet.assist=v==='1'; P.aiTrain=sheet.assist; saveP(); render(); } break;
@@ -2864,6 +2968,7 @@ document.addEventListener('change', e=>{
   if (t.id==='pname'){ P.name=cleanName(t.value)===T('Adversaire')&&!t.value.trim()?(T("Toi")):cleanName(t.value); saveP(); presBroadcast(); render(); }
   if (t.id==='o-trap'){ P.trap=t.checked; saveP(); }
   if (t.id==='o-calm'){ P.calm=t.checked; saveP(); render(); }
+  if (t.id==='o-folie'){ P.folie=t.checked; saveP(); render(); }
   if (t.id==='o-block'){ P.blockTaunts=t.checked; saveP(); netSend({t:'nb', v:myBlock()}); render(); }
   if (t.id==='o-sound'){ P.sound=t.checked; saveP(); if (!P.sound) musicStop(); else if (view==='game' && M) musicStart(); }
   if (t.id==='o-lang'){ P.lang=t.value; saveP(); location.reload(); return; }
@@ -2960,7 +3065,7 @@ function recordGame(){
   if (w===null){ saveP(); return; }
   const op=S[me===0?1:0], src=online()?(net.mm?'online':'ami'):vsAI?'ia':'local';
   let de=M.eloDelta;
-  if (online() && CHAMP_ID!==M.id){ CHAMP_ID=M.id; const o=PEERS[1-me]; LAST_CHAMP=applyChamp(w?1:0, o && o.rc ? (o.rc[P.time]||1000) : 1000); de=LAST_CHAMP; }
+  if (online() && !M.fol && CHAMP_ID!==M.id){ CHAMP_ID=M.id; const o=PEERS[1-me]; LAST_CHAMP=applyChamp(w?1:0, o && o.rc ? (o.rc[P.time]||1000) : 1000); de=LAST_CHAMP; }
   P.games=[...(P.games||[]), {gid:M.id, nm:[S[0].name,S[1].name], mv:packRounds(), anOK:M.anOK?1:0, op:op.name, sk:op.skin, w, sc:`${M.wins[me]}-${M.wins[1-me]}`, d:new Date().toLocaleDateString((T("fr-FR")),{day:'numeric',month:'short'}), de, src, t:P.time, uid: online()&&PEERS[1-me]?PEERS[1-me].uid:''}].slice(-50);
   P.games.forEach((g,i)=>{ if (i<P.games.length-GAMES_KEEP) delete g.mv; });
   if (M.daily && w){ const d=P.daily||{}, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1); if (d.last!==today){ P.daily={last:today, streak: d.last===dayKey(y) ? (d.streak||0)+1 : 1}; } }
@@ -3423,7 +3528,7 @@ function fxRun(style, hex, cv){
 
 
 /* ---------- Pièces et badges ---------- */
-const cost = p => Math.round(p*6)*10;
+const cost = p => Math.round(p*15)*10;   // 0,99 → 150 pièces … 5,99 → 900 pièces
 function addCoins(n, silent){ P.coins=(P.coins||0)+n; saveP(); if (!silent) toast(`+${n} ${T("pièces")}`); }
 const BADGES=[
   {id:'pas1', n:(T("Premier Pas")), d:(T("Termine le cours 1.")), e:'👣', c:'#2ef2ff', cat:(T("Cours"))},
@@ -4623,9 +4728,38 @@ function renderPlay(){
 
 /* ---------- Boutique : carrousel autour de ton pion ; Vestiaire : ce que tu possèdes ---------- */
 const SHOP_KINDS=['color','fur','fin','eyes','acc','trail','win','theme'];
-const KIND_PL={color:T("Couleur"),fur:T("Forme"),fin:T("Finition"),eyes:T("Yeux"),acc:T("Accessoire"),trail:T("Traînée"),win:T("Célébration"),theme:T("Plateau")};
+const SHOP_SPECIAL=['pw','ref','gold'];
+const shopKinds = mode => mode==='shop' ? [...SHOP_KINDS, ...SHOP_SPECIAL] : SHOP_KINDS;
+// Coffres de pièces : uniquement avec de l'argent réel (App Store / Google Play)
+const GOLD={g500:{c:500, eur:'0,99 €', img:'coffre-bois', n:"Petit coffre"}, g1200:{c:1200, eur:'1,99 €', img:'coffre-argent', n:"Coffre d'argent"},
+  g3500:{c:3500, eur:'4,99 €', img:'coffre-or', n:"Coffre d'or", tag:'+17 %'}, g8000:{c:8000, eur:'9,99 €', img:'coffre-legendaire', n:"Coffre légendaire", tag:'+60 %'}};
+async function goldBuy(id){
+  const g=GOLD[id], iap=window.LastepIAP; if (!g) return;
+  if (iap && typeof iap.buy==='function'){
+    try { const ok=await iap.buy('lastep_coins_'+g.c); if (ok){ P.coins=(P.coins||0)+g.c; saveP(); openChest(g.img==='coffre-legendaire'?'or':g.img.replace('coffre-',''), T("Achat")); REWARD.coins=g.c; REWARD.item=null; rewardDraw(); } } catch(e){ toast(T("Paiement annulé")); }
+    return;
+  }
+  sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
+}
+function pwBuy(k){
+  const w=PW[k]; if (!w) return; if ((P.coins||0)<w.price){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
+  P.coins-=w.price;
+  if (w.pass) P.pw[k].u=Math.max(Date.now(), P.pw[k].u||0)+w.pass*864e5; else P.pw[k].n=(P.pw[k].n||0)+w.pack;
+  saveP(); sfx.win(); vibrate([20,40,20]); toast(`${w.e} ${T(w.n)} : ${w.pass?T("illimité pendant 7 jours !"):`+${w.pack} !`}`); render();
+}
+function refBuy(id){
+  const r=REFS[id]; if (!r) return; if ((P.coins||0)<r.p){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
+  P.coins-=r.p; P.refs=[...new Set([...(P.refs||[]), id])]; saveP(); sfx.win(); toast(`🔥 ${T("Réf débloquée : tu peux l'envoyer en partie !")}`); render();
+}
+function specialView(k,id,big){
+  if (k==='pw'){ const w=PW[id]; return `<div class="spv${big?' big':''}"><span class="spe">${w.e}</span>${big?'':''}</div>`; }
+  if (k==='ref'){ const r=REFS[id]; return `<div class="spv ref${big?' big':''}"><span class="rbub">${big?esc(r.t):'💬'}</span></div>`; }
+  if (k==='gold'){ const g=GOLD[id]; return `<div class="spv${big?' big':''}">${IMG(g.img,'gimg2')}</div>`; }
+  return '';
+}
+const KIND_PL={pw:T("Pouvoirs"),ref:T("Réfs"),gold:T("Pièces"),color:T("Couleur"),fur:T("Forme"),fin:T("Finition"),eyes:T("Yeux"),acc:T("Accessoire"),trail:T("Traînée"),win:T("Célébration"),theme:T("Plateau")};
 let SHOP={mode:'shop', k:'color', i:0, dir:0};
-const shopList = (k, mode) => Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
+const shopList = (k, mode) => k==='pw' ? Object.keys(PW) : k==='ref' ? Object.keys(REFS).filter(id=>mode==='shop' ? !(P.refs||[]).includes(id) : (P.refs||[]).includes(id)) : k==='gold' ? Object.keys(GOLD) : Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
 const isEq = (k,id) => k==='theme' ? P.theme===id : P.skin[k]===id;
 function itemView(k, id, big){
   const it=CAT[k][id];
@@ -4645,41 +4779,52 @@ async function premBuy(plan){
 function renderShop(){
   const mode=SHOP.mode, list=shopList(SHOP.k, mode);
   if (SHOP.i>=list.length) SHOP.i=Math.max(0,list.length-1);
-  const id=list[SHOP.i], it=id?CAT[SHOP.k][id]:null, n=list.length;
+  const sp=SHOP_SPECIAL.includes(SHOP.k);
+  const id=list[SHOP.i], it=id?(sp?{n:''}:CAT[SHOP.k][id]):null, n=list.length;
   const prev=n>1?list[(SHOP.i-1+n)%n]:null, next=n>1?list[(SHOP.i+1)%n]:null;
-  const rr=it?rarity(it.p):null, c=it?cost(it.p):0;
-  let btn='';
-  if (it){
+  const rr=it&&!sp?rarity(it.p):null, c=it&&!sp?cost(it.p):0;
+  const view=(kk,ii,big)=>sp?specialView(kk,ii,big):itemView(kk,ii,big);
+  let btn='', info='';
+  if (sp && id){
+    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small>`;
+      btn=`<button class="buybtn${P.coins<w.price?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">${w.pass?T("7 jours illimité"):`×${w.pack}`} · ${ic('coin')} ${w.price}</button>`; }
+    else if (SHOP.k==='ref'){ const r=REFS[id]; info=`<span class="rar r-rare">${r.l==='fr'?'🇫🇷 '+T("Réf française"):'🇬🇧 '+T("Réf anglaise")}</span><h2>🔥 ${T("Réf culte")}</h2><small>${T("À envoyer pendant tes parties en ligne")}</small>`;
+      btn=`<button class="buybtn${P.coins<r.p?' poor':''}" type="button" data-act="ref-buy" data-v="${id}">${T("Acheter")} · ${ic('coin')} ${r.p}</button>`; }
+    else { const g=GOLD[id]; info=`${g.tag?`<span class="rar r-legendaire">${g.tag}</span>`:''}<h2>${T(g.n)}</h2><small>${ic('coin')} <b>+${g.c.toLocaleString('fr-FR')}</b> ${T("pièces")}</small>`;
+      btn=`<button class="buybtn eur" type="button" data-act="gold-buy" data-v="${id}">${g.eur}</button>`; }
+  }
+  if (it && !sp){
     if (mode==='shop') btn = P.coins>=c ? `<button class="buybtn" type="button" data-act="shop-buy">${T("Acheter")} · ${ic('coin')} ${c}</button>` : `<button class="buybtn poor" type="button" data-act="coins-shop">${ic('coin')} ${c}</button><small class="miss">${T("Il te manque")} ${c-P.coins} ${T("pièces")}</small>`;
     else btn = isEq(SHOP.k,id) ? `<button class="buybtn eq" type="button" disabled>✓ ${T("Équipé")}</button>` : `<button class="buybtn" type="button" data-act="shop-equip">${T("Équiper")}</button>`;
   }
-  const ki=SHOP_KINDS.indexOf(SHOP.k), NK=SHOP_KINDS.length, kp=SHOP_KINDS[(ki-1+NK)%NK], kn=SHOP_KINDS[(ki+1)%NK];
-  const CE={color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪'};
-  const kinfo=k=>{ const L=shopList(k,mode).length; return mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`; };
+  const KS=shopKinds(mode), ki=KS.indexOf(SHOP.k), NK=KS.length, kp=KS[(ki-1+NK)%NK], kn=KS[(ki+1)%NK];
+  const CE={color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪',pw:'⚡',ref:'💬',gold:'💰'};
+  const kinfo=k=>{ if (k==='pw') return T("Mode folie"); if (k==='gold') return T("Coffres de pièces"); const L=shopList(k,mode).length; return mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`; };
   const cats=`<div class="catcar" aria-label="${T("Catégories")}">
     <button type="button" class="ccs l" data-act="cat-prev" aria-label="${KIND_PL[kp]}"><span>${CE[kp]}</span><small>${KIND_PL[kp]}</small></button>
     <div class="ccc ${SHOP.cdir>0?'inR':SHOP.cdir<0?'inL':''}"><span class="cce">${CE[SHOP.k]}</span><b>${KIND_PL[SHOP.k]}</b><small>${kinfo(SHOP.k)}</small></div>
     <button type="button" class="ccs r" data-act="cat-next" aria-label="${KIND_PL[kn]}"><span>${CE[kn]}</span><small>${KIND_PL[kn]}</small></button>
-    <div class="ccdots">${SHOP_KINDS.map((k,i)=>`<i class="${i===ki?'on':''}"></i>`).join('')}</div>
+    <div class="ccdots">${KS.map((k,i)=>`<i class="${i===ki?'on':''}"></i>`).join('')}</div>
   </div>`;
   return `${pillsTop()}${pageTitle(mode==='shop'?'coffre-or':'icone-profil', mode==='shop'?'🛍️':'👕', mode==='shop'?T("Boutique"):T("Vestiaire"),
       `<span class="ptr2"><button class="pill swap prem" type="button" data-act="premium" aria-label="${T("Premium")}">💎</button><button class="pill swap" type="button" data-act="shop-mode">${mode==='shop'?'👕 '+T("Vestiaire"):'🛍️ '+T("Boutique")}</button></span>`)}
   <div class="stage">
     <div class="stbg"></div>
-    ${prev?`<button type="button" class="side l" data-act="shop-prev" aria-label="${T("Précédent")}">${itemView(SHOP.k,prev)}</button>`:''}
-    ${next?`<button type="button" class="side r" data-act="shop-next" aria-label="${T("Suivant")}">${itemView(SHOP.k,next)}</button>`:''}
-    <div class="center ${SHOP.dir>0?'inR':SHOP.dir<0?'inL':''}" ${SHOP.k==='win'&&id?`data-act="shop-preview"`:''}>${it?itemView(SHOP.k,id,true):`<div class="empty">${mode==='shop'?'✓<small>'+T("Tu as déjà tout dans cette catégorie !")+'</small>':'<small>'+T("Rien ici pour l'instant")+'</small>'}</div>`}</div>
+    ${prev?`<button type="button" class="side l" data-act="shop-prev" aria-label="${T("Précédent")}">${view(SHOP.k,prev)}</button>`:''}
+    ${next?`<button type="button" class="side r" data-act="shop-next" aria-label="${T("Suivant")}">${view(SHOP.k,next)}</button>`:''}
+    <div class="center ${SHOP.dir>0?'inR':SHOP.dir<0?'inL':''}" ${SHOP.k==='win'&&id?`data-act="shop-preview"`:''}>${it?view(SHOP.k,id,true):`<div class="empty">${mode==='shop'?'✓<small>'+T("Tu as déjà tout dans cette catégorie !")+'</small>':'<small>'+T("Rien ici pour l'instant")+'</small>'}</div>`}</div>
     ${n>1?`<button type="button" class="arw l" data-act="shop-prev" aria-label="${T("Précédent")}">‹</button><button type="button" class="arw r" data-act="shop-next" aria-label="${T("Suivant")}">›</button>`:''}
     <div class="pedestal"></div>
   </div>
-  ${it?`<div class="iinfo">${rr?`<span class="rar r-${rr.k}">${rr.n}</span>`:''}<h2>${esc(it.n)}</h2><small>${KIND_PL[SHOP.k]} · ${SHOP.i+1}/${n}${SHOP.k==='win'?' · '+T("touche pour voir"):''}</small>${btn}</div>`:''}
+  ${sp&&it?`<div class="iinfo">${info}${btn}</div>`:''}
+  ${it&&!sp?`<div class="iinfo">${rr?`<span class="rar r-${rr.k}">${rr.n}</span>`:''}<h2>${esc(it.n)}</h2><small>${KIND_PL[SHOP.k]} · ${SHOP.i+1}/${n}${SHOP.k==='win'?' · '+T("touche pour voir"):''}</small>${btn}</div>`:''}
   <div class="cats">${cats}</div>`;
 }
 let shopTx=null;
 let shopZone=null;
 document.addEventListener('touchstart', e=>{ const z=e.target.closest && (e.target.closest('.stage')?'item':e.target.closest('.catcar')?'cat':null); shopZone=z; shopTx = z ? e.touches[0].clientX : null; }, {passive:true});
 document.addEventListener('touchend', e=>{ if (shopTx==null) return; const dx=e.changedTouches[0].clientX-shopTx; shopTx=null; if (Math.abs(dx)>45){ if (shopZone==='cat') catMove(dx<0?1:-1); else shopMove(dx<0?1:-1); } }, {passive:true});
-function catMove(d){ const NK=SHOP_KINDS.length, k=SHOP_KINDS[(SHOP_KINDS.indexOf(SHOP.k)+d+NK)%NK]; SHOP.k=k; SHOP.cdir=d; SHOP.dir=0; SHOP.i=Math.max(0,shopList(k,SHOP.mode).findIndex(id=>isEq(k,id))); vibrate(8); render(); setTimeout(()=>{ SHOP.cdir=0; },400); }
+function catMove(d){ const KS=shopKinds(SHOP.mode), NK=KS.length, k=KS[(Math.max(0,KS.indexOf(SHOP.k))+d+NK)%NK]; SHOP.k=k; SHOP.cdir=d; SHOP.dir=0; SHOP.i=SHOP_SPECIAL.includes(k)?0:Math.max(0,shopList(k,SHOP.mode).findIndex(id=>isEq(k,id))); vibrate(8); render(); setTimeout(()=>{ SHOP.cdir=0; },400); }
 function shopMove(d){ const n=shopList(SHOP.k,SHOP.mode).length; if (n<2) return; SHOP.i=(SHOP.i+d+n)%n; SHOP.dir=d; render(); setTimeout(()=>{ SHOP.dir=0; },400); }
 function shopBuy(){
   const id=shopList(SHOP.k,'shop')[SHOP.i]; if (!id) return; const c=cost(CAT[SHOP.k][id].p);

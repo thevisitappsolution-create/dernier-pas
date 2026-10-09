@@ -51,7 +51,7 @@
         for (let d = 1; d <= 3; d++) {
           const r = r0 + dr * d, c = c0 + dc * d; if (r < 0 || c < 0 || r >= N || c >= N) break;
           const i = r * N + c;
-          if (occ.has(i) || st.cells[i] === 0) { if (!st.J[s]) break; crossed = true; continue; }
+          if (occ.has(i) || st.cells[i] === 0 || (st.dyn && st.dyn.some(d => d.i === i))) { if (!st.J[s]) break; crossed = true; continue; }
           out.push([k, i, crossed ? 1 : 0]);
         }
       }
@@ -64,7 +64,52 @@
     return from;
   }
   const visibleSum = (st) => { const occ = occupied(st.pawns); return st.cells.reduce((a, v, i) => a + (occ.has(i) ? 0 : v), 0); };
-  const clone = (st) => ({ cells: st.cells.slice(), pawns: st.pawns.map(p => p.slice()), J: st.J.slice(), alive: st.alive.slice() });
+  const clone = (st) => ({ cells: st.cells.slice(), pawns: st.pawns.map(p => p.slice()), J: st.J.slice(), alive: st.alive.slice(), dyn: st.dyn });
+
+  /* ---------- Mode folie (salles privées, sans classement) : pousser, poids lourd, dynamite ---------- */
+  function pushTargets(st, s) {
+    const out = []; if (!st || !st.fol) return out; const occ = occupied(st.pawns);
+    (st.pawns[s] || []).forEach((a, k) => {
+      const r = Math.floor(a / N), c = a % N;
+      for (const [dr, dc] of DIRS) {
+        const br = r + dr, bc = c + dc; if (br < 0 || bc < 0 || br >= N || bc >= N) continue;
+        const b = br * N + bc, o = st.pawns.findIndex((p, j) => j !== s && p.includes(b)); if (o < 0) continue;
+        const cr = br + dr, cc = bc + dc; if (cr < 0 || cc < 0 || cr >= N || cc >= N) continue;
+        const c2 = cr * N + cc; if (occ.has(c2)) continue;
+        out.push({ k, a, b, c: c2, o });
+      }
+    });
+    return out;
+  }
+  function dynTick() { if (PT.dyn && PT.dyn.length) { PT.dyn.forEach(d => d.left--); PT.dyn = PT.dyn.filter(d => d.left > 0); } }
+  function pushAct(s, b) {
+    if (!PT || PT.over || s !== PT.turn || !PT.fol) return false;
+    const tg = pushTargets(PT, s).find(x => x.b === b); if (!tg) return false;
+    PT.timeouts[s] = 0;
+    if (PT.hv && PT.hv[tg.o]) {
+      PT.msg = `🏋️ ${PT.seats[tg.o].name} ${tr('est un poids lourd : impossible de le pousser !')}`; PT.ev = { k: 'heavy', at: b, n: PT.moves };
+      try { sfx.round(); } catch (e) {}
+      dynTick(); PT.moves++; nextTurn(false); return true;
+    }
+    const dead = PT.cells[tg.c] === 0 || (PT.dyn || []).some(d => d.i === tg.c);
+    PT.cells[tg.a]--; PT.pawns[s][tg.k] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 };
+    if (dead) { PT.dyn = (PT.dyn || []).filter(d => d.i !== tg.c); eliminate(tg.o, 'push'); PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} ${tr('dans le vide : éliminé !')}`; }
+    else { PT.pawns[tg.o][0] = tg.c; PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} !`; }
+    PT.ev = { k: 'push', at: tg.c, dead, n: PT.moves };
+    try { sfx.wizz(); if (dead) vibrate([120, 60, 200]); } catch (e) {}
+    dynTick(); PT.moves++; nextTurn(false); return true;
+  }
+  function dynAct(s, i) {
+    if (!PT || PT.over || s !== PT.turn || !PT.fol) return false;
+    if (!gen(PT, s).some(m => m[1] === i)) return false;
+    PT.timeouts[s] = 0; dynTick(); (PT.dyn = PT.dyn || []).push({ i, left: 3 * aliveSeats().length });
+    PT.msg = `🧨 ${PT.seats[s].name} ${tr('pose une dynamite (3 tours)')}`; PT.ev = { k: 'dyn', at: i, n: PT.moves };
+    try { sfx.jump(); } catch (e) {}
+    PT.moves++; nextTurn(false); return true;
+  }
+  const pwOK = (k) => typeof pwHas === 'function' && pwHas(k);
+  const pwTake = (k) => { try { pwUse(k); } catch (e) {} };
+  function heavyAsk() { if (PT && PT.fol && pwOK('heavy') && mySeat() != null && UI.hvAsked !== PT.id) { UI.hvAsked = PT.id; UI.hvAsk = true; draw(); } }
 
   /* ---------- Ordinateur : garder de la place, en retirer aux autres ---------- */
   function aiPick(st, s, noise = 2) {
@@ -83,20 +128,21 @@
   }
 
   /* ---------- Déroulement (côté arbitre : partie locale ou hôte) ---------- */
-  function newGame(seats, first) {
+  function newGame(seats, first, fol) {
     const alive = seats.map(s => s.kind !== 'off');
     PT = {
       id: rid(6), cells: newBoard(), pawns: START.map((p, i) => alive[i] ? p.slice() : []), J: [JUMPS, JUMPS, JUMPS, JUMPS], alive, place: [],
-      seats: seats.map(s => ({ ...s })), first: first || 0, turn: -1, moves: 0, last: null, msg: '', over: false, winner: null, deadline: 0, timeouts: [0, 0, 0, 0], pts: null, ver: 0,
+      seats: seats.map(s => ({ ...s })), first: first || 0, fol: !!fol, dyn: [], hv: [false, false, false, false], ev: null, turn: -1, moves: 0, last: null, msg: '', over: false, winner: null, deadline: 0, timeouts: [0, 0, 0, 0], pts: null, ver: 0,
     };
     UI.stage = 'game'; UI.sel = null; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0;
     try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; if (typeof musicStart === 'function') musicStart(); } catch (e) {}
     nextTurn(true);
+    if (fol) setTimeout(heavyAsk, 600);
   }
   function aliveSeats() { return [0, 1, 2, 3].filter(i => PT.alive[i]); }
   function eliminate(s, why) {
     PT.alive[s] = false; PT.place.push(s); PT.pawns[s] = [];
-    PT.msg = `${PT.seats[s].name} ${tr(why === 'afk' ? 'est éliminé (absent).' : 'est bloqué : éliminé !')}`;
+    PT.msg = `${PT.seats[s].name} ${tr(why === 'afk' ? 'est éliminé (absent).' : why === 'push' ? 'est éliminé !' : 'est bloqué : éliminé !')}`;
     try { sfx.fall(); } catch (e) {}
   }
   function nextTurn(first) {
@@ -127,7 +173,7 @@
     const ok = gen(PT, s).some(x => x[0] === m[0] && x[1] === m[1] && x[2] === m[2]); if (!ok) return false;
     const from = applyMove(PT, s, m);
     PT.last = { s, from, to: m[1], jump: m[2] }; PT.moves++; PT.msg = m[2] ? `${PT.seats[s].name} ${tr('utilise son saut ↷')}` : '';
-    PT.timeouts[s] = 0;
+    PT.timeouts[s] = 0; if (PT.dyn) dynTick(); PT.ev = null;
     try { sfx.move(); if (PT.cells[from] === 0) setTimeout(() => sfx.fall(), 200); if (m[2]) sfx.jump(); } catch (e) {}
     nextTurn(false);
     return true;
@@ -170,14 +216,14 @@
   }
   function packState() {
     return { id: PT.id, cells: PT.cells, pawns: PT.pawns, J: PT.J, alive: PT.alive, place: PT.place, seats: PT.seats.map(s => ({ kind: s.kind === 'remote' ? 'remote' : s.kind, name: s.name, skin: s.skin })),
-      turn: PT.turn, moves: PT.moves, last: PT.last, msg: PT.msg, over: PT.over, winner: PT.winner, rank: PT.rank, pts: PT.pts, left: Math.max(0, PT.deadline - Date.now()), ver: PT.ver };
+      turn: PT.turn, moves: PT.moves, last: PT.last, msg: PT.msg, fol: PT.fol, dyn: PT.dyn || [], ev: PT.ev, over: PT.over, winner: PT.winner, rank: PT.rank, pts: PT.pts, left: Math.max(0, PT.deadline - Date.now()), ver: PT.ver };
   }
   function broadcast() {
     if (!NET || !NET.host || !PT) return;
     const st = packState();
     for (const s in NET.conns) { try { NET.conns[s].send({ t: 'st', st, you: +s }); } catch (e) {} }
   }
-  function lobbyMsg() { return { t: 'lobby', seats: NET.seats.map(s => s && { kind: s.kind, name: s.name, skin: s.skin }), code: NET.code, quick: NET.quick, wait: NET.quick ? Math.max(0, NET.startAt - Date.now()) : 0 }; }
+  function lobbyMsg() { return { t: 'lobby', seats: NET.seats.map(s => s && { kind: s.kind, name: s.name, skin: s.skin }), code: NET.code, quick: NET.quick, fol: !NET.quick && !!UI.fol, wait: NET.quick ? Math.max(0, NET.startAt - Date.now()) : 0 }; }
   function sendLobby() { if (!NET || !NET.host) return; const m = lobbyMsg(); for (const s in NET.conns) { try { NET.conns[s].send({ ...m, you: +s }); } catch (e) {} } draw(); }
   function meSeat() { return { kind: 'human', name: P.name, skin: P.skin }; }
 
@@ -214,6 +260,9 @@
     }
     const s = c._seat; if (s == null) return;
     if (d.t === 'mv' && Array.isArray(d.m) && PT && PT.turn === s) play(s, [d.m[0] | 0, d.m[1] | 0, d.m[2] ? 1 : 0]);
+    if (d.t === 'push' && PT) pushAct(s, d.b | 0);
+    if (d.t === 'dyn' && PT) dynAct(s, d.i | 0);
+    if (d.t === 'hv' && PT && PT.fol && PT.hv) PT.hv[s] = true;
     if (d.t === 'chat') { const id = String(d.id || ''); if (typeof phText === 'function' && phText(id)) { showBubble(s, id); relay({ t: 'chat', s, id }, s); } }
     if (d.t === 'wz' && WZE[d.k] && PT && PT.seats[d.to | 0]) { const m = { t: 'wz', f: s, to: d.to | 0, k: d.k }; relay(m, s); gotWz(m.f, m.to, m.k); }
   }
@@ -233,7 +282,7 @@
       return { kind: 'ai', name: BOTS[k].name, skin: BOTS[k].skin };
     });
     try { me.peer.disconnect(); } catch (e) {} // la file se libère pour une autre partie
-    newGame(seats);
+    newGame(seats, 0, !me.quick && !!UI.fol);
   }
   function joinRoom(hostId, quick, slot) {
     leaveNet();
@@ -261,8 +310,8 @@
       const st = d.st, isNew = !PT || PT.id !== st.id;
       const prev = PT;
       PT = { ...st, deadline: Date.now() + (st.left || 0), timeouts: [0, 0, 0, 0] };
-      if (isNew) { UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
-      if (prev && !isNew && st.moves === prev.moves + 1) { try { sfx.move(); } catch (e) {} }
+      if (isNew) { if (st.fol) setTimeout(heavyAsk, 600); UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
+      if (prev && !isNew && st.moves === prev.moves + 1) { try { if (st.ev && st.ev.k === 'push') { sfx.wizz(); if (st.ev.dead) vibrate([120, 60, 200]); } else if (st.ev && st.ev.k === 'dyn') sfx.jump(); else if (st.ev && st.ev.k === 'heavy') sfx.round(); else sfx.move(); } catch (e) {} }
       if (st.over && !(prev && prev.over)) { try { sfx.round(); } catch (e) {} reward(); }
       UI.sel = null; if (PT.turn === me.seat && !PT.over) { const ks = [...new Set(gen(PT, me.seat).map(m => m[0]))]; if (ks.length === 1) UI.sel = ks[0]; }
       draw(); return;
@@ -394,6 +443,15 @@
 #pt4 .bd{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px;margin:10px auto;width:100%;max-width:min(100%,calc(100dvh - 330px));border-radius:14px;background:linear-gradient(180deg,#120e28,#0d0b1f);box-shadow:0 0 0 1px #8f7bff55,0 0 30px #8f7bff40}
 #pt4 .cl{aspect-ratio:1;border-radius:8px;border:2px solid var(--tc);background:color-mix(in srgb,var(--tc) 14%,#0b0918);color:var(--tc);display:grid;place-items:center;font-weight:800;font-size:clamp(.8rem,4vw,1.3rem);text-shadow:0 0 8px var(--tc);box-shadow:0 0 8px color-mix(in srgb,var(--tc) 60%,transparent),inset 0 0 8px color-mix(in srgb,var(--tc) 40%,transparent);padding:0}
 #pt4 .cl.h{border-color:transparent;background:#05040a;box-shadow:none}
+#pt4 .cl{position:relative}
+#pt4 .cl.pu::after{content:"";position:absolute;inset:2px;border-radius:8px;border:3px solid #ff3dd8;box-shadow:0 0 12px #ff3dd8;animation:pt4pu .8s ease-in-out infinite;pointer-events:none;z-index:3}
+@keyframes pt4pu{50%{opacity:.4;transform:scale(.88)}}
+#pt4 .cl.dt{outline:3px solid #ffb02e;outline-offset:-3px}
+#pt4 .cl .dy{position:absolute;inset:0;display:grid;place-items:center;font-size:1.3rem;filter:drop-shadow(0 0 5px #ff6b2e);pointer-events:none}
+#pt4 .cl .dy i{position:absolute;right:2px;bottom:1px;font-style:normal;font-size:.6rem;font-weight:900;background:#ff3b3b;color:#fff;border-radius:6px;padding:0 4px}
+#pt4 .hvq{margin:6px 0;padding:10px;border-radius:14px;border:2px solid #ffd75e88;background:#ffd75e18;display:grid;gap:4px;text-align:center}
+#pt4 .fol{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;border:2px solid #ff3dd855;background:#ff3dd814}
+#pt4 .fol span{display:grid;gap:2px}#pt4 .fol small{opacity:.75;font-size:.75rem}
 #pt4 .cl.t{outline:3px solid #fff;outline-offset:-3px}
 #pt4 .cl.tj{outline:3px dashed #b6ff3b;outline-offset:-3px}
 #pt4 .cl.fr{box-shadow:0 0 0 2px #ffffff55 inset}
@@ -469,7 +527,9 @@
     const sel = UI.sel != null ? UI.sel : (my && PT.pawns[PT.turn] && PT.pawns[PT.turn].length === 1 ? 0 : null);
     const tg = new Map(); if (my && sel != null) ms.filter(m => m[0] === sel).forEach(m => tg.set(m[1], m[2]));
     const mine = new Set(my ? PT.pawns[PT.turn] : []);
-    const cells = Array.from({ length: N * N }, (_, d) => fromView(d, rot)).map((i) => { const v = PT.cells[i]; return `<button type="button" class="cl${v === 0 ? ' h' : ''}${mine.has(i) ? ' me' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}</button>`; }).join('');
+    const fol = my && PT.fol, pu = new Set(fol && pwOK('push') ? pushTargets(PT, PT.turn).map(x => x.b) : []), dt = new Set(fol && UI.dyn ? ms.map(m => m[1]) : []), dmap = new Map((PT.dyn || []).map(d => [d.i, d]));
+    const alive = Math.max(1, PT.alive.filter(Boolean).length);
+    const cells = Array.from({ length: N * N }, (_, d) => fromView(d, rot)).map((i) => { const v = PT.cells[i]; return `<button type="button" class="cl${v === 0 ? ' h' : ''}${mine.has(i) ? ' me' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}${pu.has(i) ? ' pu' : ''}${dt.has(i) ? ' dt' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}${dmap.has(i) ? `<span class="dy">🧨<i>${Math.ceil(dmap.get(i).left / alive)}</i></span>` : ''}</button>`; }).join('');
     const pawns = PT.pawns.map((ps, s) => ps.map((pos, k) => {
       const vp = toView(pos, rot), r = Math.floor(vp / N), c = vp % N;
       return `<div class="pw${my && s === PT.turn && sel === k ? ' sel' : ''}${my && s === PT.turn ? ' mine' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * ((100% - 32px) / 6 + 4px));top:calc(6px + ${r} * ((100% - 32px) / 6 + 4px))"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
@@ -484,13 +544,15 @@
       end = `<ol class="podium">${rows}</ol>${r >= 0 ? `<p class="note">+${RANKCOINS[r]} ${tr('pièces')}</p>` : ''}<div class="acts">${isReferee() ? `<button class="btn pr" data-a="again">${tr('Revanche')}</button>` : ''}<button class="btn" data-a="close">${tr('Quitter')}</button></div>`;
     }
     const chat = NET && !PT.over ? `<button class="btn" data-a="chat">💬 ${tr('Chat')}</button>` : '';
+    const pows = PT.fol && !PT.over && mySeat() != null ? `<button class="btn" data-a="pwpush">💥 ${tr('Pousser')} <small>${typeof pwLabel === 'function' ? pwLabel('push') : ''}</small></button><button class="btn${UI.dyn ? ' pr' : ''}" data-a="pwdyn" ${my && pwOK('dyn') ? '' : 'disabled'}>🧨 ${typeof pwLabel === 'function' ? pwLabel('dyn') : ''}</button>` : '';
+    const hvq = UI.hvAsk && PT.fol && !PT.over ? `<div class="hvq">🏋️ <b>${tr('Poids lourd')}</b><small>${tr('Personne ne pourra te pousser de toute la partie.')}</small><div class="acts"><button class="btn pr" data-a="hvyes">${tr('Utiliser')}</button><button class="btn" data-a="hvno">${tr('Pas cette fois')}</button></div></div>` : '';
     const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';
-    return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Quitter')}">✕</button><h2>${tr('Partie à 4')}</h2></div>
+    return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Quitter')}">✕</button><h2>${tr('Partie à 4')}${PT.fol ? ' · 🤪' : ''}</h2></div>${hvq}
       <div class="rows">${seatCard((rot + 1) % 4)}${seatCard((rot + 2) % 4)}</div>
       <div class="bd${my && !PT.over ? ' spot' : ''}" id="pt4bd">${cells}${pawns}</div>
       <div class="rows bottom">${seatCard(rot)}${seatCard((rot + 3) % 4)}</div>
       <p class="st">${PT.msg ? `<b>${esc4(PT.msg)}</b><br>` : ''}${status}</p>
-      ${end}${PT.over ? (voiceBar() ? `<div class="acts">${voiceBar()}</div>` : '') : `<div class="acts">${chat}${voiceBar()}</div>${chips}`}`;
+      ${end}${PT.over ? (voiceBar() ? `<div class="acts">${voiceBar()}</div>` : '') : `${pows ? `<div class="acts">${pows}</div>` : ''}<div class="acts">${chat}${voiceBar()}</div>${chips}`}`;
   }
   function drawMenu() {
     if (!UI.seats) UI.seats = [meSeat(), { kind: 'ai', ...botSeat(1) }, { kind: 'ai', ...botSeat(2) }, { kind: 'ai', ...botSeat(3) }];
@@ -520,6 +582,7 @@
       ${quick ? `<p class="note" data-wait="1">${tr('Recherche de joueurs…')} ${Math.ceil(wait / 1000)} s · ${tr('ensuite, des ordinateurs complètent la table.')}</p>` : ''}
       ${rows}
       ${voiceBar() ? `<div class="acts">${voiceBar()}</div><p class="note">${tr('Facultatif : parlez-vous pendant la partie, même chacun chez soi. Rien n\'est enregistré.')}</p>` : ''}
+      ${host && !quick ? `<label class="fol"><span>🤪 <b>${tr('Mode folie')}</b><small>${tr('Pousser, poids lourd, dynamite. Pour rire, sans classement.')}</small></span><input type="checkbox" id="pt4fol" ${UI.fol ? 'checked' : ''}></label>` : !host && UI.lobby && UI.lobby.fol ? `<p class="note">🤪 ${tr('Mode folie activé par l\'hôte')}</p>` : ''}
       ${host && !quick ? `<button class="btn pr" style="width:100%;margin-top:12px" data-a="start" ${n < 2 ? 'disabled' : ''}>${tr('Lancer la partie')} (${n}/4)</button><p class="note">${tr('Les places vides seront jouées par l\'ordinateur.')}</p>` : ''}
       ${!host && !quick ? `<p class="note">${tr('L\'hôte lance la partie quand tout le monde est là.')}</p>` : ''}`;
   }
@@ -544,6 +607,10 @@
   function onCell(i) {
     if (!canAct()) return;
     const s = PT.turn, ms = gen(PT, s);
+    if (PT.fol) {
+      if (UI.dyn) { UI.dyn = false; if (ms.some(m => m[1] === i) && pwOK('dyn')) { pwTake('dyn'); if (NET && !NET.host) { try { NET.conn.send({ t: 'dyn', i }); } catch (e) {} } else dynAct(s, i); } else draw(); return; }
+      if (pwOK('push') && pushTargets(PT, s).some(x => x.b === i)) { pwTake('push'); if (NET && !NET.host) { try { NET.conn.send({ t: 'push', b: i }); } catch (e) {} } else pushAct(s, i); return; }
+    }
     const k = PT.pawns[s].indexOf(i);
     if (k >= 0 && ms.some(m => m[0] === k)) { UI.sel = k; draw(); return; }
     if (UI.sel == null && PT.pawns[s].length === 1) UI.sel = 0;
@@ -564,8 +631,12 @@
     if (a === 'copy') return copyCode();
     if (a === 'start') return startOnline();
     if (a === 'share') return share();
-    if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf); return; }
+    if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4, fl = PT.fol; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf, fl); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf, fl); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
+    if (a === 'pwdyn') { UI.dyn = !UI.dyn; if (UI.dyn) toast(tr('Touche une case où tu pourrais aller pour poser la dynamite.')); draw(); return; }
+    if (a === 'pwpush') { toast(pwOK('push') ? tr('Touche un pion adverse collé au tien (il clignote) pour le pousser.') : tr('Plus de « Pousser » : achète-le dans la boutique, catégorie Pouvoirs.')); return; }
+    if (a === 'hvyes') { UI.hvAsk = false; if (pwOK('heavy') && PT) { pwTake('heavy'); if (NET && !NET.host) { try { NET.conn.send({ t: 'hv' }); } catch (e) {} } else if (PT.hv) PT.hv[mySeat()] = true; toast(tr('🏋️ Personne ne pourra te pousser !')); } draw(); return; }
+    if (a === 'hvno') { UI.hvAsk = false; draw(); return; }
     if (a === 'say') return sendPhrase(b.dataset.v);
     if (a === 'voice') return voiceJoin();
     if (a === 'vmute') { Voice.toggleMute(); return; }
@@ -584,6 +655,7 @@
     try { await navigator.clipboard.writeText(NET.code); toast(tr('Code copié')); } catch (e) { toast(tr('Copie impossible')); }
   }
   function onChange(e) {
+    if (e.target.id === 'pt4fol') { UI.fol = e.target.checked; if (NET && NET.host) sendLobby(); else draw(); return; }
     const s = e.target.closest('[data-seat]'); if (!s) return;
     const i = +s.dataset.seat, k = s.value;
     UI.seats[i] = k === 'ai' ? { kind: 'ai', ...botSeat(i) } : k === 'human' ? { kind: 'human', skin: { ...P.skin, color: ['azur', 'corail', 'rose', 'or'][i] } } : { kind: 'off' };
