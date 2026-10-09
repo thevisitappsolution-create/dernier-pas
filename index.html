@@ -964,6 +964,11 @@ html:not(.lock) body{background:transparent!important}
 .brow .bok{width:26px;height:26px;border-radius:50%;background:#2effa8;color:#0b0620;display:grid;place-items:center;font-weight:900}
 .cell.pushme::after{content:"";position:absolute;inset:3px;border-radius:12px;border:3px solid #ff3dd8;box-shadow:0 0 14px #ff3dd8;animation:pushp .8s ease-in-out infinite;pointer-events:none;z-index:4}
 @keyframes pushp{50%{transform:scale(.9);opacity:.5}}
+.cell.swapme::after{content:"🔄";position:absolute;top:-8px;right:-6px;font-size:1rem;z-index:5;animation:pushp .8s ease-in-out infinite;pointer-events:none}
+.pwt{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:4px;border-radius:7px;background:#ffffff18;border:1px solid #ffffff33;font-size:.8rem;vertical-align:middle}.pwt.off{opacity:.3;filter:grayscale(1)}
+.ldg{display:grid;gap:6px;padding:10px;border-radius:14px;background:#ffffff0a;text-align:left}.ldr{display:flex;gap:6px;flex-wrap:wrap}
+.ldo{flex:1;min-width:90px;padding:9px 8px;border-radius:12px;border:2px solid #ffffff22;background:#ffffff0a;color:inherit;font:inherit;font-weight:800}.ldo[aria-pressed="true"]{border-color:#2ef2ff;background:#2ef2ff22;box-shadow:0 0 12px #2ef2ff55}
+.pwbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.pwbtns .buybtn{padding:10px 14px;font-size:1rem}.buybtn.gold{background:linear-gradient(180deg,#ffe58a,#e0a100);color:#3a2400}
 .cell.dyntarget{box-shadow:inset 0 0 0 3px #ffb02e,0 0 14px #ffb02e!important}
 .cell .dynm{position:absolute;inset:0;display:grid;place-items:center;font-size:1.6rem;z-index:2;filter:drop-shadow(0 0 6px #ff6b2e);pointer-events:none}
 .cell .dynm i{position:absolute;right:4px;bottom:2px;font-style:normal;font-size:.7rem;font-weight:900;background:#ff3b3b;color:#fff;border-radius:8px;padding:0 5px}
@@ -1333,7 +1338,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 78,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 79,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1570,14 +1575,19 @@ function applyChamp(score, oppR){
   R.r+=d; R.g++; if (score) R.w++; R.hist=[...(R.hist||[]),R.r].slice(-30); saveP(); return d;
 }
 function saveP(){ try { localStorage.setItem(P_KEY, JSON.stringify(P)); } catch(e){} }
-const PW={push:{n:"Pousser",e:'💥',d:"À ton tour, touche un pion adverse collé au tien : il recule d'une case et tu prends sa place. S'il tombe dans un trou, il perd ce pion.",price:1500,pass:7},
-  heavy:{n:"Poids lourd",e:'🏋️',d:"Au début de la partie, choisis en secret un de tes pions : personne ne pourra le pousser. Même toi, tu dois te souvenir duquel.",price:1500,pass:7},
-  dyn:{n:"Dynamite",e:'🧨',d:"Au lieu de bouger, pose une dynamite sur une case où tu pourrais aller. Visible de tous, elle bloque la case pendant 3 tours : un pion poussé dessus saute.",price:1000,pack:10}};
+// Pouvoirs du mode folie : 1500 pièces les 15 utilisations, ou « Gold » 3000 pièces = illimité pendant 7 jours. 1 offert de chaque au départ.
+const PW_PRICE=1500, PW_PACK=15, PW_GOLD=3000, PW_GOLD_DAYS=7;
+const PW={push:{n:"Pousser",e:'💥',d:"Choisis au début de la partie le pion qui pousse. Une fois dans la partie, il pousse un pion adverse collé à lui : l'autre recule d'une case et tu prends sa place. S'il tombe dans un trou, il perd ce pion."},
+  heavy:{n:"Poids lourd",e:'🏋️',d:"Défense : au début de la partie, choisis en secret le pion que personne ne pourra pousser."},
+  ghost:{n:"Fantôme",e:'👻',d:"Défense : au début de la partie, choisis en secret un pion. Celui qui le pousse passe à travers et atterrit derrière : s'il y a un trou, c'est lui qui tombe !"},
+  swap:{n:"Inversion",e:'🔄',d:"Une fois dans la partie, à ton tour, touche un pion adverse : ton pion et le sien échangent leur place."},
+  dyn:{n:"Dynamite",e:'🧨',d:"Une fois dans la partie, au lieu de bouger, pose une dynamite sur une case où tu pourrais aller. Visible de tous, elle bloque la case pendant 3 tours : un pion poussé dessus saute."}};
+const PW_ACTIVE=['push','swap','dyn'], PW_DEF=['heavy','ghost'];
 const pwPass = k => P.pw && P.pw[k] && P.pw[k].u > Date.now();
 const pwLeft = k => !P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
 const pwHas = k => pwLeft(k) > 0;
 function pwUse(k){ if (pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); saveP(); }
-const pwLabel = k => pwPass(k) ? `${T("illimité")} · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
+const pwLabel = k => pwPass(k) ? `Gold · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
 const unlocked = (kind,id) => CONFIG.season0 || CAT[kind][id].p===0 || P.owned.includes(kind+':'+id);
 if (!P.uid){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let u=''; for (let i=0;i<8;i++) u+=abc[Math.floor(Math.random()*abc.length)]; P.uid=u; }
 if (!Array.isArray(P.friends)) P.friends=[];
@@ -1590,7 +1600,7 @@ if (!P.v6){ P.v6=true; P.coins+=100;
   if (THEMES[P.theme].p>0 && !P.owned.includes('theme:'+P.theme)) P.owned.push('theme:'+P.theme); }
 if (!P.v77shop){ P.v77shop=1; P.owned=[]; P.premium=false; for (const kk of ['color','fur','eyes','acc','fin','trail','win']) if (P.skin[kk] && CAT[kk] && CAT[kk][P.skin[kk]] && CAT[kk][P.skin[kk]].p>0) P.skin[kk]=P0.skin[kk]||Object.keys(CAT[kk]).find(id=>CAT[kk][id].p===0); if (THEMES[P.theme] && THEMES[P.theme].p>0) P.theme='classique'; }
 // Pouvoirs du mode folie (parties entre amis) : 1 utilisation offerte de chacun, ensuite avec des pièces
-if (!P.pw) P.pw={push:{n:1,u:0}, heavy:{n:1,u:0}, dyn:{n:1}};
+P.pw=P.pw||{}; for (const k of ['push','heavy','ghost','swap','dyn']) if (!P.pw[k]) P.pw[k]={n:1,u:0};
 saveP();
 const WEEK=168*3600e3;
 // Indices : 3 offerts au départ, puis +1 gratuit chaque semaine, séparément pour l'Aventure ('pa') et les Cours ('h').
@@ -1842,7 +1852,7 @@ const boardSum = () => G.cells.reduce((a,v,i)=>a+(G.pawns.some(p=>p.includes(i))
 function newRound(){
   const bid=M.order[(M.round-1)%M.order.length];
   return {round:M.round, bid, cells:BOARDS[bid].cells.slice(), pawns:START.map(p=>[...p]), J:[1,1], turn:M.starter, pick:null, jumpOn:false,
-    moves:0, msg:'', dyn:[], ev:null, clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
+    moves:0, msg:'', dyn:[], ev:null, pu:[0,0], clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
 }
 function startTurn(){
   if (isParc()){ G.turnAt=performance.now(); G.pick=0; return; }
@@ -1855,31 +1865,50 @@ function startTurn(){
   if (M && M.assist && vsAI && !TR && G.turn===0) assistTurn();
 }
 /* ---------- Mode folie (parties entre amis, sans classement) : pousser, poids lourd, dynamite ---------- */
-let HV=[-1,-1], HVASK=null;
+let LD=[null,null], LDASK=null;   // équipement de chaque joueur pour la partie : {push:k|-1, def:{t,k}|null, swap, dyn}
 const folie = () => !!(M && M.fol && G && !TR && !vsAI);
+const powUsed = (t,k) => !!(M && M.used && M.used[t] && M.used[t][k]);
+const roundPow = t => !!(G && G.pu && G.pu[t]);
+// t peut-il encore utiliser ce pouvoir actif ? (une fois par partie, un seul pouvoir par manche)
+function canPow(t,k){
+  if (!folie() || !LD[t] || powUsed(t,k) || roundPow(t)) return false;
+  const ok = k==='push' ? LD[t].push>=0 && G.pawns[t][LD[t].push]>=0 : !!LD[t][k];
+  return ok && (t!==humanSeat() || pwHas(k));
+}
+function markPow(t,k){ M.used=M.used||[{},{}]; M.used[t]={...(M.used[t]||{}), [k]:1}; G.pu=G.pu||[0,0]; G.pu[t]=1; if (t===humanSeat()) pwUse(k); }
 function pushTargets(t){
-  const out=[]; if (!folie()) return out;
-  for (let k=0;k<2;k++){ const a=G.pawns[t][k]; if (a<0) continue; const r=(a/5)|0, q=a%5;
-    for (const [dr,dq] of DIRS){ const br=r+dr, bq=q+dq; if (br<0||bq<0||br>4||bq>4) continue; const b=br*5+bq, k2=G.pawns[1-t].indexOf(b); if (k2<0) continue;
-      const cr=br+dr, cq=bq+dq; if (cr<0||cq<0||cr>4||cq>4) continue; const c=cr*5+cq; if (G.pawns[0].includes(c)||G.pawns[1].includes(c)) continue;
-      out.push({k,k2,a,b,c}); } }
+  const out=[]; if (!canPow(t,'push')) return out; const k=LD[t].push, a=G.pawns[t][k]; if (a<0) return out; const r=(a/5)|0, q=a%5;
+  for (const [dr,dq] of DIRS){ const br=r+dr, bq=q+dq; if (br<0||bq<0||br>4||bq>4) continue; const b=br*5+bq, k2=G.pawns[1-t].indexOf(b); if (k2<0) continue;
+    const cr=br+dr, cq=bq+dq; if (cr<0||cq<0||cr>4||cq>4) continue; const c=cr*5+cq; if (G.pawns[0].includes(c)||G.pawns[1].includes(c)) continue;
+    out.push({k,k2,a,b,c}); }
   return out;
 }
 function dynTick(){ if (G.dyn && G.dyn.length){ G.dyn.forEach(d=>d.left--); G.dyn=G.dyn.filter(d=>d.left>0); } }
-function endPower(t){ dynTick(); G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.dynOn=false; premove=null; G.turn=1-t; startTurn(); commit(); }
+function endPower(t){ dynTick(); G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.dynOn=false; G.swapOn=false; premove=null; G.turn=1-t; startTurn(); commit(); }
+const isHole = i => G.cells[i]===0 || (G.dyn||[]).some(d=>d.i===i);
 function doPush(tg){
-  const t=G.turn; pwUse('push');
-  if (HV[1-t]===tg.k2){ G.ev={k:'heavy', by:t, at:tg.b, n:G.round+':'+G.moves}; playEv(G.ev); endPower(t); return; }
-  const dead = G.cells[tg.c]===0 || (G.dyn||[]).some(d=>d.i===tg.c);
-  G.cells[tg.a]--; G.pawns[t][tg.k]=tg.b; G.pawns[1-t][tg.k2] = dead ? -1 : tg.c;
+  const t=G.turn; markPow(t,'push'); const def=LD[1-t]&&LD[1-t].def, n=G.round+':'+G.moves;
+  if (def && def.k===tg.k2 && def.t==='heavy'){ G.ev={k:'heavy', by:t, at:tg.b, n}; playEv(G.ev); endPower(t); return; }
+  G.cells[tg.a]--;
+  if (def && def.k===tg.k2 && def.t==='ghost'){   // il passe à travers : c'est le pousseur qui atterrit derrière
+    const dead=isHole(tg.c); G.pawns[t][tg.k] = dead ? -1 : tg.c; if (dead) G.dyn=(G.dyn||[]).filter(d=>d.i!==tg.c);
+    look(t,tg.k,tg.a,tg.c); G.last={p:t,from:tg.a,to:tg.c,jump:0};
+    G.ev={k:'ghost', by:t, at:tg.b, to:tg.c, dead, n}; playEv(G.ev); endPower(t); return;
+  }
+  const dead=isHole(tg.c); G.pawns[t][tg.k]=tg.b; G.pawns[1-t][tg.k2] = dead ? -1 : tg.c;
   if (dead) G.dyn=(G.dyn||[]).filter(d=>d.i!==tg.c);
   look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0}; fx(tg.a,tg.b,t,G.cells[tg.a]===0);
-  G.ev={k:'push', by:t, from:tg.b, to:tg.c, dead, n:G.round+':'+G.moves}; playEv(G.ev);
+  G.ev={k:'push', by:t, from:tg.b, to:tg.c, dead, n}; playEv(G.ev);
   endPower(t);
 }
+function doSwap(k, k2){
+  const t=G.turn; if (!canPow(t,'swap')) return; const a=G.pawns[t][k], b=G.pawns[1-t][k2]; if (a<0||b<0) return;
+  markPow(t,'swap'); G.pawns[t][k]=b; G.pawns[1-t][k2]=a; look(t,k,a,b); G.last={p:t,from:a,to:b,jump:0};
+  G.ev={k:'swap', by:t, at:b, n:G.round+':'+G.moves}; playEv(G.ev); endPower(t);
+}
 function placeDyn(i){
-  const t=G.turn; if (!pwHas('dyn') || !movesFor(t).some(m=>m[1]===i)) return;
-  pwUse('dyn'); dynTick(); (G.dyn=G.dyn||[]).push({i, by:t, left:6});
+  const t=G.turn; if (!canPow(t,'dyn') || !movesFor(t).some(m=>m[1]===i)) return;
+  markPow(t,'dyn'); dynTick(); (G.dyn=G.dyn||[]).push({i, by:t, left:6});
   G.ev={k:'dyn', by:t, at:i, n:G.round+':'+G.moves}; playEv(G.ev);
   G.moves++; G.ver++; G.msg=''; G.pick=null; G.dynOn=false; premove=null; G.turn=1-t; startTurn(); commit();
 }
@@ -1888,12 +1917,32 @@ function playEv(ev){
   if (ev.k==='push'){ sfx.wizz(); vibrate([30,30,60]);
     if (ev.dead){ setTimeout(()=>boom(ev.to, 1-ev.by), 250); toast(`💥 ${who} ${T("pousse")} ${vic} ${T("dans le vide : un pion de moins !")}`); }
     else toast(`💥 ${who} ${T("pousse")} ${vic} !`); }
+  else if (ev.k==='ghost'){ sfx.wizz(); vibrate([30,30,60]);
+    if (ev.dead){ setTimeout(()=>boom(ev.to, ev.by), 250); toast(`👻 ${T("Fantôme !")} ${who} ${T("passe à travers… et tombe dans le trou !")}`); }
+    else toast(`👻 ${T("Fantôme !")} ${who} ${T("passe à travers")} ${vic}.`); }
   else if (ev.k==='heavy'){ sfx.round(); vibrate([60,40,60]); toast(`🏋️ ${T("Poids lourd ! Impossible de pousser ce pion.")}`); const el=cellEls&&cellEls[ev.at]; if (el){ el.classList.add('heavyhit'); setTimeout(()=>el.classList.remove('heavyhit'),900); } }
+  else if (ev.k==='swap'){ sfx.jump(); vibrate([20,30,20]); toast(`🔄 ${who} ${T("échange sa place avec")} ${vic} !`); }
   else if (ev.k==='dyn'){ sfx.jump(); toast(`🧨 ${who} ${T("pose une dynamite (3 tours)")}`); }
 }
-function heavyAsk(){
-  if (!M || !M.fol || !online() || HVASK===M.id || (net.seat!==0 && net.seat!==1)) return; HVASK=M.id;
-  if (!pwHas('heavy')) return; sheet={type:'heavy'}; render();
+// Au début de la partie : choisir son équipement (le pion qui pousse, une défense secrète). Dynamite et Inversion viennent si on en a.
+function loadoutAsk(){
+  if (!M || !M.fol || !online() || LDASK===M.id || (net.seat!==0 && net.seat!==1)) return; LDASK=M.id;
+  const sel={push:pwHas('push')?0:-1, def:null, dk:0};
+  if (pwHas('push') || pwHas('heavy') || pwHas('ghost')){ sheet={type:'loadout', sel}; render(); }
+  else loadoutSend(sel);
+}
+function loadoutSend(sel){
+  const def = sel.def && pwHas(sel.def) ? {t:sel.def, k:sel.dk} : null;
+  if (def) pwUse(def.t);
+  const ld={push: sel.push>=0 && pwHas('push') ? sel.push : -1, def, swap:pwHas('swap'), dyn:pwHas('dyn')};
+  LD[net.seat]=ld; netSend({t:'ld', ld}); render();
+}
+const cleanLD = d => d && typeof d==='object' ? {push:[0,1].includes(d.push)?d.push:-1, def:d.def&&['heavy','ghost'].includes(d.def.t)&&[0,1].includes(d.def.k)?{t:d.def.t,k:d.def.k}:null, swap:!!d.swap, dyn:!!d.dyn} : null;
+// Icônes des pouvoirs à côté du saut : chacun sait qui peut faire quoi (mais pas avec quel pion)
+function powTags(side){
+  if (!folie() || !LD[side]) return '';
+  const L=LD[side], ic2=(k,on)=>`<span class="pwt${on?'':' off'}" title="${T(PW[k].n)}">${PW[k].e}</span>`;
+  return `${L.push>=0?ic2('push',!powUsed(side,'push')):''}${L.swap?ic2('swap',!powUsed(side,'swap')):''}${L.dyn?ic2('dyn',!powUsed(side,'dyn')):''}${L.def?ic2(L.def.t,true):''}`;
 }
 function doMove(m){
   (HIST[G.round]=HIST[G.round]||[]).push({cells:G.cells.slice(), pawns:G.pawns.map(p=>[...p]), jumps:G.J.slice(), turn:G.turn, move:m.slice()});
@@ -1938,9 +1987,9 @@ function shuffled(n){ const a=[...Array(n).keys()]; for(let i=n-1;i>0;i--){ cons
 function startMatch(){
   M={id:Math.random().toString(36).slice(2,8), round:1, wins:[0,0], rounds:[], starter:0, next:1, why:'', done:false, order:shuffled(BOARDS.length), train:!!(vsAI&&training), eloDelta:null, need:2, fol:!!(online() && net && !net.mm && P.folie), trap:!!(vsAI&&P.trap), mt:Date.now()};
   if (dailyNext){ M.daily=true; const db=dailyBoard(); M.order=[db, ...M.order.filter(x=>x!==db)]; dailyNext=false; }
-  HIST={}; AN=null; CHAT=[]; unread=0; HV=[-1,-1];
+  HIST={}; AN=null; CHAT=[]; unread=0; LD=[null,null];
   view='game'; sheet=null; S=sides(); buildBoard(); startRound();
-  if (M.fol) setTimeout(heavyAsk, INTRO_MS+400);
+  if (M.fol) setTimeout(loadoutAsk, INTRO_MS+400);
 }
 function startRound(){
   premove=null; AN=null; wzLeft=3; wzLast=0; botTalk=0; resetLook();
@@ -1995,8 +2044,14 @@ function onCell(i){
   }
   if (folie()){
     if (G.dynOn){ if (movesFor(G.turn).some(m=>m[1]===i)) placeDyn(i); else { G.dynOn=false; render(); } return; }
-    const tg=pwHas('push') ? pushTargets(G.turn).filter(x=>x.b===i) : [];
-    if (tg.length){ doPush(tg.find(x=>x.k===G.pick)||tg[0]); return; }
+    if (G.swapOn){
+      if (hitP===1-G.turn){ const alive=[0,1].filter(k=>G.pawns[G.turn][k]>=0), k=G.pick!=null&&G.pawns[G.turn][G.pick]>=0?G.pick:alive.length===1?alive[0]:null;
+        if (k==null){ toast(T("Touche d'abord ton pion, puis le pion adverse.")); return; } doSwap(k, G.pawns[1-G.turn].indexOf(i)); return; }
+      if (hitP===G.turn){ G.pick=G.pawns[G.turn].indexOf(i); render(); return; }
+      G.swapOn=false; render(); return;
+    }
+    const tg=pushTargets(G.turn).filter(x=>x.b===i);
+    if (tg.length){ doPush(tg[0]); return; }
   }
   if (hitP===G.turn){ const k=G.pawns[G.turn].indexOf(i); G.pick = G.pick===k ? null : k; G.hint=null; render(); return; }
   if (G.pick===null) return;
@@ -2183,16 +2238,16 @@ const peerOK = () => typeof Peer!=='undefined';
 const online = () => !!net;
 const PEER_PREFIX='dernierpas-v1-';
 function pack(){
-  return {t:P.time, M:M&&{...M, train:false, eloDelta:null, daily:false}, G:G&&{r:G.round,b:G.bid,c:G.cells.join(''),p:G.pawns,j:G.J,tu:G.turn,mv:G.moves,ms:G.msg,ck:G.clock.map(x=>Math.round(x)),o:G.over,w:G.winner,s:G.sum,dy:G.dyn||[],ev:G.ev||null}};
+  return {t:P.time, M:M&&{...M, train:false, eloDelta:null, daily:false}, G:G&&{r:G.round,b:G.bid,c:G.cells.join(''),p:G.pawns,j:G.J,tu:G.turn,mv:G.moves,ms:G.msg,ck:G.clock.map(x=>Math.round(x)),o:G.over,w:G.winner,s:G.sum,dy:G.dyn||[],ev:G.ev||null,pu:G.pu||[0,0]}};
 }
 function unpack(st){
   const prevG=G, prevM=M;
   if (TIMES.includes(st.t)) P.time=st.t;
   M=st.M;
   if (!M){ G=null; HIST={}; return; }
-  if (!prevM || prevM.id!==M.id){ HIST={}; AN=null; view='game'; sheet=null; S=sides(); buildBoard(); if (M.fol){ HV=[-1,-1]; setTimeout(heavyAsk, INTRO_MS+400); } }
+  if (!prevM || prevM.id!==M.id){ HIST={}; AN=null; view='game'; sheet=null; S=sides(); buildBoard(); if (M.fol){ LD=[null,null]; setTimeout(loadoutAsk, INTRO_MS+400); } }
   const g=st.G;
-  G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,dyn:Array.isArray(g.dy)?g.dy:[],ev:g.ev||null,last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
+  G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,dyn:Array.isArray(g.dy)?g.dy:[],ev:g.ev||null,pu:Array.isArray(g.pu)?g.pu:[0,0],last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
   if (!G) return;
   if (!prevG || prevG.round!==G.round || (prevM && prevM.id!==M.id)){ premove=null; AN=null; wzLeft=3; resetLook(); playIntro(); musicStart(); }
   else if (G.moves===prevG.moves+1){
@@ -2231,7 +2286,7 @@ function onNetData(d){
     render(); afterChange(); return;
   }
   if (d.t==='full'){ if (net.mm && !net.opp){ const i=net.slot; try { net.peer.destroy(); } catch(e){} net=null; goMatch(i+1); return; } net.err=(T("Cette partie a déjà deux joueurs.")); render(); return; }
-  if (d.t==='hv'){ HV[other]=(d.k===0||d.k===1)?d.k:-1; return; }
+  if (d.t==='ld'){ LD[other]=cleanLD(d.ld); render(); return; }
   if (d.t==='nb'){ if (PEERS[other]) PEERS[other].nb=!!d.v; renderActions(); return; }
   if (d.t==='resign' && M && !M.done && (net.seat===0||net.seat===1)){
     forfeitWin(`${S[other].name} ${T("abandonne la partie.")}`); return; }
@@ -2389,7 +2444,7 @@ function strip(side){
   else if (side===humanSeat() || (vsAI && side===0)) tag = vsAI || !online() ? `${P.elo.r}` : 'toi';
   return `<div class="av" style="--pc:${s.hex}">${pawnSVG(s.skin,s.hex)}</div>
     <div style="min-width:0"><div class="nm">${esc(s.name)} ${tag?`<small>(${tag})</small>`:''}</div>
-    <div class="meta" style="--pc:${s.hex}"><span class="dots" aria-label="${wins} ${T("manche(s) gagnée(s)")}">${'●'.repeat(wins)}${'○'.repeat(Math.max(0,needW()-wins))}</span>${jumpTag(side)}</div></div>
+    <div class="meta" style="--pc:${s.hex}"><span class="dots" aria-label="${wins} ${T("manche(s) gagnée(s)")}">${'●'.repeat(wins)}${'○'.repeat(Math.max(0,needW()-wins))}</span>${jumpTag(side)}${powTags(side)}</div></div>
     <div class="clock${on?' on':''}${ms<30000&&playing&&!(G&&G.noClock)?' low':''}" id="clk${side}">${TR&&TR.rush&&RUSH?(side===0?fmt(rushLeft()):'—'):TR&&TR.mode?(side===0?fmt(performance.now()-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)):'—'):G&&G.noClock?'∞':fmt(ms)}</div>`.replace('class="clock', G&&G.noClock&&!(TR&&(TR.mode||TR.rush))?(T("class=\"clock inf")):(T("class=\"clock")));
 }
 function jumpTag(side){
@@ -2417,10 +2472,10 @@ function renderGame(){
   const pt=new Set(preSeat!==null && premove && premove.i==null ? aiGen(G.cells,G.pawns,[0,0],preSeat).filter(m=>m[0]===premove.k).map(m=>m[1]) : []);
   const b=$('#board');
   b.style.setProperty('--pc', S[G.turn].hex); b.style.setProperty('--mc', S[preSeat!==null?preSeat:0].hex); b.style.setProperty('--lc', G.last ? S[G.last.p].hex : 'transparent');
-  const fol=folie() && playing && myTurn, pushSet=new Set(fol && pwHas('push') ? pushTargets(G.turn).map(x=>x.b) : []), dynT=new Set(fol && G.dynOn ? movesFor(G.turn).map(m=>m[1]) : []), dynMap=new Map((G.dyn||[]).map(d=>[d.i,d]));
+  const fol=folie() && playing && myTurn, pushSet=new Set(fol ? pushTargets(G.turn).map(x=>x.b) : []), swapSet=new Set(fol && G.swapOn ? G.pawns[1-G.turn].filter(x=>x>=0) : []), dynT=new Set(fol && G.dynOn ? movesFor(G.turn).map(m=>m[1]) : []), dynMap=new Map((G.dyn||[]).map(d=>[d.i,d]));
   G.cells.forEach((v,i)=>{
     let cls='cell '+(v===0?'hole':'v'+v);
-    if (pushSet.has(i)) cls+=' pushme'; if (dynT.has(i)) cls+=' dyntarget'; if (dynMap.has(i)) cls+=' dyncell';
+    if (pushSet.has(i)) cls+=' pushme'; if (swapSet.has(i)) cls+=' swapme'; if (dynT.has(i)) cls+=' dyntarget'; if (dynMap.has(i)) cls+=' dyncell';
     if (targets.has(i)) cls+=' target'; if (jt.has(i)) cls+=' jtarget'; if (pt.has(i)) cls+=' ptarget';
     if (premove && premove.i===i && preSeat!==null) cls+=' pre';
     if (G.hint && G.hint[1]===i && myTurn) cls+=' hint';
@@ -2492,9 +2547,10 @@ function renderActions(){
       a.push(btn('toc','fist',(T("Toc toc")),{dis:blk||wzLeft<=0||cd}));
       a.push(btn('haha','laugh',(T("Haha")),{dis:blk||wzLeft<=0||cd}));
     }
-    if (M.fol && (seat===0||seat===1)){
-      a.push(btn('pw-push','',`💥 ${T("Pousser")}`,{badge:pwPass('push')?'∞':String(pwLeft('push')), dis:!pwHas('push')}));
-      a.push(btn('pw-dyn','',`🧨 ${T("Dynamite")}`,{badge:String(pwLeft('dyn')), dis:!myTurn||!pwHas('dyn'), cls:G.dynOn?'on':''}));
+    if (M.fol && (seat===0||seat===1) && LD[seat]){ const L=LD[seat];
+      if (L.push>=0) a.push(btn('pw-push','',`💥 ${T("Pousser")}`,{dis:!canPow(seat,'push')}));
+      if (L.swap) a.push(btn('pw-swap','',`🔄 ${T("Inversion")}`,{dis:!myTurn||!canPow(seat,'swap'), cls:G.swapOn?'on':''}));
+      if (L.dyn) a.push(btn('pw-dyn','',`🧨 ${T("Dynamite")}`,{dis:!myTurn||!canPow(seat,'dyn'), cls:G.dynOn?'on':''}));
     }
     if (M.assist) a.push(btn('leave-train','door',T("Quitter"),{cls:'quit'}));
     else if (seat!==-1) a.push(btn('resign','flag',online()?(T("Quitter")):(T("Abandon")),{cls:'quit'}));
@@ -2538,7 +2594,7 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
-  w.classList.toggle('center', ['ldone','limit','chalin','premium','heavy'].includes(sheet.type));
+  w.classList.toggle('center', ['ldone','limit','chalin','premium','loadout'].includes(sheet.type));
   w.hidden=false;
   const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>")+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
@@ -2659,10 +2715,14 @@ function sheetHTML(){
     ${P.premium?'':`<div class="plans" role="radiogroup"><button type="button" role="radio" data-act="prem-plan" data-v="month" aria-checked="${pl==='month'}"><b>${T("Mensuel")}</b><span>${pr.month}</span><small>${T("par mois")}</small></button><button type="button" role="radio" data-act="prem-plan" data-v="year" aria-checked="${pl==='year'}"><i class="save">${pr.save}</i><b>${T("Annuel")}</b><span>${pr.year}</span><small>${T("par an")}</small></button></div>
     <button class="primary big2" type="button" data-act="prem-buy" data-v="${pl}">${T("S'abonner")}</button>
     <p class="note">${T("Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.")}</p>`}`; }
-  if (s.type==='heavy'){ const seat=net?net.seat:0;
-    return `<div class="modicon">🏋️</div><h2 style="padding:0">${T("Poids lourd")}</h2><p>${T("Choisis en secret le pion que personne ne pourra pousser pendant toute la partie. Aucun signe ne le montrera, même pas à toi : retiens-le !")}</p>
-    <div class="row">${[0,1].map(k=>`<button class="primary" type="button" data-act="hv-pick" data-v="${k}">${T("Pion en")} ${sq(START[seat][k])}</button>`).join('')}</div>
-    <button class="secondary" type="button" data-act="sheet-close">${T("Pas cette fois")}</button><p class="note">${T("Il te reste")} ${pwLabel('heavy')}</p>`; }
+  if (s.type==='loadout'){ const seat=net?net.seat:0, sl=s.sel, pk=k=>`${T("Pion en")} ${sq(START[seat][k])}`;
+    const opt=(f,val,lab,on)=>`<button type="button" class="ldo" data-act="ld-set" data-v="${f}:${val}" aria-pressed="${on}">${lab}</button>`;
+    return `<div class="modicon">🤪</div><h2 style="padding:0">${T("Ton équipement")}</h2><p>${T("Un seul pouvoir par manche, et chacun une seule fois dans la partie.")}</p>
+    ${pwHas('push')?`<div class="ldg"><b>💥 ${T("Le pion qui pousse")}</b><div class="ldr">${opt('push',0,pk(0),sl.push===0)}${opt('push',1,pk(1),sl.push===1)}${opt('push',-1,T("Aucun"),sl.push<0)}</div></div>`:''}
+    ${pwHas('heavy')||pwHas('ghost')?`<div class="ldg"><b>🛡️ ${T("Défense secrète")}</b><div class="ldr">${pwHas('heavy')?opt('def','heavy','🏋️ '+T("Poids lourd"),sl.def==='heavy'):''}${pwHas('ghost')?opt('def','ghost','👻 '+T("Fantôme"),sl.def==='ghost'):''}${opt('def','none',T("Aucune"),!sl.def)}</div>
+      ${sl.def?`<div class="ldr">${opt('dk',0,pk(0),sl.dk===0)}${opt('dk',1,pk(1),sl.dk===1)}</div>`:''}</div>`:''}
+    <p class="note">${[pwHas('swap')?'🔄 '+T("Inversion"):'', pwHas('dyn')?'🧨 '+T("Dynamite"):''].filter(Boolean).join(' · ')}${pwHas('swap')||pwHas('dyn')?' : '+T("disponibles pendant la partie."):''}</p>
+    <button class="primary big2" type="button" data-act="ld-ok">${T("C'est parti !")}</button>`; }
   if (s.type==='badges') return `<h2>${T("Badges")} · ${Object.keys(P.badges).length}/${BADGES.length}</h2>${badgeList()}`;
   if (s.type==='psec') return psecHTML(s.v);
   if (s.type==='chalin') return `<div class="modicon">🧩</div><h2 style="padding:0">${esc(s.c.n)} ${T("te défie !")}</h2><p>${T("Il a résolu ce puzzle en")} ${s.c.t} ${T("s. Fais mieux ?")}</p><button class="primary" type="button" data-act="chal-go">${T("Relever le défi")}</button>`;
@@ -2832,7 +2892,8 @@ document.addEventListener('click', e=>{
     case 'closet': SHOP.mode='closet'; if (SHOP_SPECIAL.includes(SHOP.k)) SHOP.k='color'; SHOP.i=Math.max(0,shopList(SHOP.k,'closet').findIndex(id=>isEq(SHOP.k,id))); view='shop'; sheet=null; render(); window.scrollTo(0,0); break;
     case 'coins-shop': sheet=null; view='shop'; SHOP.mode='shop'; SHOP.k='gold'; SHOP.i=1; render(); break;
     case 'shop-refs': sheet=null; if (view==='game'){ toast(T("Après la partie, va dans la boutique : catégorie Réfs.")); break; } view='shop'; SHOP.mode='shop'; SHOP.k='ref'; SHOP.i=0; render(); break;
-    case 'pw-buy': pwBuy(v); break;
+    case 'pw-buy': pwBuy(v,false); break;
+    case 'pw-gold': pwBuy(v,true); break;
     case 'ref-buy': refBuy(v); break;
     case 'gold-buy': goldBuy(v); break;
     case 'pack': { const k=PACKS.find(x=>x.id===v); if (window.LastepIAP && LastepIAP.buy){ LastepIAP.buy(k.id).then(ok=>{ if (ok){ P.coins+=k.c; saveP(); sheet=null; giveCoins(0,''); rewardClose(); toast(`+${k.c} ${T("pièces")}`); render(); } }); } else toast(T("Paiement bientôt disponible avec l'appli des stores.")); break; }
@@ -2923,9 +2984,11 @@ document.addEventListener('click', e=>{
     case 'undo': undo(); break;
     case 'buy-pack': { const pk=CRED_PACK[v]; if ((P.coins||0)>=pk.price){ P.coins-=pk.price; credAdd(v, pk.n); sfx.win(); toast(`+${pk.n} ${v==='a'?T("analyses"):T("indices")}`); sheet=null; render(); } break; }
     case 'as-hint': assistHint(); break;
-    case 'pw-dyn': if (G && folie() && G.turn===humanSeat() && pwHas('dyn')){ G.dynOn=!G.dynOn; if (G.dynOn) toast(T("Touche une case où tu pourrais aller pour poser la dynamite.")); render(); } break;
-    case 'pw-push': { const n=G&&folie()?pushTargets(humanSeat()).length:0; toast(n ? T("Touche le pion adverse qui clignote pour le pousser.") : T("Pour pousser : place-toi juste à côté d'un pion adverse. Derrière lui, il faut une case libre ou un trou.")); break; }
-    case 'hv-pick': { const k=+v; if (M && (k===0||k===1) && pwHas('heavy')){ pwUse('heavy'); HV[net.seat]=k; netSend({t:'hv', k}); toast(T("🏋️ C'est ton secret : retiens bien lequel !")); } sheet=null; render(); break; }
+    case 'pw-dyn': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'dyn')){ G.dynOn=!G.dynOn; G.swapOn=false; if (G.dynOn) toast(T("Touche une case où tu pourrais aller pour poser la dynamite.")); render(); } break;
+    case 'pw-swap': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'swap')){ G.swapOn=!G.swapOn; G.dynOn=false; if (G.swapOn) toast(T("Touche ton pion, puis le pion adverse avec qui échanger.")); render(); } break;
+    case 'pw-push': { const n=G&&folie()?pushTargets(humanSeat()).length:0; toast(n ? T("Touche le pion adverse qui clignote pour le pousser.") : T("Pour pousser : ton pion pousseur doit être collé à un pion adverse, avec une case libre ou un trou derrière lui.")); break; }
+    case 'ld-set': { const [f,val]=String(v).split(':'); const sl=sheet&&sheet.sel; if (sl){ if (f==='push') sl.push=+val; if (f==='def') sl.def=val==='none'?null:val; if (f==='dk') sl.dk=+val; render(); } break; }
+    case 'ld-ok': { const sl=sheet&&sheet.sel; sheet=null; if (sl) loadoutSend(sl); if (sl&&sl.def) toast(T("🤫 Ta défense est secrète : retiens bien quel pion !")); break; }
     case 'leave-train': { const pl=matchPlayed(); leaveGame(); if (pl) adInter(); break; }
     case 'ai-assist': sheet={type:'ai', assist:true}; render(); break;
     case 'ai-mode': if (sheet && sheet.type==='ai'){ sheet.assist=v==='1'; P.aiTrain=sheet.assist; saveP(); render(); } break;
@@ -4741,11 +4804,12 @@ async function goldBuy(id){
   }
   sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
 }
-function pwBuy(k){
-  const w=PW[k]; if (!w) return; if ((P.coins||0)<w.price){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
-  P.coins-=w.price;
-  if (w.pass) P.pw[k].u=Math.max(Date.now(), P.pw[k].u||0)+w.pass*864e5; else P.pw[k].n=(P.pw[k].n||0)+w.pack;
-  saveP(); sfx.win(); vibrate([20,40,20]); toast(`${w.e} ${T(w.n)} : ${w.pass?T("illimité pendant 7 jours !"):`+${w.pack} !`}`); render();
+function pwBuy(k, gold){
+  if (!PW[k]) return; const price=gold?PW_GOLD:PW_PRICE;
+  if ((P.coins||0)<price){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
+  P.coins-=price;
+  if (gold) P.pw[k].u=Math.max(Date.now(), P.pw[k].u||0)+PW_GOLD_DAYS*864e5; else P.pw[k].n=(P.pw[k].n||0)+PW_PACK;
+  saveP(); sfx.win(); vibrate([20,40,20]); toast(`${PW[k].e} ${T(PW[k].n)} : ${gold?T("Gold, illimité pendant 7 jours !"):`+${PW_PACK} !`}`); render();
 }
 function refBuy(id){
   const r=REFS[id]; if (!r) return; if ((P.coins||0)<r.p){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
@@ -4786,8 +4850,8 @@ function renderShop(){
   const view=(kk,ii,big)=>sp?specialView(kk,ii,big):itemView(kk,ii,big);
   let btn='', info='';
   if (sp && id){
-    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small>`;
-      btn=`<button class="buybtn${P.coins<w.price?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">${w.pass?T("7 jours illimité"):`×${w.pack}`} · ${ic('coin')} ${w.price}</button>`; }
+    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${T("tu en as")} ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small>`;
+      btn=`<div class="pwbtns"><button class="buybtn${P.coins<PW_PRICE?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">×${PW_PACK} · ${ic('coin')} ${PW_PRICE}</button><button class="buybtn gold${P.coins<PW_GOLD?' poor':''}" type="button" data-act="pw-gold" data-v="${id}">🥇 ${T("Gold 7 j")} · ${ic('coin')} ${PW_GOLD}</button></div>`; }
     else if (SHOP.k==='ref'){ const r=REFS[id]; info=`<span class="rar r-rare">${r.l==='fr'?'🇫🇷 '+T("Réf française"):'🇬🇧 '+T("Réf anglaise")}</span><h2>🔥 ${T("Réf culte")}</h2><small>${T("À envoyer pendant tes parties en ligne")}</small>`;
       btn=`<button class="buybtn${P.coins<r.p?' poor':''}" type="button" data-act="ref-buy" data-v="${id}">${T("Acheter")} · ${ic('coin')} ${r.p}</button>`; }
     else { const g=GOLD[id]; info=`${g.tag?`<span class="rar r-legendaire">${g.tag}</span>`:''}<h2>${T(g.n)}</h2><small>${ic('coin')} <b>+${g.c.toLocaleString('fr-FR')}</b> ${T("pièces")}</small>`;
