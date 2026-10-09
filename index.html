@@ -962,6 +962,11 @@ html:not(.lock) body{background:transparent!important}
 .brow .bico{width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;background:var(--bc);box-shadow:0 0 14px var(--bc)}
 .brow.lk .bico{background:#2a2350;box-shadow:none;filter:grayscale(1);opacity:.6}.brow .bt{flex:1;display:grid;min-width:0}.brow .bt small{color:var(--muted);font-size:.78rem}
 .brow .bok{width:26px;height:26px;border-radius:50%;background:#2effa8;color:#0b0620;display:grid;place-items:center;font-weight:900}
+.perks{list-style:none;margin:4px 0;padding:0;display:grid;gap:6px;text-align:left}.perks li{padding:8px 12px;border-radius:12px;background:#ffffff0d;font-weight:700}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0}.plans button{position:relative;display:grid;gap:2px;padding:12px 8px;border-radius:16px;border:2px solid #ffffff22;background:#ffffff0a;color:inherit;font:inherit}
+.plans button span{font-family:var(--fun);font-size:1.5rem}.plans button small{opacity:.7}.plans button[aria-checked="true"]{border-color:#ffd75e;background:#ffd75e1c;box-shadow:0 0 16px #ffd75e55}
+.plans .save{position:absolute;top:-10px;right:-6px;font-style:normal;background:#ff3dd8;color:#fff;font-size:.7rem;font-weight:900;padding:2px 8px;border-radius:9px}
+.ptr2{display:flex;gap:6px}.pill.prem{padding-left:12px;padding-right:12px}
 .premcard{display:grid;gap:2px;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,#8f7bff33,#2ef2ff22);border:1px solid #8f7bff66;text-align:center}
 .cnt{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#ff3dd8;color:#fff;font-size:.72rem;font-weight:900}
 .rrow2.r2{grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
@@ -1310,10 +1315,11 @@ document.documentElement.lang=LANG;
 if (LANG==='en') document.querySelectorAll('[aria-label]').forEach(el=>{ const v=el.getAttribute('aria-label'); if (EN_DICT[v]) el.setAttribute('aria-label',EN_DICT[v]); });
 /* ---------- Réglages de lancement ---------- */
 const CONFIG = {
+  premiumPrices: {month:'2,99 €', year:'19,99 €', save:'−44 %'},   // prix affichés ; les vrais prix viennent de l'App Store / Google Play
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@exemple.fr")),
-  version: 76,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 77,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1549,6 +1555,7 @@ P.coins=Math.max(0, Math.floor(+P.coins||0));
 if (!P.v6){ P.v6=true; P.coins+=100;
   for (const k of ['color','fur','eyes','acc']) if (CAT[k][P.skin[k]].p>0 && !P.owned.includes(k+':'+P.skin[k])) P.owned.push(k+':'+P.skin[k]);
   if (THEMES[P.theme].p>0 && !P.owned.includes('theme:'+P.theme)) P.owned.push('theme:'+P.theme); }
+if (!P.v77shop){ P.v77shop=1; P.owned=[]; P.premium=false; for (const kk of ['color','fur','eyes','acc','fin','trail','win']) if (P.skin[kk] && CAT[kk] && CAT[kk][P.skin[kk]] && CAT[kk][P.skin[kk]].p>0) P.skin[kk]=P0.skin[kk]||Object.keys(CAT[kk]).find(id=>CAT[kk][id].p===0); if (THEMES[P.theme] && THEMES[P.theme].p>0) P.theme='classique'; }
 saveP();
 const WEEK=168*3600e3;
 // Indices : 3 offerts au départ, puis +1 gratuit chaque semaine, séparément pour l'Aventure ('pa') et les Cours ('h').
@@ -2440,7 +2447,7 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
-  w.classList.toggle('center', ['ldone','limit','chalin'].includes(sheet.type));
+  w.classList.toggle('center', ['ldone','limit','chalin','premium'].includes(sheet.type));
   w.hidden=false;
   const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>")+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
@@ -2552,7 +2559,14 @@ function sheetHTML(){
   if (s.type==='tuto') return `<h2>${T("Bien joué !")}</h2><p>${T("L'essentiel tient en trois phrases :")}</p><ul class="recap"><li>${T("Bloque les")} <b>deux</b> ${T("pions adverses pour gagner la manche.")}</li><li>${T("Les cases s'usent et tombent quand on les quitte.")}</li><li>${T("Une fois par manche, ton pion peut")} <b>sauter</b>.</li></ul>
     <button class="primary" type="button" data-act="tuto-play">${T("Jouer ma première partie")}</button><button class="secondary" type="button" data-act="tuto-more">${T("Voir le cours suivant")}</button>`;
   if (s.type==='ldone') return `<div class="modicon">🎓</div><h2 style="padding:0">${T("Leçon terminée !")}</h2><p>${T("Bien joué,")} ${esc(P.name)}. ${T("Tu as maîtrisé")} <b>${esc(TR&&TR.L?TR.L.t:'')}</b>.</p><button class="primary" type="button" data-act="tr-quit">${T("Terminer")}</button>`;
-  if (s.type==='limit') return `<div class="modicon">${s.pz?'🧩':'🎓'}</div><span class="limtag">${s.prem?(T("COURS PREMIUM")):(T("LIMITE QUOTIDIENNE ATTEINTE"))}</span><h2 style="padding:0">${s.pz?(T("Des puzzles illimités")):(T("Des cours illimités"))}</h2><p>${s.prem?(T("Ce cours fait partie de Premium.")):s.pz?`${T("Tes")} ${PZ_DAY} ${T("puzzles du jour sont faits. Reviens demain, ou passe Premium.")}`:(T("Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium."))}</p><div class="premcard"><b>💎 ${T("Premium")}</b><small>${T("Cours, indices et analyses illimités, sans publicité.")}</small></div><button class="primary big2" type="button" data-act="go-shop">${T("Passer Premium")}</button><button class="secondary" type="button" data-act="sheet-close">${T("Revenir demain")}</button>`;
+  if (s.type==='limit') return `<div class="modicon">${s.pz?'🧩':'🎓'}</div><span class="limtag">${s.prem?(T("COURS PREMIUM")):(T("LIMITE QUOTIDIENNE ATTEINTE"))}</span><h2 style="padding:0">${s.pz?(T("Des puzzles illimités")):(T("Des cours illimités"))}</h2><p>${s.prem?(T("Ce cours fait partie de Premium.")):s.pz?`${T("Tes")} ${PZ_DAY} ${T("puzzles du jour sont faits. Reviens demain, ou passe Premium.")}`:(T("Ton cours gratuit du jour est fait. Reviens demain, ou passe Premium."))}</p><div class="premcard"><b>💎 ${T("Premium")}</b><small>${T("Cours, indices et analyses illimités, sans publicité.")}</small></div><button class="primary big2" type="button" data-act="premium">${T("Passer Premium")}</button><button class="secondary" type="button" data-act="sheet-close">${T("Revenir demain")}</button>`;
+  if (s.type==='premium'){ const pr=CONFIG.premiumPrices, pl=s.plan||'year';
+    return `<div class="modicon">💎</div><h2 style="padding:0">${P.premium?T("Tu es Premium"):T("Lastep Premium")}</h2>
+    <ul class="perks"><li>🎓 ${T("Cours illimités")}</li><li>💡 ${T("Indices illimités (Aventure et Cours)")}</li><li>🧑‍🏫 ${T("Le coach à chaque coup en entraînement")}</li><li>📊 ${T("Analyses de parties illimitées")}</li><li>🚫 ${T("Plus de pub en fin de partie")}</li></ul>
+    <p class="note">${T("Les objets de la boutique ne sont pas inclus : ils s'achètent avec les pièces gagnées en jouant.")}</p>
+    ${P.premium?'':`<div class="plans" role="radiogroup"><button type="button" role="radio" data-act="prem-plan" data-v="month" aria-checked="${pl==='month'}"><b>${T("Mensuel")}</b><span>${pr.month}</span><small>${T("par mois")}</small></button><button type="button" role="radio" data-act="prem-plan" data-v="year" aria-checked="${pl==='year'}"><i class="save">${pr.save}</i><b>${T("Annuel")}</b><span>${pr.year}</span><small>${T("par an")}</small></button></div>
+    <button class="primary big2" type="button" data-act="prem-buy" data-v="${pl}">${T("S'abonner")}</button>
+    <p class="note">${T("Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.")}</p>`}`; }
   if (s.type==='badges') return `<h2>${T("Badges")} · ${Object.keys(P.badges).length}/${BADGES.length}</h2>${badgeList()}`;
   if (s.type==='psec') return psecHTML(s.v);
   if (s.type==='chalin') return `<div class="modicon">🧩</div><h2 style="padding:0">${esc(s.c.n)} ${T("te défie !")}</h2><p>${T("Il a résolu ce puzzle en")} ${s.c.t} ${T("s. Fais mieux ?")}</p><button class="primary" type="button" data-act="chal-go">${T("Relever le défi")}</button>`;
@@ -2833,6 +2847,9 @@ document.addEventListener('click', e=>{
     case 'an-next': AN.sel=Math.min((AN.h||HIST[AN.r]||[]).length-1,AN.sel+1); render(); break;
     case 'prem': P.premium=true; saveP(); toast((T("Premium simulé activé"))); render(); break;
     case 'unprem': P.premium=false; saveP(); toast((T("Premium désactivé"))); render(); break;
+    case 'premium': sheet={type:'premium', plan:'year'}; render(); break;
+    case 'prem-plan': if (sheet && sheet.type==='premium'){ sheet.plan=v; render(); } break;
+    case 'prem-buy': premBuy(v); break;
     case 'go-shop': sheet=null; if (view==='game') leaveGameSoft(); view='shop'; render(); break;
     case 'buy': if (unlocked(a.dataset.k,v)){ equip(a.dataset.k,v); toast((T("Équipé"))); } else { sheet={type:'buy',k:a.dataset.k,v}; } render(); break;
     case 'equip': if (unlocked(a.dataset.k,v)) equip(a.dataset.k,v); else sheet={type:'buy',k:a.dataset.k,v}; render(); break;
@@ -4616,6 +4633,15 @@ function itemView(k, id, big){
   if (k==='trail'||k==='win') return `<div class="fxstage ${big?'big':''}">${pawnSVG({...P.skin,[k]:id})}<span class="fxe fx-${k}-${id}">${it.e}</span></div>`;
   return pawnSVG({...P.skin,[k]:id});
 }
+// Abonnement Premium : dans l'appli des stores, le pont natif (window.LastepIAP.buy) passe par l'App Store / Google Play.
+async function premBuy(plan){
+  const iap=window.LastepIAP;
+  if (iap && typeof iap.buy==='function'){
+    try { const ok=await iap.buy(plan); if (ok){ P.premium=true; saveP(); sheet=null; sfx.win(); toast(T("Bienvenue dans Premium !")); render(); } } catch(e){ toast(T("Paiement annulé")); }
+    return;
+  }
+  sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
+}
 function renderShop(){
   const mode=SHOP.mode, list=shopList(SHOP.k, mode);
   if (SHOP.i>=list.length) SHOP.i=Math.max(0,list.length-1);
@@ -4637,7 +4663,7 @@ function renderShop(){
     <div class="ccdots">${SHOP_KINDS.map((k,i)=>`<i class="${i===ki?'on':''}"></i>`).join('')}</div>
   </div>`;
   return `${pillsTop()}${pageTitle(mode==='shop'?'coffre-or':'icone-profil', mode==='shop'?'🛍️':'👕', mode==='shop'?T("Boutique"):T("Vestiaire"),
-      `<button class="pill swap" type="button" data-act="shop-mode">${mode==='shop'?'👕 '+T("Vestiaire"):'🛍️ '+T("Boutique")}</button>`)}
+      `<span class="ptr2"><button class="pill swap prem" type="button" data-act="premium" aria-label="${T("Premium")}">💎</button><button class="pill swap" type="button" data-act="shop-mode">${mode==='shop'?'👕 '+T("Vestiaire"):'🛍️ '+T("Boutique")}</button></span>`)}
   <div class="stage">
     <div class="stbg"></div>
     ${prev?`<button type="button" class="side l" data-act="shop-prev" aria-label="${T("Précédent")}">${itemView(SHOP.k,prev)}</button>`:''}
@@ -4698,7 +4724,7 @@ function renderProfile(){
     <input id="pname" class="pname2" maxlength="16" value="${esc(P.name)}" autocomplete="off" aria-label="${T("Pseudo")}">
     <div class="chips3"><span style="color:${t[2]}">${t[1]}</span><span>${arenaElo()} ${T("steps")}</span><span>⭐ ${parcTotal()}</span>${P.lg&&P.lg.rank?`<span>🏆 ${P.lg.rank}${LANG==='en'?'.':'e'}</span>`:''}</div>
     <p class="note">${T("Code ami :")} <b>${fmtUid(P.uid)}</b>${P.premium?' · 💎 '+T("Premium"):''}</p>
-    <div class="arow"><button class="pill tpill" type="button" data-act="closet">👕 ${T("Vestiaire")}</button><button class="pill tpill" type="button" data-act="lb-open">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
+    <div class="arow"><button class="pill tpill" type="button" data-act="premium">💎 ${P.premium?T("Premium"):T("Passer Premium")}</button><button class="pill tpill" type="button" data-act="closet">👕 ${T("Vestiaire")}</button><button class="pill tpill" type="button" data-act="lb-open">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
   </div>
   <div class="stats2">${stat(P.stat.games||0,T("parties"))}${stat(P.elo.g,T("matchs classés"))}${stat(Object.values(P.parc||{}).filter(v=>v>0).length,T("niveaux Aventure"))}${stat(P.stat.fell||0,T("cases détruites"))}${stat(nb+'/'+BADGES.length,T("badges"))}${stat(streakNow(),T("jours de suite"))}</div>
   ${sec('rank',T("Classements par cadence"), cadHTML())}

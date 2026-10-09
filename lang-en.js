@@ -1113,3 +1113,12 @@ Object.assign(window.EN_DICT, {"Cours, indices et analyses illimités, sans publ
 "Fortune":"Fortune","Possède 1000 pièces en même temps.":"Hold 1000 coins at once.","Collectionneur":"Collector","Possède 10 objets de la boutique.":"Own 10 shop items.",
 "Fêtard":"Party animal","Termine une partie à 4 joueurs.":"Finish a 4-player game.","Populaire":"Popular","Aie 10 amis.":"Have 10 friends.",
 "Chrono":"Chrono","Coach":"Coach","Classement":"Ranking","Assiduité":"Regularity","Collection":"Collection","niveaux Aventure":"Adventure levels","Obtenus":"Earned","À débloquer":"To unlock"});
+// v77
+Object.assign(window.EN_DICT, {"Tu es Premium":"You're Premium","Lastep Premium":"Lastep Premium","Cours illimités":"Unlimited lessons","Indices illimités (Aventure et Cours)":"Unlimited hints (Adventure and Lessons)",
+"Le coach à chaque coup en entraînement":"The coach on every move in training","Analyses de parties illimitées":"Unlimited game analyses","Plus de pub en fin de partie":"No more end-of-game ads",
+"Les objets de la boutique ne sont pas inclus : ils s'achètent avec les pièces gagnées en jouant.":"Shop items are not included: you buy them with coins earned by playing.",
+"Mensuel":"Monthly","Annuel":"Yearly","par mois":"per month","par an":"per year","S'abonner":"Subscribe",
+"Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.":"No commitment, cancel anytime from your App Store or Google Play account.",
+"Bienvenue dans Premium !":"Welcome to Premium!","Paiement annulé":"Payment cancelled","Bientôt disponible":"Coming soon",
+"Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.":"Payment will go through the App Store and Google Play once the app is published. This web version is a test version.",
+"Passer Premium":"Go Premium"});
