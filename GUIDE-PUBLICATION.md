@@ -12,6 +12,18 @@ Ce qui est déjà prêt dans le projet, et ce qu'il te reste à faire dans les c
 - **Pages légales** : `privacy.html` et `cgu.html` (champs `[À COMPLÉTER]` à remplir).
 - **Accès administrateur** : désactivé automatiquement dans l'appli des stores.
 
+## Avancement (9 octobre 2026)
+
+- [x] E-mail `contact@lastep.app` (OVH Zimbra, sur l'iPhone) + alias `dev@lastep.app`
+- [x] Envoi des codes de connexion via Resend (`noreply@lastep.app`), modèles Supabase en français (`supabase/email-code.html`)
+- [x] Jeu en ligne sur https://lastep.app (GitHub Pages, HTTPS), Supabase Site URL et Redirect URLs à jour
+- [x] CGU et confidentialité complètes (111 Solutions, RCS Bobigny 108 006 552, TVA FR92108006552), médiateur CM2C jusqu'au 09/10/2029
+- [x] Ligne pro OVH +33 9 72 17 52 15 (MicroSIP) : numéro public des stores
+- [x] D-U-N-S 287896383
+- [ ] Apple Developer : demande envoyée (Kbis fourni), en attente de validation puis paiement 99 €
+- [ ] Google Play Console : compte créé (Organisation « 111 Solutions »), site validé (TXT Search Console dans la zone DNS, ne pas supprimer), identité en cours de vérification, puis validation des téléphones
+- [ ] AdMob → RevenueCat et produits → builds → fiches → tests privés → publication
+
 ## 1. Supabase (15 min)
 
 Dans le tableau de bord Supabase du projet `yabdzxowwgtlixomgbhe` :
