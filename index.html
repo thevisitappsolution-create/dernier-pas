@@ -1323,6 +1323,21 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 #fxpow .fxdizzy i:first-child{left:28%}#fxpow .fxdizzy i:nth-child(2){right:28%}
 #fxpow .fxdizzy b{position:absolute;left:50%;top:-6%;transform:translateX(-50%);font-size:40%;animation:fxsp 1s linear infinite}
 @keyframes fxdz{to{transform:rotate(45deg)}}@keyframes fxsp{to{transform:translateX(-50%) rotate(360deg)}}
+.dmb{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:8px;margin:10px auto 6px;width:100%;max-width:330px;box-sizing:border-box;border-radius:14px;background:linear-gradient(180deg,#120e28,#0d0b1f);box-shadow:0 0 0 1px #8f7bff55,0 0 24px #8f7bff40}
+.dmc{position:relative;aspect-ratio:1;border-radius:9px;border:2px solid var(--tc,#ff3dd8);background:color-mix(in srgb,var(--tc,#ff3dd8) 14%,#0b0918);display:grid;place-items:center;color:var(--tc,#ff3dd8);font-weight:900;text-shadow:0 0 8px var(--tc,#ff3dd8)}
+.dmc.v1{--tc:#2ef2ff}.dmc.v2{--tc:#ff3dd8}.dmc.v3{--tc:#b6ff3b}.dmc.h{border-color:transparent;background:#05040a;box-shadow:none}
+.dmc .num{opacity:.55;font-size:.9rem}
+.dmc .dmp{position:absolute;inset:0;display:grid;place-items:center}.dmc .dmp svg{width:88%;height:auto;filter:drop-shadow(0 3px 5px #0009)}
+.dmc .dmp em{position:absolute;top:-8px;right:-6px;font-style:normal;font-size:.9rem;filter:drop-shadow(0 0 4px #000)}
+.dmc .dmm{position:absolute;font-size:1.4rem;animation:dmmb 1s ease-in-out infinite alternate}@keyframes dmmb{to{transform:scale(1.15)}}
+.dmc.tap{box-shadow:0 0 0 3px #fff,0 0 16px #fff}
+.dmc .dmf{position:absolute;right:-4px;bottom:-10px;font-size:1.5rem;z-index:3;animation:dmtap .6s ease-in-out infinite alternate}@keyframes dmtap{to{transform:translate(-4px,-6px) scale(.9)}}
+.dmc{transition:opacity .3s}
+#dmc{display:block;min-height:3.2em;text-align:center;font-weight:800;margin:4px 0 10px;border:0;background:none;aspect-ratio:auto;color:inherit;text-shadow:none}
+#dmc.in{animation:dmin .35s ease-out}@keyframes dmin{from{opacity:0;transform:translateY(6px)}}
+.dmlist{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;margin-top:8px}
+.dmgo{display:block;margin:8px auto 0}
+#dmre.hot{box-shadow:0 0 14px #2ef2ff;border-color:#2ef2ff}
 </style>
 
 </head>
@@ -1373,7 +1388,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 87,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 88,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1976,6 +1991,12 @@ function powAnim(ev, ctx){
     setTimeout(()=>{ const d=document.createElement('div'); d.className='fxdizzy'; d.innerHTML='<i>✖</i><i>✖</i><b>💫</b>'; p.appendChild(d); }, 420);
     done(keep, 1700, [p]); return;
   }
+  if (ev.k==='hop' || ev.k==='slide'){
+    const A=C(ev.from), B=C(ev.to); if (!A||!B) return; const keep=[ev.to]; hide(keep); const p=fxActor(ctx.skin(ev.by), A);
+    p.animate(ev.k==='hop' ? [{transform:'translate(0,0)'},{transform:fxMv(A,B,.5)+' translateY(-70%)',offset:.5},{transform:fxMv(A,B,1)}] : [{transform:'translate(0,0)'},{transform:fxMv(A,B,1)}],{duration:ev.k==='hop'?650:500,easing:ease,fill:'forwards'});
+    if (ev.k==='hop') fxWord(T('HOP !'), A, '#b6ff3b', 150);
+    done(keep, ev.k==='hop'?700:520, [p]); return;
+  }
   if (ev.k==='minep'){ const A=C(ev.at); if (!A) return; fxEmoji('💣', A, 0, 'drop'); fxWord(T('CLIC'), A, '#b6ff3b', 200); return; }
   if (ev.k==='mine'){
     const A=C(ev.at); if (!A || ev.vic==null) return;
@@ -1985,6 +2006,68 @@ function powAnim(ev, ctx){
     done([], 1200, [v]); return;
   }
   } catch(e){}
+}
+/* ---------- Cinématiques d'explication des pouvoirs (Boutique, Règles) ---------- */
+// Un mini-plateau rejoue chaque pouvoir avec les mêmes animations que dans la partie, sous-titres à l'appui.
+let DM=null; const DMH=new Set();
+const DM_SKIN = p => p===0 ? P.skin : (BOTS.medium||Object.values(BOTS)[0]).skin;
+const DMCTX={cell:i=>document.querySelector(`#dmb [data-i="${i}"]`), skin:p=>pawnSVG(DM_SKIN(p)), hide:DMH, redraw:()=>dmDraw()};
+function dmDraw(){
+  const b=document.getElementById('dmb'); if (!b || !DM) return;
+  b.innerHTML=DM.cells.map((v,i)=>{ const p=DM.pawns.findIndex(x=>x===i), m=DM.mine===i && DM.mineVis;
+    return `<div class="dmc${v===0?' h':' v'+v}${DM.tap===i?' tap':''}" data-i="${i}">${v?`<span class="num">${v}</span>`:''}${m?'<span class="dmm">💣</span>':''}${p>=0 && !DMH.has(i)?`<span class="dmp">${pawnSVG(DM_SKIN(p))}${DM.badge && p===1?`<em>${DM.badge}</em>`:''}</span>`:''}${DM.tap===i?'<span class="dmf">👆</span>':''}</div>`; }).join('');
+}
+const dmSay = t => { const c=document.getElementById('dmc'); if (c){ c.classList.remove('in'); void c.offsetWidth; c.textContent=t; c.classList.add('in'); } };
+function dmScene(cells, pawns, extra){ DM=Object.assign(DM||{}, {cells:cells.slice(), pawns:pawns.slice(), tap:null, mine:null, mineVis:false, badge:null}, extra||{}); DMH.clear(); dmDraw(); }
+const row = (vals) => [2,2,2,2,2, ...vals, 2,2,2,2,2];
+// chaque étape : [délai depuis l'étape précédente (ms), action]
+const DM_SCRIPTS={
+  push:()=>[
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Ton pion est collé à un adversaire.")); }],
+    [1300, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Touche son pion…")); }],
+    [900, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); dmSay(T("Tu prends sa place et il recule d'une case.")); }],
+    [2400, ()=>{ dmScene(row([2,2,2,0,2]), [6,7]); dmSay(T("Et si derrière lui il y a un trou…")); }],
+    [1300, ()=>{ DM.tap=7; dmDraw(); }],
+    [700, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,-1]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8, dead:1}, DMCTX); dmSay(T("…il tombe et perd son pion !")); }],
+    [2600, null]],
+  swap:()=>[
+    [0, ()=>{ dmScene(row([2,1,2,2,2]), [6,7]); dmSay(T("Ta case est à 1, juste à côté de l'adversaire.")); }],
+    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Touche son pion…")); }],
+    [800, ()=>{ DM.tap=null; DM.cells[6]=0; DM.pawns=[7,-1]; powAnim({k:'swap', by:0, vic:1, a:6, b:7, dead:1}, DMCTX); dmSay(T("Vous échangez vos places. Seule ta case s'use : elle devient un trou… et il tombe !")); }],
+    [3200, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Si ta case tient encore, vous échangez simplement vos places.")); }],
+    [1200, ()=>{ DM.cells[6]--; DM.pawns=[7,6]; powAnim({k:'swap', by:0, vic:1, a:6, b:7}, DMCTX); }],
+    [2200, null]],
+  heavy:()=>[
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {badge:'🏋️'}); dmSay(T("Ton adversaire a pris le Poids lourd.")); }],
+    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Tu essaies de le pousser…")); }],
+    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'heavy', by:0, vic:1, a:6, at:7, kind:'push'}, DMCTX); dmSay(T("BOING ! Rien ne bouge et ton pouvoir est perdu.")); }],
+    [2400, ()=>{ DM.badge=null; dmDraw(); dmSay(T("Le Poids lourd ne protège qu'une fois par manche : l'attaque suivante passe.")); }],
+    [1500, ()=>{ DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); }],
+    [2200, null]],
+  wall:()=>[
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [5,6], {badge:'🧱'}); dmSay(T("Ton adversaire a pris le Mur.")); }],
+    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Tu essaies de sauter par-dessus lui…")); }],
+    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'wall', by:0, from:5, at:6, to:7}, DMCTX); dmSay(T("BONK ! Le saut est refusé et tu perds ton tour.")); }],
+    [2600, ()=>{ DM.badge=null; dmDraw(); dmSay(T("Le Mur ne bloque qu'un saut par manche.")); }],
+    [2000, null]],
+  jump:()=>[
+    [0, ()=>{ dmScene(row([2,2,0,2,2]), [5,6]); dmSay(T("Le Saut : ton pion passe par-dessus un pion ou un trou.")); }],
+    [1400, ()=>{ DM.tap=8; dmDraw(); }],
+    [700, ()=>{ DM.tap=null; DM.cells[5]--; DM.pawns=[8,6]; powAnim({k:'hop', by:0, from:5, to:8}, DMCTX); dmSay(T("Une fois par manche pour chaque Saut de ton équipement. Gratuit !")); }],
+    [2600, null]],
+  mine:()=>[
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,9]); dmSay(T("Pose une mine sur une case collée à ton pion : ça compte comme ton coup.")); }],
+    [1500, ()=>{ DM.tap=7; dmDraw(); }],
+    [700, ()=>{ DM.tap=null; DM.mine=7; DM.mineVis=true; dmDraw(); powAnim({k:'minep', by:0, at:7}, DMCTX); dmSay(T("Tout le monde la voit pendant 5 secondes…")); }],
+    [2000, ()=>{ DM.mineVis=false; dmDraw(); dmSay(T("…puis elle devient invisible, même pour toi !")); }],
+    [1800, ()=>{ DM.cells[9]--; DM.pawns=[6,7]; powAnim({k:'slide', by:1, from:9, to:7}, DMCTX); }],
+    [650, ()=>{ DM.pawns=[6,-1]; dmDraw(); powAnim({k:'mine', vic:1, at:7}, DMCTX); dmSay(T("Le premier pion qui arrive dessus, même poussé, saute ! La mine disparaît au début de ton 2e tour.")); }],
+    [3000, null]],
+};
+function powDemo(k){ if (!DM_SCRIPTS[k]) return; sheet={type:'powdemo', k}; DM={k, tok:Math.random()}; render(); dmRun(); }
+function dmRun(){
+  const tok=DM.tok=Math.random(), steps=DM_SCRIPTS[DM.k](); let t=0;
+  for (const [d,fn] of steps){ t+=d; setTimeout(()=>{ if (!DM || DM.tok!==tok || !sheet || sheet.type!=='powdemo') return; if (fn) fn(); else { dmSay(T("Touche « Revoir » pour la rejouer.")); const r=document.getElementById('dmre'); if (r) r.classList.add('hot'); } }, t); }
 }
 /* ---------- Mode folie (parties entre amis, sans classement) ---------- */
 // Vestiaire : 10 s avant la partie (hors chrono) pour remplir 2 emplacements parmi Saut, Pousser, Inversion, Poids lourd, Mur et Mine.
@@ -2844,7 +2927,7 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
-  w.classList.toggle('center', ['ldone','limit','chalin','premium','loadout','powpick'].includes(sheet.type));
+  w.classList.toggle('center', ['ldone','limit','chalin','premium','loadout','powpick','powdemo'].includes(sheet.type));
   w.hidden=false;
   const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+(sheet.type==='loadout'?'':"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>"))+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
@@ -2975,6 +3058,10 @@ function sheetHTML(){
     <div class="ldslots">${slot(0)}${slot(1)}</div>
     <div class="ldg"><div class="ldr">${PW_SLOT.map(chip).join('')}</div></div>
     <button class="primary big2" type="button" data-act="ld-ok">${sl.length?T("Prêt !"):T("Prêt (Saut + Saut)")}</button>`; }
+  if (s.type==='powdemo'){ const w=PW[s.k];
+    return `<div class="modicon">${w.e}</div><h2 style="padding:0">${T(w.n)}</h2><div class="dmb" id="dmb"></div><p class="dmc" id="dmc"></p>
+    <div class="row2"><button class="secondary" type="button" id="dmre" data-act="pw-demo" data-v="${s.k}">↻ ${T("Revoir")}</button><button class="primary" type="button" data-act="sheet-close">${T("Compris !")}</button></div>
+    <div class="dmlist">${PW_SLOT.filter(k=>k!==s.k).map(k=>`<button type="button" class="linkbtn" data-act="pw-demo" data-v="${k}">${PW[k].e} ${T(PW[k].n)}</button>`).join('')}</div>`; }
   if (s.type==='powpick'){ const lab={push:`💥 ${T("Pousser")}`, swap:`🔄 ${T("Inverser")}`, sel:`👆 ${T("Choisir ce pion")}`};
     return `<h2>${T("Que veux-tu faire ?")}</h2>${s.opts.map((o,n)=>`<button class="${o.k==='sel'?'secondary':'primary'}" type="button" data-act="pp-go" data-v="${n}">${lab[o.k]}</button>`).join('')}<button class="linkbtn" type="button" data-act="sheet-close">${T("Annuler")}</button>`; }
   if (s.type==='account'){ const A=window.Acc;
@@ -3050,6 +3137,7 @@ function sheetHTML(){
       <li><span>⚡</span><div><b>${T("En ligne.")}</b> ${T("Chacun doit jouer son premier coup en 15 s, sinon la partie est annulée sans perte de points. Ensuite, quitter l'appli plus de 15 s fait perdre la partie.")}</div></li>
       <li><span>7</span><div><b>${T("2 manches gagnantes.")}</b> ${T("Chacun commence une manche. À 1-1, le vainqueur avec la plus grande somme restante commence la belle.")}</div></li>
       <li><span>8</span><div><b>${T("Prémove.")}</b> ${T("Pendant le tour adverse, prépare ton coup : il part tout seul s'il est encore possible.")}</div></li></ol>
+      <div class="ldg"><b>🤪 ${T("Les pouvoirs du mode folie")}</b><small>${T("Regarde comment chacun marche :")}</small><div class="ldr">${PW_SLOT.map(k=>`<button type="button" class="ldo" data-act="pw-demo" data-v="${k}"><span class="lde">${PW[k].e}</span> ${T(PW[k].n)}</button>`).join('')}</div></div>
       <button class="primary" type="button" data-act="sheet-close">${T("C'est parti")}</button>`;
   if (s.type==='analysis') return analysisHTML();
   if (s.type==='angames') return gamesHTML();
@@ -3269,6 +3357,7 @@ document.addEventListener('click', e=>{
     case 'as-hint': assistHint(); break;
     case 'pw-mine': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'mine')){ G.mineOn=!G.mineOn; G.pick=null; if (G.mineOn) toast(T("Touche une case libre collée à un de tes pions pour poser la mine.")); render(); } break;
     case 'pw-info': if (PW[v]) toast(`${PW[v].e} ${T(PW[v].d)}`); break;
+    case 'pw-demo': if (PW[v]) powDemo(v); break;
     case 'pp-go': { const o=sheet&&sheet.opts&&sheet.opts[+v]; sheet=null; if (o && G){ if (o.k==='push') doPush(o.tg); else if (o.k==='swap') doSwap(o.tg); else if (o.k==='sel'){ G.pick=G.pawns[G.turn].indexOf(o.i); } } render(); break; }
     case 'ld-add': { const sl=sheet&&sheet.sel; if (sl && sl.length<2 && !(v==='mine' && sl.includes('mine')) && (v==='jump' || pwHas(v))){ sl.push(v); render(); } break; }
     case 'ld-del': { const sl=sheet&&sheet.sel; if (sl){ sl.splice(+v,1); render(); } break; }
@@ -5139,7 +5228,7 @@ function renderShop(){
   const view=(kk,ii,big)=>sp?specialView(kk,ii,big):itemView(kk,ii,big);
   let btn='', info='';
   if (sp && id){
-    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${T("tu en as")} ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small>`;
+    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${T("tu en as")} ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small><button type="button" class="linkbtn dmgo" data-act="pw-demo" data-v="${id}">▶ ${T("Voir comment ça marche")}</button>`;
       btn=`<div class="pwbtns"><button class="buybtn${P.coins<pwPrice(id)?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">×${PW_PACK} · ${ic('coin')} ${pwPrice(id)}</button><button class="buybtn gold${P.coins<PW_GOLD?' poor':''}" type="button" data-act="pw-gold" data-v="${id}">🥇 ${T("Gold 7 j")} · ${ic('coin')} ${PW_GOLD}</button></div>`; }
     else if (SHOP.k==='ref'){ const r=REFS[id]; info=`<span class="rar r-rare">${r.l==='fr'?'🇫🇷 '+T("Réf française"):'🇬🇧 '+T("Réf anglaise")}</span><h2>🔥 ${T("Réf culte")}</h2><small>${T("À envoyer pendant tes parties en ligne")}</small>`;
       btn=`<button class="buybtn${P.coins<r.p?' poor':''}" type="button" data-act="ref-buy" data-v="${id}">${T("Acheter")} · ${ic('coin')} ${r.p}</button>`; }
