@@ -45,35 +45,51 @@
     constructor(peer, cid, other, side) {
       super();
       this.peer = other; this.open = false; this.cid = cid; this.side = side; this._p = peer; this._closed = false; this._grace = null;
+      this._last = 0; this._hiT = null;
       this.ch = chan('lc:' + cid, side + '-' + rid(6));
-      this.ch.on('broadcast', { event: 'd' }, ({ payload }) => { if (payload && payload.s !== this.side) this.emit('data', payload.d); });
+      // Tout message de l'autre prouve qu'il est là : la connexion s'ouvre dès qu'on s'entend,
+      // sans dépendre de la présence (lente ou incomplète sur les réseaux mobiles).
+      this.ch.on('broadcast', { event: 'd' }, ({ payload }) => { if (payload && payload.s !== this.side) { this._seen(); this.emit('data', payload.d); } });
+      this.ch.on('broadcast', { event: 'hi' }, ({ payload }) => { if (payload && payload.s !== this.side) { this._seen(); if (!payload.ack) this._hi(true); } });
       this.ch.on('broadcast', { event: 'bye' }, ({ payload }) => { if (payload && payload.s !== this.side) this._remoteGone(true); });
       this.ch.on('presence', { event: 'sync' }, () => this._check());
       this.ch.on('presence', { event: 'leave' }, () => this._check(true));
       this.ch.subscribe((status) => {
-        if (status === 'SUBSCRIBED') { this.ch.track({ side: this.side, ts: Date.now() }).catch(() => {}); later(() => this._check(), 400); }
+        if (status === 'SUBSCRIBED') {
+          this.ch.track({ side: this.side, ts: Date.now() }).catch(() => {}); later(() => this._check(), 400);
+          // poignée de main : « je suis là » toutes les 0,7 s jusqu'à ce que l'autre réponde
+          this._hi(false);
+          if (!this._hiT) this._hiT = setInterval(() => { if (this.open || this._closed) { clearInterval(this._hiT); this._hiT = null; return; } this._hi(false); }, 700);
+        }
         else if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && !this.open) { this.emit('error', { type: 'network' }); }
       });
       peer._conns.add(this);
     }
-    _otherHere() { return metas(this.ch).some(m => m.side && m.side !== this.side); }
+    _hi(ack) { if (this._closed) return; this.ch.send({ type: 'broadcast', event: 'hi', payload: { s: this.side, ack: !!ack } }).catch(() => {}); }
+    _seen() {
+      if (this._closed) return;
+      this._last = Date.now();
+      if (this._grace) { clearTimeout(this._grace); this._grace = null; }
+      if (!this.open) { this.open = true; if (this._hiT) { clearInterval(this._hiT); this._hiT = null; } this.emit('open'); }
+    }
+    // l'autre est là : visible dans la présence, ou nous a écrit récemment (les « ping » partent toutes les 3 s)
+    _otherHere() { return Date.now() - this._last < 8000 || metas(this.ch).some(m => m.side && m.side !== this.side); }
     _check(left) {
       if (this._closed) return;
-      if (this._otherHere()) {
-        if (this._grace) { clearTimeout(this._grace); this._grace = null; }
-        if (!this.open) { this.open = true; this.emit('open'); }
-      } else if (this.open && left && !this._grace) {
+      if (metas(this.ch).some(m => m.side && m.side !== this.side)) { this._seen(); return; }
+      if (this.open && left && !this._grace) {
         // petite coupure réseau : on laisse 5 s à l'autre pour revenir avant de fermer
         this._grace = later(() => { this._grace = null; if (!this._otherHere()) this._remoteGone(false); }, 5000);
       }
     }
-    _remoteGone() { if (this._closed) return; this._closed = true; this.open = false; drop(this.ch); this._p._conns.delete(this); this.emit('close'); }
+    _remoteGone() { if (this._closed) return; this._closed = true; this.open = false; if (this._hiT) { clearInterval(this._hiT); this._hiT = null; } drop(this.ch); this._p._conns.delete(this); this.emit('close'); }
     send(data) { if (this._closed) return; this.ch.send({ type: 'broadcast', event: 'd', payload: { s: this.side, d: data } }).catch(() => {}); }
     close() {
       if (this._closed) return;
       const ch = this.ch;
       try { ch.send({ type: 'broadcast', event: 'bye', payload: { s: this.side } }); } catch (e) {}
       this._closed = true; this.open = false; this._p._conns.delete(this);
+      if (this._hiT) { clearInterval(this._hiT); this._hiT = null; }
       later(() => drop(ch), 300);
       this.emit('close');
     }
@@ -89,9 +105,11 @@
     }
     _listen() {
       const ch = this._own = chan('lp:' + this.id, 'o-' + this._tok);
+      const seen = new Set();
       ch.on('broadcast', { event: 'req' }, ({ payload }) => {
         if (this.destroyed || !payload || typeof payload.cid !== 'string' || !/^[a-z0-9]{8,20}$/.test(payload.cid)) return;
         if (payload.to && payload.to !== this._tok) return;
+        if (seen.has(payload.cid)) return; seen.add(payload.cid); // la demande est envoyée plusieurs fois au cas où un message se perd
         const c = new Conn(this, payload.cid, String(payload.from || ''), 'b');
         this.emit('connection', c);
       });
@@ -130,13 +148,16 @@
       };
       look.subscribe((status) => {
         if (status !== 'SUBSCRIBED') { if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') fail(); return; }
-        later(() => {
+        // la liste des présents peut mettre un peu de temps à arriver en 4G : on regarde plusieurs fois avant d'abandonner
+        const tryReq = (n) => {
           if (done) return;
           const owners = metas(look).filter(m => m.role === 'owner' && m.tok).sort((x, y) => x.ts - y.ts || (x.tok < y.tok ? -1 : 1));
-          if (!owners.length) { fail(); return; }
-          look.send({ type: 'broadcast', event: 'req', payload: { from: this.id, cid, to: owners[0].tok } }).catch(() => {});
-          later(() => { if (!done) { done = true; drop(look); } }, 1500);
-        }, 1200);
+          if (!owners.length) { if (n < 4) later(() => tryReq(n + 1), 900); else fail(); return; }
+          const req = () => { if (!done && !c.open) look.send({ type: 'broadcast', event: 'req', payload: { from: this.id, cid, to: owners[0].tok } }).catch(() => {}); };
+          req(); later(req, 1200); later(req, 2600); later(req, 4500);
+          later(() => { if (!done) { done = true; drop(look); } }, 6000);
+        };
+        later(() => tryReq(0), 1000);
       });
       later(() => { if (!c.open) fail(); }, 15000);
       return c;

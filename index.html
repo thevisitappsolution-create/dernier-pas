@@ -1347,7 +1347,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 82,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 83,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2307,13 +2307,15 @@ function onNetData(d){
   if (!net || !d || typeof d!=='object') return;
   const other = net.seat===0 ? 1 : 0;
   net.lastSeen=Date.now(); if (net.warned){ net.warned=false; if (G && view==='game') renderGame(); }
-  if (d.t==='ping') return;
+  if (d.t==='ping'){ if (typeof d.q==='number' && d.q>net.seq) netSend({t:'rs'}); return; } // l'autre a un coup d'avance : on redemande l'état (message perdu)
+  if (d.t==='rs'){ if (M && (net.seat===0||net.seat===1)) netSend({t:'st', seq:net.seq, st:pack()}); return; }
   if (d.t==='abort'){ abortMatch(d.why==='first'?(T("Ton adversaire n'a pas joué son premier coup à temps.")):(T("Partie annulée par une coupure de connexion.")), true); return; }
   if (d.t==='hello'){
+    if (d.got) net.helloOk=true; else netSend(helloMsg(true)); // accusé de réception
     const rc={}; if (d.rc && typeof d.rc==='object') for (const t of TIMES){ const v=+d.rc[t]; if (v>0 && v<4000) rc[t]=Math.round(v); }
     PEERS[other]={nm:cleanName(d.nm), sk:cleanSkin(d.sk), rc, uid: typeof d.uid==='string' && /^[a-z0-9]{8}$/.test(d.uid) ? d.uid : '', nb:!!d.nb}; net.opp=true; if (net.timer){ clearTimeout(net.timer); net.timer=null; } S=sides();
     if (net.seat===0 && !M){ startMatch(); if (net.mm) toast(`${T("Adversaire trouvé :")} ${PEERS[other].nm} · ${tLabel(P.time)}`); } else render();
-    if (net.seat===0 && M) commit();
+    if (net.seat===0 && M) netSend({t:'st', seq:net.seq, st:pack()}); // « bonjour » répété : on renvoie l'état sans créer de nouvelle version
     return;
   }
   if (d.t==='st' && typeof d.seq==='number' && d.st){
@@ -2332,9 +2334,17 @@ function onNetData(d){
   if (d.t==='chat') { const tx=phText(d.id); if (tx) addChat(other, tx, false); return; }
   if (d.t==='wizz' && G) { receiveWizz(['toc','haha'].includes(d.k)?d.k:'wizz', other); return; }
 }
+// « bonjour » : renvoyé toutes les 1,5 s tant que l'autre n'a pas répondu (un message peut se perdre pendant la mise en relation)
+function sendHello(conn){
+  try { conn.send(helloMsg(false)); } catch(e){}
+  const me=net; let n=0;
+  // on s'arrête quand l'autre confirme avoir reçu notre « bonjour » (got)
+  const tm=setInterval(()=>{ if (net!==me || !net || net.conn!==conn || !conn.open || net.helloOk || ++n>12){ clearInterval(tm); return; } try { conn.send(helloMsg(!!net.opp)); } catch(e){} }, 1500);
+}
+const helloMsg = got => ({t:'hello', got, nm:P.name, sk:P.skin, uid:P.uid, nb:myBlock(), rc:Object.fromEntries(TIMES.map(t=>[t,getR('champ',t).r]))});
 function wireConn(conn){
   net.conn=conn;
-  conn.on('open', ()=>{ net.lastSeen=Date.now(); clearInterval(net.hb); net.hb=setInterval(()=>netSend({t:'ping'}), 3000); conn.send({t:'hello', nm:P.name, sk:P.skin, uid:P.uid, nb:myBlock(), rc:Object.fromEntries(TIMES.map(t=>[t,getR('champ',t).r]))}); });
+  conn.on('open', ()=>{ net.lastSeen=Date.now(); clearInterval(net.hb); net.hb=setInterval(()=>netSend({t:'ping', q:net?net.seq:0}), 3000); sendHello(conn); });
   conn.on('data', onNetData);
   conn.on('close', ()=>{ if (!net) return; net.opp=false; toast((T("Ton adversaire s'est déconnecté."))); render(); });
   conn.on('error', ()=>{});
@@ -3883,8 +3893,8 @@ function mmProbe(me, b, i){
       if (net!==me || me.opp || me.matched){ try { c.close(); } catch(e){} end(false); return; }
       me.matched=true; me.probe=pr; done=true; const host=me.peer; me.peer=pr; me.seat=1;
       try { host && host.destroy(); } catch(e){}
-      wireConn(c); try { c.send({t:'hello', nm:P.name, sk:P.skin, uid:P.uid, nb:myBlock(), rc:Object.fromEntries(TIMES.map(t=>[t,getR('champ',t).r]))}); } catch(e){}
-      net.lastSeen=Date.now(); clearInterval(net.hb); net.hb=setInterval(()=>netSend({t:'ping'}), 3000);
+      wireConn(c); sendHello(c);
+      net.lastSeen=Date.now(); clearInterval(net.hb); net.hb=setInterval(()=>netSend({t:'ping', q:net?net.seq:0}), 3000);
     });
   });
   pr.on('error', ()=>{ clearTimeout(tm); end(true); });
@@ -3896,7 +3906,8 @@ function goMatch(i){
   if (i>=MM_SLOTS){ leaveOnline(); mmw('noone'); return; }
   const me=net={code:'', peer:null, conn:null, seat:0, seq:0, opp:false, err:'', mm:true, slot:i, widen:0, t0:Date.now()};
   sheet=null; mmw('search'); render();
-  setTimeout(()=>{ if (net===me && !me.opp && !me.matched){ leaveOnline(); mmw('noone'); } }, MM_GIVEUP);
+  const giveUp=()=>{ if (net!==me || me.opp) return; if (me.matched || (me.conn && me.conn.open)){ if (Date.now()-me.t0 < MM_GIVEUP+15000){ setTimeout(giveUp, 2000); return; } } leaveOnline(); mmw('noone'); };
+  setTimeout(giveUp, MM_GIVEUP);
   let peer; try { peer=new Peer(mmSlot(i)); } catch(e){ me.err=(T("Connexion impossible pour le moment.")); render(); return; }
   me.peer=peer;
   peer.on('open', ()=>{ if (net===me){ me.stage=''; render(); mmWidenLoop(me); } });
@@ -3919,9 +3930,9 @@ function mmGuest(i, me){
   me.seat=1; me.peer=null; let peer;
   try { peer=new Peer(); } catch(e){ net=null; goMatch(i+1); return; }
   me.peer=peer;
-  const fail=()=>{ if (net!==me || me.opp) return; try { peer.destroy(); } catch(e){} net=null; goMatch(i+1); };
+  const fail=()=>{ if (net!==me || me.opp) return; if (me.conn && me.conn.open && !me.failSoft){ me.failSoft=true; me.timer=setTimeout(fail, 8000); return; } try { peer.destroy(); } catch(e){} net=null; goMatch(i+1); };
   me.timer=setTimeout(fail, 12000); // laisse le temps au réseau mobile (4G)
-  peer.on('open', ()=>{ if (net!==me) return; wireConn(peer.connect(mmSlot(i), {reliable:true})); });
+  peer.on('open', ()=>{ if (net!==me) return; const c=peer.connect(mmSlot(i), {reliable:true}); wireConn(c); c.on('open', ()=>{ if (net===me) me.matched=true; }); });
   peer.on('error', ()=>{ if (net===me && !me.opp) fail(); });
 }
 function mmCancel(){ leaveOnline(); sheet=null; mmwClose(); render(); }
