@@ -1298,6 +1298,14 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .vd.top{background:#2effa8}.vd.good{background:#9dff5a}.vd.inacc{background:#ffe94a}.vd.mist{background:#ffb13b}.vd.blun{background:#ff3b7a;color:#fff}.vd.ok{background:#b9b3ff}
 .act.on{box-shadow:0 0 0 2px #2ef2ff,0 0 14px #2ef2ff88}
 .verline{text-align:center;margin:22px 0 8px;opacity:.9;font-size:.85rem}
+.prebar{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:60;display:grid;gap:4px;text-align:center;padding:16px 22px;border-radius:20px;background:rgba(17,14,36,.92);border:2px solid #ff3dd8;box-shadow:0 0 24px #ff3dd866;color:#fff;pointer-events:none;min-width:240px}
+.prebar b{font-size:1.15rem}.prebar small{opacity:.85}
+.ldt{display:inline-block;margin-left:6px;padding:2px 10px;border-radius:999px;background:#ff3dd8;color:#fff;font-size:.95rem;vertical-align:middle}
+.ldslots{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.ldslot{display:grid;place-items:center;gap:2px;padding:12px 6px;border-radius:16px;border:2px dashed #ffffff44;background:#ffffff0d;color:inherit;font:inherit}
+.ldslot b{font-size:1.8rem;line-height:1}.ldslot small{opacity:.8;font-size:.75rem}
+.ldslot.on{border-style:solid;border-color:#2ef2ff;background:#2ef2ff1a;box-shadow:0 0 14px #2ef2ff55;cursor:pointer}
+.lde{font-size:1.2rem}
 </style>
 
 </head>
@@ -1348,7 +1356,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 84,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 85,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1588,22 +1596,21 @@ function applyChamp(score, oppR){
 function saveP(){ try { localStorage.setItem(P_KEY, JSON.stringify(P)); } catch(e){} if (window.Acc) Acc.dirty(); }
 // Pouvoirs du mode folie : 1500 pièces les 15 utilisations, ou « Gold » 3000 pièces = illimité pendant 7 jours. 1 offert de chaque au départ.
 const PW_PRICE=1500, PW_PACK=15, PW_GOLD=3000, PW_GOLD_DAYS=7;
-const PW={push:{n:"Pousser",e:'💥',d:"Choisis au début de la partie le pion qui pousse. Une fois dans la partie, il pousse un pion adverse collé à lui : l'autre recule d'une case et tu prends sa place. S'il tombe dans un trou, il perd ce pion."},
-  heavy:{n:"Poids lourd",e:'🏋️',d:"Défense : au début de la partie, choisis en secret le pion que personne ne pourra pousser."},
-  ghost:{n:"Fantôme",e:'👻',d:"Défense : au début de la partie, choisis en secret un pion. Celui qui le pousse passe à travers et atterrit derrière : s'il y a un trou, c'est lui qui tombe !"},
-  swap:{n:"Inversion",e:'🔄',d:"Une fois dans la partie, à ton tour, touche un pion adverse : ton pion et le sien échangent leur place."},
-  dyn:{n:"Dynamite",e:'🧨',d:"Une fois dans la partie, au lieu de bouger, pose une dynamite sur une case où tu pourrais aller. Visible de tous, elle bloque la case pendant 3 tours : un pion poussé dessus saute."},
-  wall:{n:"Mur",e:'🧱',d:"Défense : choisis en secret un pion. Activé pour une manche, personne ne peut sauter par-dessus. Au premier essai, le sauteur perd son tour et le mur s'éteint."},
-  jump:{n:"Saut",e:'🦘',d:"Active-le pendant une manche : tu gagnes un saut de plus. Deux sauts dans la même manche !"},
-  vision:{n:"Vision",e:'👁️',d:"Les autres voient seulement qu'un joueur a un pouvoir, pas lequel. Avec Vision, tu vois les pouvoirs de chacun. Elle ne se voit pas (sauf par ceux qui l'ont aussi) et ne compte pas dans tes 2 pouvoirs : c'est la seule façon d'en avoir 3."}};
-// Pouvoirs ouverts au lancement ; Fantôme, Mur, Saut et Vision arriveront en « saisons » (le code est prêt)
-const PW_ON=['push','dyn','swap','heavy'];
-const PW_ACTIVE=['push','swap','dyn','jump'], PW_DEF=['heavy','ghost','wall'], PW_KEYS=['push','swap','dyn','jump','heavy','ghost','wall','vision'].filter(k=>PW_ON.includes(k));
+const PW={jump:{n:"Saut",e:'🦘',d:"Ton pion saute par-dessus un pion ou un trou. En mode folie, on ne saute que si on a pris le Saut dans son équipement. Gratuit."},
+  push:{n:"Pousser",e:'💥',d:"À ton tour, touche un pion collé à l'un des tiens (adverse, ou ton autre pion) : tu prends sa place et il recule d'une case dans la même direction. Impossible vers l'extérieur du plateau. S'il recule dans un trou, il perd ce pion."},
+  swap:{n:"Inversion",e:'🔄',d:"À ton tour, touche un pion adverse collé à l'un des tiens : vous échangez vos places. Seule ta case s'use : si elle était à 1, ton adversaire atterrit dans un trou et perd ce pion."},
+  heavy:{n:"Poids lourd",e:'🏋️',d:"Défense automatique : la première fois qu'on essaie de te pousser ou de t'inverser dans la manche, rien ne bouge et l'adversaire perd son pouvoir. La fois suivante, ça marche."},
+  wall:{n:"Mur",e:'🧱',d:"Défense automatique : la première fois qu'on essaie de sauter par-dessus un de tes pions dans la manche, le saut est refusé et le sauteur perd son tour."},
+  mine:{n:"Mine",e:'💣',d:"À ton tour, pose une mine sur une case libre collée à un de tes pions (ça compte comme ton coup). Visible 5 secondes, puis invisible pour tout le monde, toi compris. Le pion qui arrive dessus, même poussé, saute. Elle disparaît au début de ton 2e tour après la pose."}};
+// Pouvoirs vendus (le Saut est gratuit). La Mine coûte 2000 pièces les 15.
+const PW_ON=['push','swap','heavy','wall','mine'];
+const PW_SLOT=['jump','push','swap','heavy','wall','mine'], PW_DEF=['heavy','wall'], PW_KEYS=PW_ON;
+const pwPrice = k => k==='mine' ? 2000 : PW_PRICE;
 const pwPass = k => P.pw && P.pw[k] && P.pw[k].u > Date.now();
-const pwLeft = k => !PW_ON.includes(k)||!P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
+const pwLeft = k => k==='jump' ? Infinity : !PW_ON.includes(k)||!P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
 const pwHas = k => pwLeft(k) > 0;
-function pwUse(k){ if (pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); if (window.Acc) Acc.queuePwUse(k); saveP(); }
-const pwLabel = k => pwPass(k) ? `Gold · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
+function pwUse(k){ if (k==='jump' || !P.pw[k] || pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); if (window.Acc) Acc.queuePwUse(k); saveP(); }
+const pwLabel = k => k==='jump' ? T("gratuit") : pwPass(k) ? `Gold · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
 const unlocked = (kind,id) => CONFIG.season0 || CAT[kind][id].p===0 || P.owned.includes(kind+':'+id);
 if (!P.uid){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let u=''; for (let i=0;i<8;i++) u+=abc[Math.floor(Math.random()*abc.length)]; P.uid=u; }
 if (!Array.isArray(P.friends)) P.friends=[];
@@ -1616,7 +1623,7 @@ if (!P.v6){ P.v6=true; P.coins+=100;
   if (THEMES[P.theme].p>0 && !P.owned.includes('theme:'+P.theme)) P.owned.push('theme:'+P.theme); }
 if (!P.v77shop){ P.v77shop=1; P.owned=[]; P.premium=false; for (const kk of ['color','fur','eyes','acc','fin','trail','win']) if (P.skin[kk] && CAT[kk] && CAT[kk][P.skin[kk]] && CAT[kk][P.skin[kk]].p>0) P.skin[kk]=P0.skin[kk]||Object.keys(CAT[kk]).find(id=>CAT[kk][id].p===0); if (THEMES[P.theme] && THEMES[P.theme].p>0) P.theme='classique'; }
 // Pouvoirs du mode folie (parties entre amis) : 1 utilisation offerte de chacun, ensuite avec des pièces
-P.pw=P.pw||{}; for (const k of ['push','heavy','ghost','swap','dyn','wall','jump','vision']) if (!P.pw[k]) P.pw[k]={n:1,u:0};
+P.pw=P.pw||{}; for (const k of ['push','heavy','ghost','swap','dyn','wall','jump','vision','mine']) if (!P.pw[k]) P.pw[k]={n:1,u:0};
 P.time=3; P.trap=false;
 saveP();
 const WEEK=168*3600e3;
@@ -1863,128 +1870,207 @@ const whoS = who;
 
 /* ---------- Règles ---------- */
 const stateOf = () => ({cells:G.cells, pawns:G.pawns, jumps:G.J, turn:G.turn});
-const movesFor = t => { let cl=G.cells; if (G.dyn && G.dyn.length){ cl=cl.slice(); for (const d of G.dyn) cl[d.i]=0; } const ms=aiGen(cl, G.pawns, G.J, t); return TR && TR.kind==='parc' ? ms.filter(m=>m[0]===0) : ms; };
+const movesFor = t => { const ms=aiGen(G.cells, G.pawns, G.J, t); return TR && TR.kind==='parc' ? ms.filter(m=>m[0]===0) : ms; };
 // Somme des chiffres visibles : les cases sous les pions ne comptent pas (on ne les voit pas)
 const boardSum = () => G.cells.reduce((a,v,i)=>a+(G.pawns.some(p=>p.includes(i))?0:v),0);
 function newRound(){
   const bid=M.order[(M.round-1)%M.order.length];
   return {round:M.round, bid, cells:BOARDS[bid].cells.slice(), pawns:START.map(p=>[...p]), J:[1,1], turn:M.starter, pick:null, jumpOn:false,
-    moves:0, msg:'', dyn:[], ev:null, pu:[0,0], df:[0,0], clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
+    moves:0, msg:'', dyn:[], mines:[], pl:[{},{}], ev:null, pu:[0,0], df:[0,0], clock:[P.time*60000,P.time*60000], over:false, winner:null, sum:0, last:null, hint:null, hinting:false, ver:0};
 }
 function startTurn(){
   if (isParc()){ G.turnAt=performance.now(); G.pick=0; return; }
+  if (folie() && !G.pre) mineTick();
   const ms=movesFor(G.turn);
-  if (!ms.length){ G.msg=`${T("Les deux pions de")} ${S[G.turn].name} ${T("sont bloqués.")}`; endRound(1-G.turn); return; }
+  if (!ms.length && !(folie() && !G.pre && (pushTargets(G.turn).length || swapTargets(G.turn).length || mineTargets(G.turn).length))){ G.msg=`${T("Les deux pions de")} ${S[G.turn].name} ${T("sont bloqués.")}`; endRound(1-G.turn); return; }
   G.turnAt=performance.now();
   const ks=[...new Set(ms.map(m=>m[0]))];
   G.pick = ks.length===1 ? ks[0] : null;
   if (ks.length===1){ G.msg=`${T("Un pion de")} ${S[G.turn].name} ${T("est bloqué : il joue l'autre.")}`; (G.stuck=G.stuck||[0,0])[G.turn]=1; }
   if (M && M.assist && vsAI && !TR && G.turn===0) assistTurn();
 }
-/* ---------- Mode folie (parties entre amis, sans classement) : pousser, poids lourd, dynamite ---------- */
-// Équipement de la partie (2 pouvoirs au plus, + Vision) : LD[t] = {pw:[..], push:k|-1, def:{t,k}|null, vis}
-// Un seul pouvoir par manche (les défenses aussi : on les active pour la manche), chacun une seule fois dans la partie.
-let LD=[null,null], LDASK=null;
+/* ---------- Mode folie (parties entre amis, sans classement) ---------- */
+// Vestiaire : 10 s avant la partie (hors chrono) pour remplir 2 emplacements parmi Saut, Pousser, Inversion, Poids lourd, Mur et Mine.
+// Le même pouvoir peut être pris deux fois, sauf la Mine. Sans choix à temps : Saut + Saut.
+// En mode folie il n'y a pas de saut de base : on ne saute qu'avec l'emplacement « Saut ».
+// Chaque emplacement sert une fois par manche. Inventaire : 1 utilisation consommée par pouvoir et par partie (le Saut est gratuit).
+// Offensifs : Pousser, Inversion. Défensifs (automatiques) : Poids lourd contre Pousser/Inversion, Mur contre le saut. Aléatoire : la Mine.
+const LD_MS=10000, MINE_SHOW=5000;
+let LD=[null,null], LDASK=null, LDSENT=null, MINESEEN={};
 const folie = () => !!(M && M.fol && G && !TR && !vsAI);
-const powUsed = (t,k) => !!(M && M.used && M.used[t] && M.used[t][k]);
-const roundPow = t => !!(G && G.pu && G.pu[t]);
-function canPow(t,k){
-  if (!folie() || !LD[t] || !LD[t].pw.includes(k) || powUsed(t,k) || roundPow(t)) return false;
-  if (k==='push' && !(LD[t].push>=0 && G.pawns[t][LD[t].push]>=0)) return false;
-  if (PW_DEF.includes(k) && !(LD[t].def && LD[t].def.t===k && G.pawns[t][LD[t].def.k]>=0)) return false;
-  return t!==humanSeat() || pwHas(k);
+const slotsOf = t => (M && M.sl && Array.isArray(M.sl[t])) ? M.sl[t] : ['jump','jump'];
+const cleanSlots = s => { const out=(Array.isArray(s)?s:[]).filter(k=>PW_SLOT.includes(k)).slice(0,2); while (out.length<2) out.push('jump'); if (out[0]==='mine' && out[1]==='mine') out[1]='jump'; return out; };
+function roundPowers(){   // au début de chaque manche : les emplacements se rechargent
+  G.pl=[0,1].map(t=>{ const o={}; for (const k of slotsOf(t)) o[k]=(o[k]||0)+1; return o; });
+  G.J=[0,1].map(t=>G.pl[t].jump||0);
 }
-function markPow(t,k){ M.used=M.used||[{},{}]; M.used[t]={...(M.used[t]||{}), [k]:1}; G.pu=G.pu||[0,0]; G.pu[t]=1; if (t===humanSeat()) pwUse(k); }
-// défense active de t pendant la manche (s'éteint au premier essai)
-const defOn = (t,k) => !!(G && G.df && G.df[t] && LD[t] && LD[t].def && LD[t].def.t===k);
-const defPawn = t => LD[t] && LD[t].def ? G.pawns[t][LD[t].def.k] : -1;
-function activate(k){
-  const t=G.turn; if (!canPow(t,k)) return;
-  markPow(t,k);
-  if (k==='jump'){ G.J[t]=(G.J[t]||0)+1; G.ev={k:'jump', by:t, n:G.round+':'+G.moves+':j'}; playEv(G.ev); }
-  else { G.df=G.df||[0,0]; G.df[t]=1; G.ev={k:'def', by:t, d:k, n:G.round+':'+G.moves+':d'}; playEv(G.ev); }
-  G.ver++; commit();
+const powN = (t,k) => k==='jump' ? ((G&&G.J&&G.J[t])||0) : ((G && G.pl && G.pl[t] && G.pl[t][k]) || 0);
+const canPow = (t,k) => folie() && !G.pre && !G.over && powN(t,k)>0;
+function powSpend(t,k){
+  if (k!=='jump') G.pl[t][k]=Math.max(0,powN(t,k)-1);
+  M.used=M.used||[{},{}]; if (!M.used[t][k]){ M.used[t]={...(M.used[t]||{}), [k]:1}; if (t===humanSeat() && k!=='jump') pwUse(k); }
 }
+const nb4 = i => { const r=(i/5)|0, q=i%5, out=[]; for (const [dr,dq] of DIRS){ const rr=r+dr, qq=q+dq; if (rr>=0&&qq>=0&&rr<=4&&qq<=4) out.push({i:rr*5+qq, dr, dq}); } return out; };
+const pawnAt = i => { for (let p=0;p<2;p++){ const k=G.pawns[p].indexOf(i); if (k>=0) return {p,k}; } return null; };
+const mineAt = i => (G.mines||[]).find(m=>m.i===i);
+// Pousser : un de mes pions pousse un pion collé (adverse, ou mon autre pion) ; il recule d'une case dans la même direction et je prends sa place.
 function pushTargets(t){
-  const out=[]; if (!canPow(t,'push')) return out; const k=LD[t].push, a=G.pawns[t][k]; if (a<0) return out; const r=(a/5)|0, q=a%5;
-  for (const [dr,dq] of DIRS){ const br=r+dr, bq=q+dq; if (br<0||bq<0||br>4||bq>4) continue; const b=br*5+bq, k2=G.pawns[1-t].indexOf(b); if (k2<0) continue;
-    const cr=br+dr, cq=bq+dq; if (cr<0||cq<0||cr>4||cq>4) continue; const c=cr*5+cq; if (G.pawns[0].includes(c)||G.pawns[1].includes(c)) continue;
-    out.push({k,k2,a,b,c}); }
+  const out=[]; if (!canPow(t,'push')) return out;
+  for (let k=0;k<2;k++){ const a=G.pawns[t][k]; if (a<0) continue;
+    for (const n of nb4(a)){ const v=pawnAt(n.i); if (!v || (v.p===t && v.k===k)) continue;
+      const r=((n.i/5)|0)+n.dr, q=n.i%5+n.dq; if (r<0||q<0||r>4||q>4) continue; const c=r*5+q; if (pawnAt(c)) continue;
+      out.push({k, a, b:n.i, c, p2:v.p, k2:v.k}); } }
   return out;
 }
-function dynTick(){ if (G.dyn && G.dyn.length){ G.dyn.forEach(d=>d.left--); G.dyn=G.dyn.filter(d=>d.left>0); } }
-function endPower(t){ dynTick(); G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.dynOn=false; G.swapOn=false; premove=null; G.turn=1-t; startTurn(); commit(); }
-const isHole = i => G.cells[i]===0 || (G.dyn||[]).some(d=>d.i===i);
+// Inversion : un de mes pions échange sa place avec un pion adverse collé. Seule ma case s'use : si elle tombe à 0, l'adversaire tombe.
+function swapTargets(t){
+  const out=[]; if (!canPow(t,'swap')) return out;
+  for (let k=0;k<2;k++){ const a=G.pawns[t][k]; if (a<0) continue;
+    for (const n of nb4(a)){ const k2=G.pawns[1-t].indexOf(n.i); if (k2>=0) out.push({k, a, b:n.i, k2}); } }
+  return out;
+}
+// Mine : posée sur une case libre collée à un de mes pions
+function mineTargets(t){
+  if (!canPow(t,'mine')) return [];
+  const s=new Set(); for (const a of G.pawns[t]) if (a>=0) for (const n of nb4(a)) if (G.cells[n.i]>0 && !pawnAt(n.i) && !mineAt(n.i)) s.add(n.i);
+  return [...s];
+}
+const evN = () => G.round+':'+G.moves+':'+Math.random().toString(36).slice(2,6);
+// un pion arrive sur une case : s'il y a une mine, il saute
+function landOn(p,k,i){
+  const m=mineAt(i); if (!m) return false;
+  G.mines=G.mines.filter(x=>x!==m); G.pawns[p][k]=-1;
+  G.ev={k:'mine', by:m.by, at:i, vic:p, n:evN()}; playEv(G.ev); return true;
+}
+// fin d'une action de pouvoir (comme un coup) : tour suivant
+function powFinish(t){
+  if (online() && M){ M.fm=M.fm||[0,0]; M.fm[t]=1; }
+  G.moves++; G.ver++; G.msg=''; G.pick=null; G.jumpOn=false; G.hint=null; G.mineOn=false; premove=null;
+  if (deadCheck()) { commit(); return; }
+  G.turn=1-t; startTurn(); commit();
+}
+// un joueur sans pion perd la manche
+function deadCheck(){
+  for (let p=0;p<2;p++) if (G.pawns[p].every(x=>x<0)){ G.msg=`${S[p].name} ${T("n'a plus de pion.")}`; endRound(1-p); return true; }
+  return false;
+}
+// durée de vie des mines : elles disparaissent quand leur poseur commence son 2e tour après la pose
+function mineTick(){
+  if (!G.mines || !G.mines.length) return;
+  for (const m of G.mines) if (m.by===G.turn) m.life--;
+  const gone=G.mines.filter(m=>m.life<=0); G.mines=G.mines.filter(m=>m.life>0);
+  if (gone.some(m=>m.by===humanSeat())) toast(`💣 ${T("Ta mine a disparu.")}`);
+}
+// défense de v contre l'attaque de t : Poids lourd (pousser, inverser)
+function heavyBlocks(t, v, at){
+  if (v===t || powN(v,'heavy')<=0) return false;
+  powSpend(v,'heavy'); G.ev={k:'heavy', by:t, at, n:evN()}; playEv(G.ev); return true;
+}
 function doPush(tg){
-  const t=G.turn; markPow(t,'push'); const def=LD[1-t]&&LD[1-t].def, n=G.round+':'+G.moves, hit=def && def.k===tg.k2 && G.df && G.df[1-t];
-  if (hit) G.df[1-t]=0;   // une défense ne sert qu'une fois
-  if (hit && def.t==='heavy'){ G.ev={k:'heavy', by:t, at:tg.b, n}; playEv(G.ev); endPower(t); return; }
-  G.cells[tg.a]--;
-  if (hit && def.t==='ghost'){   // il passe à travers : c'est le pousseur qui atterrit derrière
-    const dead=isHole(tg.c); G.pawns[t][tg.k] = dead ? -1 : tg.c; if (dead) G.dyn=(G.dyn||[]).filter(d=>d.i!==tg.c);
-    look(t,tg.k,tg.a,tg.c); G.last={p:t,from:tg.a,to:tg.c,jump:0};
-    G.ev={k:'ghost', by:t, at:tg.b, to:tg.c, dead, n}; playEv(G.ev); endPower(t); return;
-  }
-  const dead=isHole(tg.c); G.pawns[t][tg.k]=tg.b; G.pawns[1-t][tg.k2] = dead ? -1 : tg.c;
-  if (dead) G.dyn=(G.dyn||[]).filter(d=>d.i!==tg.c);
-  look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0}; fx(tg.a,tg.b,t,G.cells[tg.a]===0);
-  G.ev={k:'push', by:t, from:tg.b, to:tg.c, dead, n}; playEv(G.ev);
-  endPower(t);
+  const t=G.turn; if (!canPow(t,'push')) return; powSpend(t,'push');
+  if (heavyBlocks(t, tg.p2, tg.b)){ powFinish(t); return; }
+  G.cells[tg.a]--; G.pawns[t][tg.k]=tg.b; look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0};
+  fx(tg.a,tg.b,t,G.cells[tg.a]===0);
+  let dead=G.cells[tg.c]===0;
+  if (dead) G.pawns[tg.p2][tg.k2]=-1; else { G.pawns[tg.p2][tg.k2]=tg.c; look(tg.p2,tg.k2,tg.b,tg.c); }
+  G.ev={k:'push', by:t, vic:tg.p2, from:tg.b, to:tg.c, dead, n:evN()}; playEv(G.ev);
+  if (!dead) landOn(tg.p2, tg.k2, tg.c);
+  powFinish(t);
 }
-function doSwap(k, k2){
-  const t=G.turn; if (!canPow(t,'swap')) return; const a=G.pawns[t][k], b=G.pawns[1-t][k2]; if (a<0||b<0) return;
-  markPow(t,'swap'); G.pawns[t][k]=b; G.pawns[1-t][k2]=a; look(t,k,a,b); G.last={p:t,from:a,to:b,jump:0};
-  G.ev={k:'swap', by:t, at:b, n:G.round+':'+G.moves}; playEv(G.ev); endPower(t);
+function doSwap(tg){
+  const t=G.turn; if (!canPow(t,'swap')) return; powSpend(t,'swap');
+  if (heavyBlocks(t, 1-t, tg.b)){ powFinish(t); return; }
+  G.cells[tg.a]--; G.pawns[t][tg.k]=tg.b; look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0};
+  const dead=G.cells[tg.a]===0;
+  G.pawns[1-t][tg.k2]= dead ? -1 : tg.a;
+  G.ev={k:'swap', by:t, at:tg.b, to:tg.a, dead, n:evN()}; playEv(G.ev);
+  powFinish(t);
 }
-function placeDyn(i){
-  const t=G.turn; if (!canPow(t,'dyn') || !movesFor(t).some(m=>m[1]===i)) return;
-  markPow(t,'dyn'); dynTick(); (G.dyn=G.dyn||[]).push({i, by:t, left:6});
-  G.ev={k:'dyn', by:t, at:i, n:G.round+':'+G.moves}; playEv(G.ev);
-  G.moves++; G.ver++; G.msg=''; G.pick=null; G.dynOn=false; premove=null; G.turn=1-t; startTurn(); commit();
+function placeMine(i){
+  const t=G.turn; if (!mineTargets(t).includes(i)) return; powSpend(t,'mine');
+  const id=evN(); (G.mines=G.mines||[]).push({i, by:t, life:2, id}); MINESEEN[id]=performance.now();
+  G.ev={k:'minep', by:t, at:i, n:id}; playEv(G.ev); setTimeout(()=>{ if (G && view==='game') renderGame(); }, MINE_SHOW+50);
+  powFinish(t);
+}
+// Mur : un saut par-dessus un de mes pions est refusé (le sauteur perd son tour). Renvoie true si le coup est bloqué.
+function wallBlocks(m){
+  if (!folie() || !m[2]) return false;
+  const t=G.turn, v=1-t, from=G.pawns[t][m[0]]; if (powN(v,'wall')<=0) return false;
+  const dr=Math.sign(((m[1]/5)|0)-((from/5)|0)), dq=Math.sign(m[1]%5-from%5);
+  for (let i=from+dr*5+dq; i!==m[1]; i+=dr*5+dq) if (G.pawns[v].includes(i)){
+    powSpend(v,'wall'); G.J[t]=Math.max(0,(G.J[t]||0)-1);
+    G.ev={k:'wall', by:t, at:i, n:evN()}; playEv(G.ev); powFinish(t); return true; }
+  return false;
 }
 function playEv(ev){
-  if (!ev || !S[ev.by]) return; const who=S[ev.by].name, vic=S[1-ev.by].name;
+  if (!ev || !S[ev.by]) return; const who=S[ev.by].name, vic=S[ev.vic!=null?ev.vic:1-ev.by].name;
+  const flash=(i)=>{ const el=cellEls&&cellEls[i]; if (el){ el.classList.add('heavyhit'); setTimeout(()=>el.classList.remove('heavyhit'),900); } };
   if (ev.k==='push'){ sfx.wizz(); vibrate([30,30,60]);
-    if (ev.dead){ setTimeout(()=>boom(ev.to, 1-ev.by), 250); toast(`💥 ${who} ${T("pousse")} ${vic} ${T("dans le vide : un pion de moins !")}`); }
-    else toast(`💥 ${who} ${T("pousse")} ${vic} !`); }
-  else if (ev.k==='ghost'){ sfx.wizz(); vibrate([30,30,60]);
-    if (ev.dead){ setTimeout(()=>boom(ev.to, ev.by), 250); toast(`👻 ${T("Fantôme !")} ${who} ${T("passe à travers… et tombe dans le trou !")}`); }
-    else toast(`👻 ${T("Fantôme !")} ${who} ${T("passe à travers")} ${vic}.`); }
-  else if (ev.k==='heavy'){ sfx.round(); vibrate([60,40,60]); toast(`🏋️ ${T("Poids lourd ! Impossible de pousser ce pion.")}`); const el=cellEls&&cellEls[ev.at]; if (el){ el.classList.add('heavyhit'); setTimeout(()=>el.classList.remove('heavyhit'),900); } }
-  else if (ev.k==='swap'){ sfx.jump(); vibrate([20,30,20]); toast(`🔄 ${who} ${T("échange sa place avec")} ${vic} !`); }
-  else if (ev.k==='dyn'){ sfx.jump(); toast(`🧨 ${who} ${T("pose une dynamite (3 tours)")}`); }
-  else if (ev.k==='wall'){ sfx.round(); vibrate([60,40,60]); toast(`🧱 ${T("Mur ! Impossible de sauter par-dessus. Tour perdu.")}`); const el=cellEls&&cellEls[ev.at]; if (el){ el.classList.add('heavyhit'); setTimeout(()=>el.classList.remove('heavyhit'),900); } }
-  else if (ev.k==='jump' || ev.k==='def'){ const me=ev.by===humanSeat(), see=me || seesPow(); if (me) toast(ev.k==='jump' ? `🦘 ${T("Un saut de plus pour cette manche !")}` : `${PW[ev.d].e} ${T(PW[ev.d].n)} ${T("activé pour cette manche")}`); else if (see) toast(`👁️ ${who} ${T("active")} ${ev.k==='jump'?'🦘 '+T("Saut"):PW[ev.d].e+' '+T(PW[ev.d].n)}`); }
+    const own=ev.vic===ev.by;
+    if (ev.dead){ setTimeout(()=>boom(ev.to, ev.vic), 250); toast(own ? `💥 ${who} ${T("pousse son propre pion dans le vide !")}` : `💥 ${who} ${T("pousse")} ${vic} ${T("dans le vide : un pion de moins !")}`); }
+    else toast(own ? `💥 ${who} ${T("pousse son autre pion.")}` : `💥 ${who} ${T("pousse")} ${vic} !`); }
+  else if (ev.k==='swap'){ sfx.jump(); vibrate([20,30,20]);
+    if (ev.dead){ setTimeout(()=>boom(ev.to, 1-ev.by), 250); toast(`🔄 ${who} ${T("échange sa place avec")} ${vic}… ${T("qui tombe dans le trou !")}`); }
+    else toast(`🔄 ${who} ${T("échange sa place avec")} ${vic} !`); }
+  else if (ev.k==='heavy'){ sfx.round(); vibrate([60,40,60]); toast(`🏋️ ${T("Poids lourd ! Ce pion ne bouge pas, le pouvoir est perdu.")}`); flash(ev.at); }
+  else if (ev.k==='wall'){ sfx.round(); vibrate([60,40,60]); toast(`🧱 ${T("Mur ! Impossible de sauter par-dessus. Tour perdu.")}`); flash(ev.at); }
+  else if (ev.k==='minep'){ sfx.jump(); MINESEEN[ev.n]=MINESEEN[ev.n]||performance.now(); toast(`💣 ${who} ${T("pose une mine… regarde bien, elle disparaît dans 5 secondes !")}`); setTimeout(()=>{ if (G && view==='game') renderGame(); }, MINE_SHOW+50); }
+  else if (ev.k==='mine'){ vibrate([80,40,120]); setTimeout(()=>boom(ev.at, ev.vic), 150); toast(`💣 ${T("Boum ! La mine fait perdre un pion à")} ${S[ev.vic]?S[ev.vic].name:''} !`); }
 }
-const seesPow = () => { const me=humanSeat(); return me!=null && LD[me] && LD[me].vis; };
-// Au début de la partie : choisir son équipement (le pion qui pousse, une défense secrète). Dynamite et Inversion viennent si on en a.
+const mineVisible = m => MINESEEN[m.id]!=null && performance.now()-MINESEEN[m.id] < MINE_SHOW;
+// Vestiaire (au début de la partie, hors chrono)
 function loadoutAsk(){
-  if (!M || !M.fol || !online() || LDASK===M.id || (net.seat!==0 && net.seat!==1)) return; LDASK=M.id;
-  const own=PW_KEYS.filter(pwHas);
-  if (own.length){ sheet={type:'loadout', sel:{pw:[], push:0, dk:0, vis:false}}; render(); }
-  else loadoutSend({pw:[], push:0, dk:0, vis:false});
+  if (!M || !M.fol || !online() || LDASK===M.id || (net.seat!==0 && net.seat!==1)) return; LDASK=M.id; LDSENT=null;
+  sheet={type:'loadout', sel:[]}; render();
 }
 function loadoutSend(sel){
-  const pw=sel.pw.filter(k=>pwHas(k)).slice(0,2), d=pw.find(k=>PW_DEF.includes(k));
-  const vis=!!sel.vis && pwHas('vision'); if (vis) pwUse('vision');
-  const ld={pw, push: pw.includes('push') ? sel.push : -1, def: d ? {t:d, k:sel.dk} : null, vis};
-  LD[net.seat]=ld; netSend({t:'ld', ld}); render();
+  const s=cleanSlots((sel||[]).filter(k=>k==='jump' || pwHas(k)));
+  LDSENT=s; sheet=null;
+  if (net.seat===0){ M.sl=M.sl||[null,null]; M.sl[0]=s; preCheck(); } else netSend({t:'ld', s});
+  render();
 }
-const cleanLD = d => { if (!d || typeof d!=='object') return null; const pw=(Array.isArray(d.pw)?d.pw:[]).filter(k=>PW_KEYS.includes(k)&&k!=='vision').slice(0,2), df=pw.find(k=>PW_DEF.includes(k));
-  return {pw, push:pw.includes('push')&&[0,1].includes(d.push)?d.push:-1, def:df&&d.def&&[0,1].includes(d.def.k)?{t:df,k:d.def.k}:null, vis:!!d.vis}; };
-// À côté du saut : un éclair « ? » dit qu'un joueur a des pouvoirs, sans dire lesquels. Avec Vision, on voit tout (et la Vision de l'autre s'il l'a aussi).
+// l'hôte lance la partie quand les deux sont prêts, ou à la fin des 10 s
+function preCheck(){
+  if (!G || !G.pre || !online() || net.seat!==0) return;
+  M.sl=M.sl||[null,null];
+  if ((M.sl[0] && M.sl[1]) || performance.now()>=G.preEnd) startPlay(); else commit();
+}
+function startPlay(){
+  M.sl=[0,1].map(t=>M.sl&&M.sl[t] ? M.sl[t] : ['jump','jump']);
+  G.pre=false; roundPowers(); if (sheet && sheet.type==='loadout'){ sheet=null; }
+  playIntro(); startTurn(); commit();
+}
+const preLeft = () => G && G.pre ? Math.max(0, Math.ceil((G.preEnd-performance.now())/1000)) : 0;
+// pendant le vestiaire : compte à rebours ; l'hôte lance la partie à 0
+function preTick(){
+  const el=document.getElementById('ldtime'); if (el) el.textContent=preLeft()+' s';
+  let bar=document.getElementById('prebar');
+  if (!(sheet && sheet.type==='loadout')){
+    if (!bar){ bar=document.createElement('div'); bar.id='prebar'; bar.className='prebar'; document.body.appendChild(bar); }
+    const mine=LDSENT||[]; bar.innerHTML=`<b>${T("La partie commence dans")} ${preLeft()} s</b><small>${mine.length?`${T("Ton équipement :")} ${mine.map(k=>PW[k].e).join(' ')}`:T("En attente de ton adversaire…")}</small>`;
+  } else if (bar) bar.remove();
+  if (performance.now()>=G.preEnd){
+    if (sheet && sheet.type==='loadout' && !LDSENT) loadoutSend(sheet.sel);   // temps écoulé : ce qui est choisi, complété par des Sauts
+    if (online() && net.seat===0) preCheck();
+  }
+}
+// l'inventaire du défenseur baisse quand son Poids lourd ou son Mur sert (l'action vient de l'autre téléphone)
+function pwSync(prevM){
+  const me=humanSeat(); if (me!==0 && me!==1 || !M || !M.used || !M.used[me]) return;
+  const before=(prevM && prevM.id===M.id && prevM.used && prevM.used[me]) || {};
+  for (const k in M.used[me]) if (!before[k] && k!=='jump') pwUse(k);
+}
+// À côté du saut : mes pouvoirs restants dans la manche ; ceux de l'adversaire restent un mystère (éclair).
 function powTags(side){
-  if (!folie() || !LD[side]) return '';
-  const L=LD[side], me=humanSeat(), mine=side===me, see=mine || seesPow();
+  if (!folie() || G.pre) return '';
+  const me=humanSeat(), mine=side===me, sl=slotsOf(side).filter(k=>k!=='jump');
   const box=(e,on,tt)=>`<span class="jsq pwq${on?' on':''}" title="${esc(tt)}" aria-label="${esc(tt)}">${e}</span>`;
-  if (!see) return L.pw.length ? box('⚡', L.pw.some(k=>!powUsed(side,k)), T("Pouvoir mystère")) : '';
-  return L.pw.map(k=>box(PW[k].e, !powUsed(side,k) || (PW_DEF.includes(k) && G.df && G.df[side]), T(PW[k].n))).join('') + (L.vis && (mine || seesPow()) ? box('👁️', true, T("Vision")) : '');
+  if (!mine) return sl.length ? box('⚡', sl.some(k=>powN(side,k)>0), T("Pouvoir mystère")) : '';
+  return [...new Set(sl)].map(k=>box(PW[k].e+(powN(side,k)>1?'²':''), powN(side,k)>0, T(PW[k].n))).join('');
 }
 function doMove(m){
-  if (folie() && m[2]){   // Mur : un saut par-dessus le pion protégé est refusé, le tour est perdu et le mur s'éteint
-    const t0=G.turn, from0=G.pawns[t0][m[0]], wp=defPawn(1-t0);
-    if (wp>=0 && defOn(1-t0,'wall')){ const dr=Math.sign(((m[1]/5)|0)-((from0/5)|0)), dq=Math.sign(m[1]%5-from0%5); for (let i=from0+dr*5+dq; i!==m[1]; i+=dr*5+dq) if (i===wp){ G.df[1-t0]=0; G.ev={k:'wall', by:t0, at:wp, n:G.round+':'+G.moves}; playEv(G.ev); endPower(t0); return; } }
-  }
+  if (G.pre) return;
+  if (wallBlocks(m)) return;   // Mur : saut refusé, tour perdu
   (HIST[G.round]=HIST[G.round]||[]).push({cells:G.cells.slice(), pawns:G.pawns.map(p=>[...p]), jumps:G.J.slice(), turn:G.turn, move:m.slice()});
   const t=G.turn, from=G.pawns[t][m[0]];
   G.cells[from]--; G.pawns[t][m[0]]=m[1]; if (m[2]) G.J[t]=Math.max(0,(G.J[t]||0)-1);
@@ -1997,7 +2083,8 @@ function doMove(m){
   if (fell) burst(from, '#2ef2ff'); if (t===humanSeat()) vibrate(6);
   if (isParc()){ G.turn=0; G.pick=0; G.turnAt=performance.now(); commit(); parcAfter(); return; }
   if (trapCheck(t, m[1])) return;
-  if (G.dyn && G.dyn.length) dynTick(); G.dynOn=false;
+  G.mineOn=false;
+  if (folie() && landOn(t, m[0], m[1]) && deadCheck()){ commit(); return; }
   G.turn=1-t; startTurn(); commit();
   if (M && M.assist && vsAI && !TR && t===0) assistRate();
   if (vsAI && t===1 && !G.over) botAfterMove();
@@ -2029,11 +2116,14 @@ function startMatch(){
   if (dailyNext){ M.daily=true; const db=dailyBoard(); M.order=[db, ...M.order.filter(x=>x!==db)]; dailyNext=false; }
   HIST={}; AN=null; CHAT=[]; unread=0; LD=[null,null];
   view='game'; sheet=null; S=sides(); buildBoard(); startRound();
-  if (M.fol) setTimeout(loadoutAsk, INTRO_MS+400);
+  if (M.fol) loadoutAsk();
 }
 function startRound(){
   premove=null; AN=null; wzLeft=3; wzLast=0; botTalk=0; resetLook();
-  G=newRound(); startTurn(); trapStart(); playIntro(); commit(); musicStart();
+  G=newRound();
+  if (M.fol && M.round===1 && !M.sl){ G.pre=true; G.preEnd=performance.now()+LD_MS; G.J=[0,0]; }   // vestiaire avant la 1re manche
+  else if (M.fol) roundPowers();
+  startTurn(); trapStart(); if (!G.pre) playIntro(); commit(); musicStart();
 }
 function leaveGame(){
   if (TR){ trClear(TR); TR=null; }
@@ -2082,16 +2172,23 @@ function onCell(i){
     if (premove && aiGen(G.cells,G.pawns,[0,0],seat).some(m=>m[0]===premove.k && m[1]===i)){ premove.i=i; render(); }
     return;
   }
+  if (G.pre) return;
   if (folie()){
-    if (G.dynOn){ if (movesFor(G.turn).some(m=>m[1]===i)) placeDyn(i); else { G.dynOn=false; render(); } return; }
-    if (G.swapOn){
-      if (hitP===1-G.turn){ const alive=[0,1].filter(k=>G.pawns[G.turn][k]>=0), k=G.pick!=null&&G.pawns[G.turn][G.pick]>=0?G.pick:alive.length===1?alive[0]:null;
-        if (k==null){ toast(T("Touche d'abord ton pion, puis le pion adverse.")); return; } doSwap(k, G.pawns[1-G.turn].indexOf(i)); return; }
-      if (hitP===G.turn){ G.pick=G.pawns[G.turn].indexOf(i); render(); return; }
-      G.swapOn=false; render(); return;
+    const t=G.turn;
+    if (G.mineOn){ if (mineTargets(t).includes(i)) placeMine(i); else { G.mineOn=false; render(); } return; }
+    if (hitP!==undefined){
+      const k0=G.pick, byPick=x=>k0==null || x.k===k0;
+      const pu=pushTargets(t).filter(x=>x.b===i && byPick(x)), sw=hitP!==t ? swapTargets(t).filter(x=>x.b===i && byPick(x)) : [];
+      if (hitP===t){
+        // mon autre pion : on peut le pousser si le pion choisi le touche (sinon on change simplement de pion)
+        if (k0!=null && pu.length && G.pawns[t][k0]!==i){ sheet={type:'powpick', opts:[{k:'push',tg:pu[0]},{k:'sel',i}]}; render(); return; }
+      } else if (pu.length || sw.length){
+        if (new Set([...pu,...sw].map(x=>x.k)).size>1){ toast(T("Tes deux pions touchent ce pion : touche d'abord celui qui agit.")); return; }
+        if (pu.length && sw.length){ sheet={type:'powpick', opts:[{k:'push',tg:pu[0]},{k:'swap',tg:sw[0]}]}; render(); return; }
+        if (pu.length){ doPush(pu[0]); return; }
+        doSwap(sw[0]); return;
+      }
     }
-    const tg=pushTargets(G.turn).filter(x=>x.b===i);
-    if (tg.length){ doPush(tg[0]); return; }
   }
   if (hitP===G.turn){ const k=G.pawns[G.turn].indexOf(i); G.pick = G.pick===k ? null : k; G.hint=null; render(); return; }
   if (G.pick===null) return;
@@ -2278,18 +2375,21 @@ const peerOK = () => typeof Peer!=='undefined';
 const online = () => !!net;
 const PEER_PREFIX='dernierpas-v1-';
 function pack(){
-  return {t:P.time, M:M&&{...M, train:false, eloDelta:null, daily:false}, G:G&&{r:G.round,b:G.bid,c:G.cells.join(''),p:G.pawns,j:G.J,tu:G.turn,mv:G.moves,ms:G.msg,ck:G.clock.map(x=>Math.round(x)),o:G.over,w:G.winner,s:G.sum,dy:G.dyn||[],ev:G.ev||null,pu:G.pu||[0,0],df:G.df||[0,0]}};
+  return {t:P.time, M:M&&{...M, train:false, eloDelta:null, daily:false}, G:G&&{r:G.round,b:G.bid,c:G.cells.join(''),p:G.pawns,j:G.J,tu:G.turn,mv:G.moves,ms:G.msg,ck:G.clock.map(x=>Math.round(x)),o:G.over,w:G.winner,s:G.sum,dy:G.dyn||[],ev:G.ev||null,pu:G.pu||[0,0],df:G.df||[0,0],pl:G.pl||[{},{}],mn:G.mines||[],pr:G.pre?Math.max(1,Math.round(G.preEnd-performance.now())):0}};
 }
 function unpack(st){
   const prevG=G, prevM=M;
   if (TIMES.includes(st.t)) P.time=st.t;
   M=st.M;
   if (!M){ G=null; HIST={}; return; }
-  if (!prevM || prevM.id!==M.id){ HIST={}; AN=null; view='game'; sheet=null; S=sides(); buildBoard(); if (M.fol){ LD=[null,null]; setTimeout(loadoutAsk, INTRO_MS+400); } }
+  if (!prevM || prevM.id!==M.id){ HIST={}; AN=null; view='game'; sheet=null; S=sides(); buildBoard(); if (M.fol) setTimeout(loadoutAsk, 0); }
+  pwSync(prevM);
   const g=st.G;
-  G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,dyn:Array.isArray(g.dy)?g.dy:[],ev:g.ev||null,pu:Array.isArray(g.pu)?g.pu:[0,0],df:Array.isArray(g.df)?g.df:[0,0],last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
+  G = g ? {round:g.r,bid:g.b,cells:[...g.c].map(Number),pawns:g.p,J:g.j,turn:g.tu,pick:null,jumpOn:false,moves:g.mv,msg:g.ms,clock:g.ck,over:g.o,winner:g.w,sum:g.s,dyn:Array.isArray(g.dy)?g.dy:[],ev:g.ev||null,pu:Array.isArray(g.pu)?g.pu:[0,0],df:Array.isArray(g.df)?g.df:[0,0],pl:Array.isArray(g.pl)?g.pl:[{},{}],mines:Array.isArray(g.mn)?g.mn:[],pre:g.pr>0,preEnd:g.pr>0?(prevG&&prevG.pre?Math.min(prevG.preEnd,performance.now()+g.pr):performance.now()+g.pr):0,last:null,hint:null,hinting:false,ver:(prevG?prevG.ver:0)+1} : null;
   if (!G) return;
-  if (!prevG || prevG.round!==G.round || (prevM && prevM.id!==M.id)){ premove=null; AN=null; wzLeft=3; resetLook(); playIntro(); musicStart(); }
+  if (!prevG || prevG.round!==G.round || (prevM && prevM.id!==M.id)){ premove=null; AN=null; wzLeft=3; resetLook(); if (!G.pre) playIntro(); musicStart(); }
+  else if (prevG.pre && !G.pre){ if (sheet && sheet.type==='loadout') sheet=null; playIntro(); }
+  for (const m of G.mines) if (MINESEEN[m.id]==null) MINESEEN[m.id]=performance.now();
   else if (G.moves===prevG.moves+1){
     const t=prevG.turn;
     for (let k=0;k<2;k++) if (prevG.pawns[t][k]!==G.pawns[t][k]){
@@ -2328,7 +2428,7 @@ function onNetData(d){
     render(); afterChange(); return;
   }
   if (d.t==='full'){ if (net.mm && !net.opp){ const i=net.slot; try { net.peer.destroy(); } catch(e){} net=null; goMatch(i+1); return; } net.err=(T("Cette partie a déjà deux joueurs.")); render(); return; }
-  if (d.t==='ld'){ LD[other]=cleanLD(d.ld); render(); return; }
+  if (d.t==='ld'){ if (net.seat===0 && M && M.fol && G && G.pre){ M.sl=M.sl||[null,null]; M.sl[1]=cleanSlots(d.s); preCheck(); } return; }
   if (d.t==='nb'){ if (PEERS[other]) PEERS[other].nb=!!d.v; renderActions(); return; }
   if (d.t==='resign' && M && !M.done && (net.seat===0||net.seat===1)){
     forfeitWin(`${S[other].name} ${T("abandonne la partie.")}`); return; }
@@ -2522,7 +2622,7 @@ function renderGame(){
   const pt=new Set(preSeat!==null && premove && premove.i==null ? aiGen(G.cells,G.pawns,[0,0],preSeat).filter(m=>m[0]===premove.k).map(m=>m[1]) : []);
   const b=$('#board');
   b.style.setProperty('--pc', S[G.turn].hex); b.style.setProperty('--mc', S[preSeat!==null?preSeat:0].hex); b.style.setProperty('--lc', G.last ? S[G.last.p].hex : 'transparent');
-  const fol=folie() && playing && myTurn, pushSet=new Set(fol ? pushTargets(G.turn).map(x=>x.b) : []), swapSet=new Set(fol && G.swapOn ? G.pawns[1-G.turn].filter(x=>x>=0) : []), dynT=new Set(fol && G.dynOn ? movesFor(G.turn).map(m=>m[1]) : []), dynMap=new Map((G.dyn||[]).map(d=>[d.i,d]));
+  const fol=folie() && playing && myTurn && !G.pre, fk=x=>G.pick==null || x.k===G.pick, pushSet=new Set(fol ? pushTargets(G.turn).filter(x=>fk(x) && (x.p2!==G.turn || G.pick!=null)).map(x=>x.b) : []), swapSet=new Set(fol ? swapTargets(G.turn).filter(fk).map(x=>x.b) : []), dynT=new Set(fol && G.mineOn ? mineTargets(G.turn) : []), dynMap=new Map(folie() ? (G.mines||[]).filter(mineVisible).map(d=>[d.i,d]) : []);
   G.cells.forEach((v,i)=>{
     let cls='cell '+(v===0?'hole':'v'+v);
     if (pushSet.has(i)) cls+=' pushme'; if (swapSet.has(i)) cls+=' swapme'; if (dynT.has(i)) cls+=' dyntarget'; if (dynMap.has(i)) cls+=' dyncell';
@@ -2533,7 +2633,7 @@ function renderGame(){
     if (TR && TR.goal===i) cls+=' goal';
     if (G.bombs && ((G.bombs[0]===i && humanSeat()===0) || (G.over && G.bombs.includes(i)))) cls+=' bomb';
     const el=cellEls[i]; if (el.className!==cls) el.className=cls;
-    const dd=dynMap.get(i), html=(v===0?'':`<span class="num">${v}</span>`)+(dd?`<span class="dynm" aria-hidden="true">🧨<i>${Math.ceil(dd.left/2)}</i></span>`:''); if (el.innerHTML!==html) el.innerHTML=html;
+    const dd=dynMap.get(i), html=(v===0?'':`<span class="num">${v}</span>`)+(dd?`<span class="dynm" aria-hidden="true">💣</span>`:''); if (el.innerHTML!==html) el.innerHTML=html;
     const hp=[0,1].find(p=>G.pawns[p].includes(i));
     el.setAttribute('aria-label', `${sq(i)} : ${v===0?T('trou'):T('case')+' '+v}${hp!==undefined?(T(", pion de")+" ")+S[hp].name:''}`);
   });
@@ -2554,6 +2654,7 @@ function renderGame(){
   // statut
   const st=$('#gstatus'); let txt='', isMsg=false;
   if (TR) txt=trProg();
+  else if (G.pre) txt=`🎽 ${T("Vestiaire : choisis tes pouvoirs")}`;
   else if (G.bombPhase) txt=("💣 "+"<b>"+T("Pose ta bombe")+"</b>"+" "+T(": touche une case. Si l'adversaire marche dessus pendant ses 3 premiers coups, il perd la manche."));
   else if (G.over) txt = M.done ? `<b>${esc(S[mWinner()].name)}</b> ${T3(S[mWinner()].name,"remporte la partie")} ${Math.max(...M.wins)}-${Math.min(...M.wins)}` : `<b>${esc(S[G.winner].name)}</b> ${T3(S[G.winner].name,"gagne la manche.")} ${G.msg?esc(G.msg):''}`;
   else if (G.msg){ txt=esc(G.msg); isMsg=true; }
@@ -2597,9 +2698,10 @@ function renderActions(){
       a.push(btn('toc','fist',(T("Toc toc")),{dis:blk||wzLeft<=0||cd}));
       a.push(btn('haha','laugh',(T("Haha")),{dis:blk||wzLeft<=0||cd}));
     }
-    if (M.fol && (seat===0||seat===1) && LD[seat]){ const L=LD[seat];
-      for (const k of L.pw){ const on=k==='swap'&&G.swapOn || k==='dyn'&&G.dynOn, act=PW_DEF.includes(k)||k==='jump' ? 'pw-act' : 'pw-'+k;
-        a.push(`<button type="button" class="act${on?' on':''}" data-act="${act}" data-v="${k}" ${(k==='push'?canPow(seat,k):myTurn&&canPow(seat,k))?'':'disabled'} style="--pc:${S[seat].hex}"><span class="pwi">${PW[k].e}</span>${T(PW[k].n)}</button>`); }
+    if (M.fol && (seat===0||seat===1) && !G.pre){
+      for (const k of [...new Set(slotsOf(seat))].filter(k=>k!=='jump')){
+        const n=powN(seat,k), on=k==='mine'&&G.mineOn, dis=n<=0 || (k==='mine' && (!myTurn || !mineTargets(seat).length));
+        a.push(`<button type="button" class="act${on?' on':''}" data-act="${k==='mine'?'pw-mine':'pw-info'}" data-v="${k}" ${dis?'disabled':''} style="--pc:${S[seat].hex}"><span class="pwi">${PW[k].e}</span>${T(PW[k].n)}${n>1?' ×'+n:''}</button>`); }
     }
     if (M.assist) a.push(btn('leave-train','door',T("Quitter"),{cls:'quit'}));
     else if (seat!==-1) a.push(btn('resign','flag',online()?(T("Quitter")):(T("Abandon")),{cls:'quit'}));
@@ -2643,9 +2745,9 @@ let sheetKey='';
 function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
-  w.classList.toggle('center', ['ldone','limit','chalin','premium','loadout'].includes(sheet.type));
+  w.classList.toggle('center', ['ldone','limit','chalin','premium','loadout','powpick'].includes(sheet.type));
   w.hidden=false;
-  const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>")+sheetHTML();
+  const html=("<div class=\"grab\" aria-hidden=\"true\">"+"</div>"+(sheet.type==='loadout'?'':"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>"))+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
   const keep={}; $('#sheetBody').querySelectorAll('input[id]').forEach(i=>{ if (i.type!=='checkbox') keep[i.id]=i.value; });
   const foc=document.activeElement && document.activeElement.id;
@@ -2765,16 +2867,17 @@ function sheetHTML(){
     <p class="note">${T("Sans engagement, résiliable à tout moment depuis ton compte App Store ou Google Play.")}</p>`}
     ${window.LastepIAP&&LastepIAP.restore?`<button class="linkbtn" type="button" data-act="iap-restore">${T("Restaurer mes achats")}</button>`:''}
     <p class="note"><a href="cgu.html" style="color:inherit">${T("Conditions")}</a> · <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a></p>`; }
-  if (s.type==='loadout'){ const seat=net?net.seat:0, sl=s.sel, pk=k=>`${T("Pion en")} ${sq(START[seat][k])}`;
-    const own=PW_KEYS.filter(k=>k!=='vision' && pwHas(k)), full=sl.pw.length>=2, hasDef=sl.pw.some(k=>PW_DEF.includes(k));
-    const chip=k=>{ const on=sl.pw.includes(k), dis=!on && (full || (PW_DEF.includes(k) && hasDef)); return `<button type="button" class="ldo" data-act="ld-tog" data-v="${k}" aria-pressed="${on}" ${dis?'disabled':''}>${PW[k].e} ${T(PW[k].n)}<small>${pwLabel(k)}</small></button>`; };
-    const opt=(f,val,lab,on)=>`<button type="button" class="ldo" data-act="ld-set" data-v="${f}:${val}" aria-pressed="${on}">${lab}</button>`;
-    return `<div class="modicon">🤪</div><h2 style="padding:0">${T("Ton équipement")}</h2><p>${T("Choisis 2 pouvoirs au plus. Un seul par manche, chacun une seule fois dans la partie.")}</p>
-    <div class="ldg"><b>${T("Tes pouvoirs")} · ${sl.pw.length}/2</b><div class="ldr">${own.map(chip).join('')||`<small>${T("Aucun pouvoir : passe par la boutique.")}</small>`}</div></div>
-    ${sl.pw.includes('push')?`<div class="ldg"><b>💥 ${T("Le pion qui pousse")}</b><div class="ldr">${opt('push',0,pk(0),sl.push===0)}${opt('push',1,pk(1),sl.push===1)}</div></div>`:''}
-    ${hasDef?`<div class="ldg"><b>🤫 ${T("Pion protégé (secret)")}</b><div class="ldr">${opt('dk',0,pk(0),sl.dk===0)}${opt('dk',1,pk(1),sl.dk===1)}</div></div>`:''}
-    ${pwHas('vision')?`<div class="ldg"><b>👁️ ${T("Vision")} <small>${pwLabel('vision')}</small></b><small>${T("En plus de tes 2 pouvoirs : tu vois ceux des autres, et personne ne voit ta Vision.")}</small><div class="ldr">${opt('vis',1,T("Prendre"),!!sl.vis)}${opt('vis',0,T("Non"),!sl.vis)}</div></div>`:''}
-    <button class="primary big2" type="button" data-act="ld-ok">${T("C'est parti !")}</button>`; }
+  if (s.type==='loadout'){ const sl=s.sel, left=preLeft();
+    const slot=n=>{ const k=sl[n]; return k ? `<button type="button" class="ldslot on" data-act="ld-del" data-v="${n}" aria-label="${esc(T("Retirer"))} ${esc(T(PW[k].n))}"><b>${PW[k].e}</b><small>${T(PW[k].n)}</small></button>` : `<div class="ldslot"><b>?</b><small>${T("Emplacement")} ${n+1}</small></div>`; };
+    const chip=k=>{ const has=k==='jump'||pwHas(k), dis=!has || sl.length>=2 || (k==='mine' && sl.includes('mine'));
+      return `<button type="button" class="ldo" data-act="ld-add" data-v="${k}" ${dis?'disabled':''}><span class="lde">${PW[k].e}</span> ${T(PW[k].n)}<small>${has?pwLabel(k):T("Boutique")}</small></button>`; };
+    return `<div class="modicon">🎽</div><h2 style="padding:0">${T("Vestiaire")} <span class="ldt" id="ldtime">${left} s</span></h2>
+    <p>${T("Choisis 2 pouvoirs. Le même peut être pris deux fois (sauf la Mine). Chacun sert une fois par manche. Sans choix : Saut + Saut.")}</p>
+    <div class="ldslots">${slot(0)}${slot(1)}</div>
+    <div class="ldg"><div class="ldr">${PW_SLOT.map(chip).join('')}</div></div>
+    <button class="primary big2" type="button" data-act="ld-ok">${sl.length?T("Prêt !"):T("Prêt (Saut + Saut)")}</button>`; }
+  if (s.type==='powpick'){ const lab={push:`💥 ${T("Pousser")}`, swap:`🔄 ${T("Inverser")}`, sel:`👆 ${T("Choisir ce pion")}`};
+    return `<h2>${T("Que veux-tu faire ?")}</h2>${s.opts.map((o,n)=>`<button class="${o.k==='sel'?'secondary':'primary'}" type="button" data-act="pp-go" data-v="${n}">${lab[o.k]}</button>`).join('')}<button class="linkbtn" type="button" data-act="sheet-close">${T("Annuler")}</button>`; }
   if (s.type==='account'){ const A=window.Acc;
     if (!A) return `<h2>${T("Compte")}</h2><p>${T("Connexion impossible pour le moment.")}</p>`;
     if (A.on){
@@ -3029,7 +3132,7 @@ document.addEventListener('click', e=>{
     case 'daily': startDaily(); break;
     case 'support': if (CONFIG.supportUrl) window.open(CONFIG.supportUrl,'_blank','noopener'); break;
     case 'rules': sheet={type:'rules'}; render(); break;
-    case 'sheet-close': closeSheet(); break;
+    case 'sheet-close': if (sheet && sheet.type==='loadout') break; closeSheet(); break;
     case 'settings': sheet={type:'settings'}; render(); break;
     case 'resign': if (M && M.done){ leaveGame(); } else { sheet={type:'resign'}; render(); } break;
     case 'resign-ok': { const pl=matchPlayed(); sheet=null; resignNow(); if (pl) adInter(); break; }
@@ -3065,13 +3168,12 @@ document.addEventListener('click', e=>{
     case 'undo': undo(); break;
     case 'buy-pack': { const pk=CRED_PACK[v]; if ((P.coins||0)>=pk.price){ P.coins-=pk.price; credAdd(v, pk.n); sfx.win(); toast(`+${pk.n} ${v==='a'?T("analyses"):T("indices")}`); sheet=null; render(); } break; }
     case 'as-hint': assistHint(); break;
-    case 'pw-dyn': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'dyn')){ G.dynOn=!G.dynOn; G.swapOn=false; if (G.dynOn) toast(T("Touche une case où tu pourrais aller pour poser la dynamite.")); render(); } break;
-    case 'pw-swap': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'swap')){ G.swapOn=!G.swapOn; G.dynOn=false; if (G.swapOn) toast(T("Touche ton pion, puis le pion adverse avec qui échanger.")); render(); } break;
-    case 'pw-act': if (G && folie() && G.turn===humanSeat()) activate(v); break;
-    case 'pw-push': { const n=G&&folie()?pushTargets(humanSeat()).length:0; toast(n ? T("Touche le pion adverse qui clignote pour le pousser.") : T("Pour pousser : ton pion pousseur doit être collé à un pion adverse, avec une case libre ou un trou derrière lui.")); break; }
-    case 'ld-set': { const [f,val]=String(v).split(':'); const sl=sheet&&sheet.sel; if (sl){ if (f==='push') sl.push=+val; if (f==='dk') sl.dk=+val; if (f==='vis') sl.vis=val==='1'; render(); } break; }
-    case 'ld-tog': { const sl=sheet&&sheet.sel; if (sl){ if (sl.pw.includes(v)) sl.pw=sl.pw.filter(k=>k!==v); else if (sl.pw.length<2 && !(PW_DEF.includes(v) && sl.pw.some(k=>PW_DEF.includes(k)))) sl.pw.push(v); render(); } break; }
-    case 'ld-ok': { const sl=sheet&&sheet.sel; sheet=null; if (sl) loadoutSend(sl); if (sl&&sl.pw.some(k=>PW_DEF.includes(k))) toast(T("🤫 Ton pion protégé est secret : retiens bien lequel !")); break; }
+    case 'pw-mine': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'mine')){ G.mineOn=!G.mineOn; G.pick=null; if (G.mineOn) toast(T("Touche une case libre collée à un de tes pions pour poser la mine.")); render(); } break;
+    case 'pw-info': if (PW[v]) toast(`${PW[v].e} ${T(PW[v].d)}`); break;
+    case 'pp-go': { const o=sheet&&sheet.opts&&sheet.opts[+v]; sheet=null; if (o && G){ if (o.k==='push') doPush(o.tg); else if (o.k==='swap') doSwap(o.tg); else if (o.k==='sel'){ G.pick=G.pawns[G.turn].indexOf(o.i); } } render(); break; }
+    case 'ld-add': { const sl=sheet&&sheet.sel; if (sl && sl.length<2 && !(v==='mine' && sl.includes('mine')) && (v==='jump' || pwHas(v))){ sl.push(v); render(); } break; }
+    case 'ld-del': { const sl=sheet&&sheet.sel; if (sl){ sl.splice(+v,1); render(); } break; }
+    case 'ld-ok': { const sl=sheet&&sheet.sel; if (sl) loadoutSend(sl); break; }
     case 'leave-train': { const pl=matchPlayed(); leaveGame(); if (pl) adInter(); break; }
     case 'ai-assist': sheet={type:'ai', assist:true}; render(); break;
     case 'ai-mode': if (sheet && sheet.type==='ai'){ sheet.assist=v==='1'; P.aiTrain=sheet.assist; saveP(); render(); } break;
@@ -3149,6 +3251,8 @@ setInterval(()=>{
   if (isParc() && view==='game') parcTick(dt);
   if (TR && TR.mode && TR.mode!=='rush' && view==='game'){ const el=document.getElementById('clk0'); if (el) el.textContent=fmt(now-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)); }
   if (G && !G.over && view==='game' && !document.hidden){ ptAdd(Math.min(dt,1000)); P.playMs=(P.playMs||0)+Math.min(dt,1000); if (P.playMs>=60000){ P.playMs-=60000; addCoins(2,true); } }
+  if (!(G && G.pre)){ const pb=document.getElementById('prebar'); if (pb) pb.remove(); }
+  if (G && G.pre && view==='game'){ preTick(); return; }
   if (!G || G.over || now<introUntil || G.noClock || G.bombPhase) return;
   G.clock[G.turn]=Math.max(0,G.clock[G.turn]-dt);
   if (G.clock[G.turn]<=0 && (!online()||G.turn===net.seat)){ G.msg=`${T("Temps écoulé pour")} ${S[G.turn].name}.`; endRound(1-G.turn); commit(); return; }
@@ -4471,7 +4575,7 @@ function forfeitWin(msg){
 function onlineWatch(){
   if (!online() || (net.seat!==0 && net.seat!==1) || !M || M.done || !G || view!=='game') return;
   const me=net.seat;
-  if (!firstDone() && M.round===1 && !G.over && performance.now()>=introUntil && G.turnAt){
+  if (!firstDone() && M.round===1 && !G.over && !G.pre && performance.now()>=introUntil && G.turnAt){
     const el=performance.now()-Math.max(G.turnAt,introUntil);
     if (el>AFK_MS) return abortMatch(G.turn===me ? (T("Tu n'as pas joué ton premier coup à temps.")) : (T("Ton adversaire n'a pas joué son premier coup à temps.")));
   }
@@ -4890,7 +4994,7 @@ async function goldBuy(id){
   sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
 }
 function pwBuy(k, gold){
-  if (!PW[k]) return; const price=gold?PW_GOLD:PW_PRICE;
+  if (!PW[k]) return; const price=gold?PW_GOLD:pwPrice(k);
   if ((P.coins||0)<price){ SHOP.k='gold'; SHOP.i=0; render(); toast(T("Pas assez de pièces")); return; }
   P.coins-=price;
   if (gold) P.pw[k].u=Math.max(Date.now(), P.pw[k].u||0)+PW_GOLD_DAYS*864e5; else P.pw[k].n=(P.pw[k].n||0)+PW_PACK;
@@ -4937,7 +5041,7 @@ function renderShop(){
   let btn='', info='';
   if (sp && id){
     if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${T("tu en as")} ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small>`;
-      btn=`<div class="pwbtns"><button class="buybtn${P.coins<PW_PRICE?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">×${PW_PACK} · ${ic('coin')} ${PW_PRICE}</button><button class="buybtn gold${P.coins<PW_GOLD?' poor':''}" type="button" data-act="pw-gold" data-v="${id}">🥇 ${T("Gold 7 j")} · ${ic('coin')} ${PW_GOLD}</button></div>`; }
+      btn=`<div class="pwbtns"><button class="buybtn${P.coins<pwPrice(id)?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">×${PW_PACK} · ${ic('coin')} ${pwPrice(id)}</button><button class="buybtn gold${P.coins<PW_GOLD?' poor':''}" type="button" data-act="pw-gold" data-v="${id}">🥇 ${T("Gold 7 j")} · ${ic('coin')} ${PW_GOLD}</button></div>`; }
     else if (SHOP.k==='ref'){ const r=REFS[id]; info=`<span class="rar r-rare">${r.l==='fr'?'🇫🇷 '+T("Réf française"):'🇬🇧 '+T("Réf anglaise")}</span><h2>🔥 ${T("Réf culte")}</h2><small>${T("À envoyer pendant tes parties en ligne")}</small>`;
       btn=`<button class="buybtn${P.coins<r.p?' poor':''}" type="button" data-act="ref-buy" data-v="${id}">${T("Acheter")} · ${ic('coin')} ${r.p}</button>`; }
     else { const g=GOLD[id]; info=`${g.tag?`<span class="rar r-legendaire">${g.tag}</span>`:''}<h2>${T(g.n)}</h2><small>${ic('coin')} <b>+${g.c.toLocaleString('fr-FR')}</b> ${T("pièces")}</small>`;

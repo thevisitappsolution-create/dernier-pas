@@ -116,13 +116,13 @@ begin
       end if;
     end loop;
   end if;
-  -- pouvoirs achetés : {"push":{"pack":2,"gold":1}} ; 1500 les 15, Gold 3000 = 7 jours
+  -- pouvoirs achetés : {"push":{"pack":2,"gold":1}} ; 1500 les 15 (Mine 2000), Gold 3000 = 7 jours
   if jsonb_typeof(p_pwbuy) = 'object' then
     for k, v in select key, value from jsonb_each(p_pwbuy) loop
-      if k = any (array['push','heavy','ghost','swap','dyn','wall','jump','vision']) and jsonb_typeof(v) = 'object' then
+      if k = any (array['push','heavy','ghost','swap','dyn','wall','jump','vision','mine']) and jsonb_typeof(v) = 'object' then
         npack := greatest(0, least(coalesce((v->>'pack')::int, 0), 20)); ngold := greatest(0, least(coalesce((v->>'gold')::int, 0), 10));
         if npack > 0 then
-          cost := cost + 1500 * npack;
+          cost := cost + (case when k = 'mine' then 2000 else 1500 end) * npack;   -- la Mine : 2000 les 15
           pwj := jsonb_set(pwj, array[k], jsonb_build_object('n', coalesce((pwj #>> array[k,'n'])::int, 0) + 15 * npack, 'u', coalesce((pwj #>> array[k,'u'])::bigint, 0)), true);
         end if;
         if ngold > 0 then
