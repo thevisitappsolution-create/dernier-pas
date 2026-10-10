@@ -1316,6 +1316,7 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 @keyframes fxe{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
 #fxpow .fxe.up{animation-name:fxeu}@keyframes fxeu{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{transform:translate(-50%,-110%) scale(1);opacity:1}100%{transform:translate(-50%,-130%) scale(1);opacity:0}}
 #fxpow .fxe.wall{animation-name:fxew}@keyframes fxew{0%{transform:translate(-50%,0) scaleY(0);opacity:0}25%{transform:translate(-50%,-90%) scaleY(1.2);opacity:1}35%{transform:translate(-50%,-80%) scaleY(1)}80%{opacity:1}100%{transform:translate(-50%,-80%);opacity:0}}
+#fxpow .fxe.spin{animation-name:fxes}@keyframes fxes{0%{transform:translate(-50%,-50%) scale(.2) rotate(0);opacity:0}25%{opacity:.95}100%{transform:translate(-50%,-50%) scale(1.6) rotate(720deg);opacity:0}}
 #fxpow .fxe.drop{animation-name:fxed}@keyframes fxed{0%{transform:translate(-50%,-260%);opacity:0}40%{transform:translate(-50%,-50%);opacity:1}55%{transform:translate(-50%,-70%)}70%{transform:translate(-50%,-50%)}85%{opacity:1}100%{opacity:0}}
 #fxpow .fxe.blast{animation-name:fxeb}@keyframes fxeb{0%{transform:translate(-50%,-50%) scale(.2);opacity:1}40%{transform:translate(-50%,-50%) scale(2.2);opacity:1}100%{transform:translate(-50%,-50%) scale(2.6);opacity:0}}
 #fxpow .fxdizzy{position:absolute;inset:0;pointer-events:none}
@@ -1338,6 +1339,12 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .dmlist{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;margin-top:8px}
 .dmgo{display:block;margin:8px auto 0}
 #dmre.hot{box-shadow:0 0 14px #2ef2ff;border-color:#2ef2ff}
+.pwv{display:block!important;width:100%}.pwv .dmb{margin:0 auto}
+.stage .center:has(.pwv){width:min(300px,82vw);height:auto;min-height:170px}
+.dmhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.dmhead h2{margin:0;padding:0;flex:1;text-align:center}
+.dmar{width:44px;height:44px;border-radius:50%;border:1px solid #ffffff33;background:#ffffff12;color:inherit;font-size:1.6rem;line-height:1;cursor:pointer}
+.dmdots{display:flex;justify-content:center;gap:6px;margin:4px 0 10px}.dmdots button{width:38px;height:38px;border-radius:50%;border:2px solid #ffffff22;background:#ffffff0a;font-size:1.1rem;opacity:.55;cursor:pointer}.dmdots button.on{opacity:1;border-color:#2ef2ff;box-shadow:0 0 10px #2ef2ff88}
+.dmswipe{touch-action:pan-y}
 </style>
 
 </head>
@@ -1388,7 +1395,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 88,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 89,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1975,12 +1982,19 @@ function powAnim(ev, ctx){
   if (ev.k==='swap' && ev.a!=null){
     const A=C(ev.a), B=C(ev.b); if (!A||!B) return; const keep=[ev.b, ...(ev.dead?[]:[ev.a])]; hide(keep);
     const p=fxActor(ctx.skin(ev.by), A), v=fxActor(ctx.skin(ev.vic), B);
-    const flat=[{transform:'scale(1)'},{transform:'scale(1.35,.12)',offset:.3},{transform:'scale(1.35,.12)',offset:.7},{transform:'scale(.9,1.15)',offset:.85},{transform:'scale(1)'}];
-    p.firstChild.animate(flat,{duration:950,fill:'forwards'}); v.firstChild.animate(flat,{duration:950,fill:'forwards'});
-    p.animate([{transform:'translate(0,0)'},{transform:'translate(0,0)',offset:.3},{transform:fxMv(A,B,1),offset:.7},{transform:fxMv(A,B,1)}],{duration:950,easing:ease,fill:'forwards'});
-    v.animate([{transform:'translate(0,0)'},{transform:'translate(0,0)',offset:.3},{transform:fxMv(B,A,1),offset:.7},{transform:fxMv(B,A,1)}],{duration:950,easing:ease,fill:'forwards'}).onfinish=()=>{ if (ev.dead) v.animate(FALL(B,A),{duration:700,fill:'forwards'}); };
-    fxWord('SWOUP !', A, '#2ef2ff', 250); if (ev.dead) fxWord(T('PLOUF !'), A, '#ff3dd8', 1000);
-    done(keep, ev.dead?1750:1050, [p,v]); return;
+    // chacun décrit un demi-cercle autour du milieu (l'un par-dessus, l'autre par-dessous) en tournoyant, puis atterrit en s'écrasant
+    const mx=(B.x-A.x)/2, my=(B.y-A.y)/2;
+    const orbit=(bx,by,vx,vy)=>{ const k=[{transform:'translate(0px,0px) scale(1) rotate(0deg)', offset:0},{transform:'translate(0px,0px) scale(.85,1.15) rotate(0deg)', offset:.12}];
+      let last='';
+      for (let n=0;n<=10;n++){ const t=n/10, th=Math.PI*t, c=Math.cos(th), sn=Math.sin(th), x=bx+vx*c-vy*sn, y=by+vx*sn+vy*c;
+        last=`translate(${x}px,${y}px)`; k.push({transform:`${last} scale(${(1+0.35*Math.sin(Math.PI*t)).toFixed(3)}) rotate(${Math.round(360*t)}deg)`, offset:+(.15+.6*t).toFixed(3)}); }
+      k.push({transform:`${last} scale(1.2,.8) rotate(360deg)`, offset:.86},{transform:`${last} scale(1) rotate(360deg)`, offset:1}); return k; };
+    p.animate(orbit(mx,my,-mx,-my),{duration:1100,easing:'ease-in-out',fill:'forwards'});
+    v.animate(orbit(-mx,-my,mx,my),{duration:1100,easing:'ease-in-out',fill:'forwards'}).onfinish=()=>{ if (ev.dead) v.animate(FALL(B,A),{duration:700,fill:'forwards'}); };
+    const M={x:(A.x+B.x)/2, y:(A.y+B.y)/2, w:A.w, h:A.h, cx:(A.cx+B.cx)/2, cy:(A.cy+B.cy)/2};
+    fxEmoji('🌀', M, 120, 'spin'); fxEmoji('✨', A, 850, ''); fxEmoji('✨', B, 850, '');
+    fxWord('ZWIP !', M, '#b98bff', 300); if (ev.dead) fxWord(T('PLOUF !'), A, '#ff3dd8', 1150);
+    done(keep, ev.dead?1900:1200, [p,v]); return;
   }
   if (ev.k==='wall' && ev.from!=null){
     const A=C(ev.from), W=C(ev.at); if (!A||!W) return; const keep=[ev.from]; hide(keep);
@@ -2011,9 +2025,11 @@ function powAnim(ev, ctx){
 // Un mini-plateau rejoue chaque pouvoir avec les mêmes animations que dans la partie, sous-titres à l'appui.
 let DM=null; const DMH=new Set();
 const DM_SKIN = p => p===0 ? P.skin : (BOTS.medium||Object.values(BOTS)[0]).skin;
-const DMCTX={cell:i=>document.querySelector(`#dmb [data-i="${i}"]`), skin:p=>pawnSVG(DM_SKIN(p)), hide:DMH, redraw:()=>dmDraw()};
+// la fenêtre d'explication passe devant la Boutique
+const dmEl = () => { const sh=document.querySelector('#sheet:not([hidden]) .dmb'); return sh || document.querySelector('#screen .dmb'); };
+const DMCTX={cell:i=>{ const b=dmEl(); return b && b.querySelector(`[data-i="${i}"]`); }, skin:p=>pawnSVG(DM_SKIN(p)), hide:DMH, redraw:()=>dmDraw()};
 function dmDraw(){
-  const b=document.getElementById('dmb'); if (!b || !DM) return;
+  const b=dmEl(); if (!b || !DM || !DM.cells || b.dataset.k!==DM.k) return;
   b.innerHTML=DM.cells.map((v,i)=>{ const p=DM.pawns.findIndex(x=>x===i), m=DM.mine===i && DM.mineVis;
     return `<div class="dmc${v===0?' h':' v'+v}${DM.tap===i?' tap':''}" data-i="${i}">${v?`<span class="num">${v}</span>`:''}${m?'<span class="dmm">💣</span>':''}${p>=0 && !DMH.has(i)?`<span class="dmp">${pawnSVG(DM_SKIN(p))}${DM.badge && p===1?`<em>${DM.badge}</em>`:''}</span>`:''}${DM.tap===i?'<span class="dmf">👆</span>':''}</div>`; }).join('');
 }
@@ -2023,52 +2039,65 @@ const row = (vals) => [2,2,2,2,2, ...vals, 2,2,2,2,2];
 // chaque étape : [délai depuis l'étape précédente (ms), action]
 const DM_SCRIPTS={
   push:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Ton pion est collé à un adversaire.")); }],
-    [1300, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Touche son pion…")); }],
-    [900, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); dmSay(T("Tu prends sa place et il recule d'une case.")); }],
-    [2400, ()=>{ dmScene(row([2,2,2,0,2]), [6,7]); dmSay(T("Et si derrière lui il y a un trou…")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Collé à un adversaire")); }],
+    [1300, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
+    [900, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); dmSay(T("Il recule d'une case")); }],
+    [2400, ()=>{ dmScene(row([2,2,2,0,2]), [6,7]); dmSay(T("Un trou derrière ?")); }],
     [1300, ()=>{ DM.tap=7; dmDraw(); }],
-    [700, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,-1]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8, dead:1}, DMCTX); dmSay(T("…il tombe et perd son pion !")); }],
+    [700, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,-1]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8, dead:1}, DMCTX); dmSay(T("Il tombe !")); }],
     [2600, null]],
   swap:()=>[
-    [0, ()=>{ dmScene(row([2,1,2,2,2]), [6,7]); dmSay(T("Ta case est à 1, juste à côté de l'adversaire.")); }],
-    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Touche son pion…")); }],
-    [800, ()=>{ DM.tap=null; DM.cells[6]=0; DM.pawns=[7,-1]; powAnim({k:'swap', by:0, vic:1, a:6, b:7, dead:1}, DMCTX); dmSay(T("Vous échangez vos places. Seule ta case s'use : elle devient un trou… et il tombe !")); }],
-    [3200, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Si ta case tient encore, vous échangez simplement vos places.")); }],
+    [0, ()=>{ dmScene(row([2,1,2,2,2]), [6,7]); dmSay(T("Ta case est à 1")); }],
+    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
+    [800, ()=>{ DM.tap=null; DM.cells[6]=0; DM.pawns=[7,-1]; powAnim({k:'swap', by:0, vic:1, a:6, b:7, dead:1}, DMCTX); dmSay(T("Ta case s'écroule : il tombe !")); }],
+    [3200, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Sinon, simple échange")); }],
     [1200, ()=>{ DM.cells[6]--; DM.pawns=[7,6]; powAnim({k:'swap', by:0, vic:1, a:6, b:7}, DMCTX); }],
     [2200, null]],
   heavy:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {badge:'🏋️'}); dmSay(T("Ton adversaire a pris le Poids lourd.")); }],
-    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Tu essaies de le pousser…")); }],
-    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'heavy', by:0, vic:1, a:6, at:7, kind:'push'}, DMCTX); dmSay(T("BOING ! Rien ne bouge et ton pouvoir est perdu.")); }],
-    [2400, ()=>{ DM.badge=null; dmDraw(); dmSay(T("Le Poids lourd ne protège qu'une fois par manche : l'attaque suivante passe.")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {badge:'🏋️'}); dmSay(T("Il a le Poids lourd")); }],
+    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
+    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'heavy', by:0, vic:1, a:6, at:7, kind:'push'}, DMCTX); dmSay(T("Bloqué : pouvoir perdu")); }],
+    [2400, ()=>{ DM.badge=null; dmDraw(); dmSay(T("2e attaque : ça passe")); }],
     [1500, ()=>{ DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); }],
     [2200, null]],
   wall:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [5,6], {badge:'🧱'}); dmSay(T("Ton adversaire a pris le Mur.")); }],
-    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(T("Tu essaies de sauter par-dessus lui…")); }],
-    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'wall', by:0, from:5, at:6, to:7}, DMCTX); dmSay(T("BONK ! Le saut est refusé et tu perds ton tour.")); }],
-    [2600, ()=>{ DM.badge=null; dmDraw(); dmSay(T("Le Mur ne bloque qu'un saut par manche.")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [5,6], {badge:'🧱'}); dmSay(T("Il a le Mur")); }],
+    [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
+    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'wall', by:0, from:5, at:6, to:7}, DMCTX); dmSay(T("Saut refusé, tour perdu")); }],
+    [2600, ()=>{ DM.badge=null; dmDraw(); dmSay(T("1 fois par manche")); }],
     [2000, null]],
   jump:()=>[
-    [0, ()=>{ dmScene(row([2,2,0,2,2]), [5,6]); dmSay(T("Le Saut : ton pion passe par-dessus un pion ou un trou.")); }],
+    [0, ()=>{ dmScene(row([2,2,0,2,2]), [5,6]); dmSay(T("Par-dessus un pion ou un trou")); }],
     [1400, ()=>{ DM.tap=8; dmDraw(); }],
-    [700, ()=>{ DM.tap=null; DM.cells[5]--; DM.pawns=[8,6]; powAnim({k:'hop', by:0, from:5, to:8}, DMCTX); dmSay(T("Une fois par manche pour chaque Saut de ton équipement. Gratuit !")); }],
+    [700, ()=>{ DM.tap=null; DM.cells[5]--; DM.pawns=[8,6]; powAnim({k:'hop', by:0, from:5, to:8}, DMCTX); dmSay(T("1 fois par manche · gratuit")); }],
     [2600, null]],
   mine:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,9]); dmSay(T("Pose une mine sur une case collée à ton pion : ça compte comme ton coup.")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,9]); dmSay(T("Pose-la à côté de toi")); }],
     [1500, ()=>{ DM.tap=7; dmDraw(); }],
-    [700, ()=>{ DM.tap=null; DM.mine=7; DM.mineVis=true; dmDraw(); powAnim({k:'minep', by:0, at:7}, DMCTX); dmSay(T("Tout le monde la voit pendant 5 secondes…")); }],
-    [2000, ()=>{ DM.mineVis=false; dmDraw(); dmSay(T("…puis elle devient invisible, même pour toi !")); }],
+    [700, ()=>{ DM.tap=null; DM.mine=7; DM.mineVis=true; dmDraw(); powAnim({k:'minep', by:0, at:7}, DMCTX); dmSay(T("Visible 5 secondes…")); }],
+    [2000, ()=>{ DM.mineVis=false; dmDraw(); dmSay(T("…puis invisible pour tous")); }],
     [1800, ()=>{ DM.cells[9]--; DM.pawns=[6,7]; powAnim({k:'slide', by:1, from:9, to:7}, DMCTX); }],
-    [650, ()=>{ DM.pawns=[6,-1]; dmDraw(); powAnim({k:'mine', vic:1, at:7}, DMCTX); dmSay(T("Le premier pion qui arrive dessus, même poussé, saute ! La mine disparaît au début de ton 2e tour.")); }],
+    [650, ()=>{ DM.pawns=[6,-1]; dmDraw(); powAnim({k:'mine', vic:1, at:7}, DMCTX); dmSay(T("Boum ! Elle part à ton 2e tour")); }],
     [3000, null]],
 };
-function powDemo(k){ if (!DM_SCRIPTS[k]) return; sheet={type:'powdemo', k}; DM={k, tok:Math.random()}; render(); dmRun(); }
-function dmRun(){
-  const tok=DM.tok=Math.random(), steps=DM_SCRIPTS[DM.k](); let t=0;
-  for (const [d,fn] of steps){ t+=d; setTimeout(()=>{ if (!DM || DM.tok!==tok || !sheet || sheet.type!=='powdemo') return; if (fn) fn(); else { dmSay(T("Touche « Revoir » pour la rejouer.")); const r=document.getElementById('dmre'); if (r) r.classList.add('hot'); } }, t); }
+function powDemo(k){ if (!DM_SCRIPTS[k]) return; sheet={type:'powdemo', k}; DM=null; render(); }
+// le mini-plateau présent à l'écran (Boutique ou fenêtre d'explication) joue la démo de son pouvoir, en boucle
+function dmHook(){
+  const b=dmEl(); if (!b){ if (DM) DM.tok=0; return; }
+  const k=b.dataset.k; if (!k || !DM_SCRIPTS[k]) return;
+  if (!DM || DM.k!==k || !DM.tok){ DM={k, tok:0}; dmRun(); } else dmDraw();
 }
+function dmRun(){
+  const tok=DM.tok=Math.random(), k=DM.k, steps=DM_SCRIPTS[k](); let t=0;
+  const alive=()=>{ const b=dmEl(); return DM && DM.tok===tok && DM.k===k && b && b.dataset.k===k; };
+  for (const [d,fn] of steps){ t+=d; setTimeout(()=>{ if (!alive()) return; if (fn) fn(); else setTimeout(()=>{ if (alive()) dmRun(); }, 600); }, t); }   // en boucle
+}
+function dmGo(dir){ if (!sheet || sheet.type!=='powdemo') return; const L=PW_SLOT, i=(L.indexOf(sheet.k)+dir+L.length)%L.length; sheet={type:'powdemo', k:L[i]}; render(); }
+// glisser à gauche / à droite dans la fenêtre : pouvoir suivant / précédent
+(()=>{ let x0=null, y0=0;
+  document.addEventListener('touchstart', e=>{ const t=e.target.closest && e.target.closest('.dmswipe'); x0=t?e.touches[0].clientX:null; y0=t?e.touches[0].clientY:0; }, {passive:true});
+  document.addEventListener('touchend', e=>{ if (x0==null) return; const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null; if (Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)) dmGo(dx<0?1:-1); }, {passive:true});
+})();
 /* ---------- Mode folie (parties entre amis, sans classement) ---------- */
 // Vestiaire : 10 s avant la partie (hors chrono) pour remplir 2 emplacements parmi Saut, Pousser, Inversion, Poids lourd, Mur et Mine.
 // Le même pouvoir peut être pris deux fois, sauf la Mine. Sans choix à temps : Saut + Saut.
@@ -3059,9 +3088,10 @@ function sheetHTML(){
     <div class="ldg"><div class="ldr">${PW_SLOT.map(chip).join('')}</div></div>
     <button class="primary big2" type="button" data-act="ld-ok">${sl.length?T("Prêt !"):T("Prêt (Saut + Saut)")}</button>`; }
   if (s.type==='powdemo'){ const w=PW[s.k];
-    return `<div class="modicon">${w.e}</div><h2 style="padding:0">${T(w.n)}</h2><div class="dmb" id="dmb"></div><p class="dmc" id="dmc"></p>
-    <div class="row2"><button class="secondary" type="button" id="dmre" data-act="pw-demo" data-v="${s.k}">↻ ${T("Revoir")}</button><button class="primary" type="button" data-act="sheet-close">${T("Compris !")}</button></div>
-    <div class="dmlist">${PW_SLOT.filter(k=>k!==s.k).map(k=>`<button type="button" class="linkbtn" data-act="pw-demo" data-v="${k}">${PW[k].e} ${T(PW[k].n)}</button>`).join('')}</div>`; }
+    return `<div class="dmswipe"><div class="dmhead"><button type="button" class="dmar" data-act="dm-go" data-v="-1" aria-label="${T("Précédent")}">‹</button><h2>${w.e} ${T(w.n)}</h2><button type="button" class="dmar" data-act="dm-go" data-v="1" aria-label="${T("Suivant")}">›</button></div>
+    <div class="dmb" data-k="${s.k}"></div><p id="dmc"></p>
+    <div class="dmdots">${PW_SLOT.map(k=>`<button type="button" class="${k===s.k?'on':''}" data-act="pw-demo" data-v="${k}" aria-label="${T(PW[k].n)}">${PW[k].e}</button>`).join('')}</div></div>
+    <button class="primary" type="button" data-act="sheet-close">${T("Compris !")}</button>`; }
   if (s.type==='powpick'){ const lab={push:`💥 ${T("Pousser")}`, swap:`🔄 ${T("Inverser")}`, sel:`👆 ${T("Choisir ce pion")}`};
     return `<h2>${T("Que veux-tu faire ?")}</h2>${s.opts.map((o,n)=>`<button class="${o.k==='sel'?'secondary':'primary'}" type="button" data-act="pp-go" data-v="${n}">${lab[o.k]}</button>`).join('')}<button class="linkbtn" type="button" data-act="sheet-close">${T("Annuler")}</button>`; }
   if (s.type==='account'){ const A=window.Acc;
@@ -3210,6 +3240,7 @@ function render(){
     renderTabs();
   }
   renderSheet();
+  dmHook();
 }
 
 /* ---------- Événements ---------- */
@@ -3358,6 +3389,7 @@ document.addEventListener('click', e=>{
     case 'pw-mine': if (G && folie() && G.turn===humanSeat() && canPow(G.turn,'mine')){ G.mineOn=!G.mineOn; G.pick=null; if (G.mineOn) toast(T("Touche une case libre collée à un de tes pions pour poser la mine.")); render(); } break;
     case 'pw-info': if (PW[v]) toast(`${PW[v].e} ${T(PW[v].d)}`); break;
     case 'pw-demo': if (PW[v]) powDemo(v); break;
+    case 'dm-go': dmGo(+v); break;
     case 'pp-go': { const o=sheet&&sheet.opts&&sheet.opts[+v]; sheet=null; if (o && G){ if (o.k==='push') doPush(o.tg); else if (o.k==='swap') doSwap(o.tg); else if (o.k==='sel'){ G.pick=G.pawns[G.turn].indexOf(o.i); } } render(); break; }
     case 'ld-add': { const sl=sheet&&sheet.sel; if (sl && sl.length<2 && !(v==='mine' && sl.includes('mine')) && (v==='jump' || pwHas(v))){ sl.push(v); render(); } break; }
     case 'ld-del': { const sl=sheet&&sheet.sel; if (sl){ sl.splice(+v,1); render(); } break; }
@@ -5193,7 +5225,7 @@ function refBuy(id){
   P.coins-=r.p; P.refs=[...new Set([...(P.refs||[]), id])]; saveP(); sfx.win(); toast(`🔥 ${T("Réf débloquée : tu peux l'envoyer en partie !")}`); render();
 }
 function specialView(k,id,big){
-  if (k==='pw'){ const w=PW[id]; return `<div class="spv${big?' big':''}"><span class="spe">${w.e}</span>${big?'':''}</div>`; }
+  if (k==='pw'){ const w=PW[id]; return big ? `<div class="spv big pwv"><div class="dmb" data-k="${id}"></div></div>` : `<div class="spv"><span class="spe">${w.e}</span></div>`; }
   if (k==='ref'){ const r=REFS[id]; return `<div class="spv ref${big?' big':''}"><span class="rbub">${big?esc(r.t):'💬'}</span></div>`; }
   if (k==='gold'){ const g=GOLD[id]; return `<div class="spv${big?' big':''}">${IMG(g.img,'gimg2')}</div>`; }
   return '';
@@ -5228,7 +5260,7 @@ function renderShop(){
   const view=(kk,ii,big)=>sp?specialView(kk,ii,big):itemView(kk,ii,big);
   let btn='', info='';
   if (sp && id){
-    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("Mode folie")} · ${T("tu en as")} ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2><small class="spd">${T(w.d)}</small><button type="button" class="linkbtn dmgo" data-act="pw-demo" data-v="${id}">▶ ${T("Voir comment ça marche")}</button>`;
+    if (SHOP.k==='pw'){ const w=PW[id]; info=`<span class="rar r-epique">${T("tu en as")} ${pwLabel(id)}</span><h2>${w.e} ${T(w.n)}</h2>`;
       btn=`<div class="pwbtns"><button class="buybtn${P.coins<pwPrice(id)?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">×${PW_PACK} · ${ic('coin')} ${pwPrice(id)}</button><button class="buybtn gold${P.coins<PW_GOLD?' poor':''}" type="button" data-act="pw-gold" data-v="${id}">🥇 ${T("Gold 7 j")} · ${ic('coin')} ${PW_GOLD}</button></div>`; }
     else if (SHOP.k==='ref'){ const r=REFS[id]; info=`<span class="rar r-rare">${r.l==='fr'?'🇫🇷 '+T("Réf française"):'🇬🇧 '+T("Réf anglaise")}</span><h2>🔥 ${T("Réf culte")}</h2><small>${T("À envoyer pendant tes parties en ligne")}</small>`;
       btn=`<button class="buybtn${P.coins<r.p?' poor':''}" type="button" data-act="ref-buy" data-v="${id}">${T("Acheter")} · ${ic('coin')} ${r.p}</button>`; }
