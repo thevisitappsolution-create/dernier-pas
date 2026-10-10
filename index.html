@@ -1252,7 +1252,12 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .lbsheet .lb2{flex:1 1 0;min-height:90px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;margin-right:-4px;scrollbar-width:thin;scrollbar-color:#8f7bff66 transparent}
 .lbsheet .lbload{flex:1 1 0}
 .lbsheet .lb2{padding-bottom:0}
-.lbsheet .lbme{margin-top:auto;padding:6px 0 0;background:linear-gradient(180deg,#0c0a1c00,#0c0a1c 8px)}
+.lbsheet .lbme{margin-top:auto;padding:6px 0 0;background:linear-gradient(180deg,#1d164800,#1d1648 8px)}
+/* popups : fond flouté, carte plus claire, bord lumineux et ombre pour la détacher */
+.scrim{background:rgba(5,3,16,.42);-webkit-backdrop-filter:blur(10px) saturate(1.15);backdrop-filter:blur(10px) saturate(1.15)}
+.overlay{background:rgba(5,3,16,.42);-webkit-backdrop-filter:blur(10px) saturate(1.15);backdrop-filter:blur(10px) saturate(1.15)}
+#sheet .sheet{background:linear-gradient(180deg,#2c2366,#1d1648);border:1px solid #a594ff70;box-shadow:inset 0 1px 0 #ffffff26,0 0 0 1px #00000066,0 0 34px #8f7bff59,0 28px 80px #000e}
+.pcard{background:linear-gradient(180deg,#2c2366,#1d1648)}
 .lbload{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
 .gimg{height:auto;aspect-ratio:attr(width)/attr(height)}
 .gimg:not(.logo):not(.art):not(.mmarena){aspect-ratio:1}
@@ -1415,7 +1420,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 98,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 99,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2256,6 +2261,7 @@ const mineVisible = m => MINESEEN[m.id]!=null && performance.now()-MINESEEN[m.id
 // Vestiaire (au début de la partie, hors chrono)
 function loadoutAsk(){
   if (!M || !M.fol || !online() || LDASK===M.id || (net.seat!==0 && net.seat!==1)) return; LDASK=M.id; LDSENT=null;
+  if (!PW_ON.some(pwHas)){ setTimeout(()=>loadoutSend([]),0); return; }   // aucun pouvoir acheté : deux sauts d'office
   sheet={type:'loadout', sel:[]}; render();
 }
 function loadoutSend(sel){
@@ -4661,17 +4667,7 @@ function closeSheet(){
   if (sheet.type==='ldone'){ sheet=null; trQuit(); return; }
   sheet=null; render();
 }
-(()=>{
-  const sb=$('#sheetBody'); let y0=null;
-  sb.addEventListener('touchstart', e=>{ y0 = sb.scrollTop<=0 ? e.touches[0].clientY : null; }, {passive:true});
-  sb.addEventListener('touchmove', e=>{ if (y0==null) return; const dy=e.touches[0].clientY-y0; sb.style.transform = dy>0 ? `${T("translateY(")}${dy}${T("px)")}` : ''; }, {passive:true});
-  sb.addEventListener('touchend', e=>{ if (y0==null) return; const dy=e.changedTouches[0].clientY-y0; sb.style.transform=''; y0=null; if (dy>90) closeSheet(); });
-})();
-document.addEventListener('keydown', e=>{
-  if (e.key!=='Escape') return;
-  if (sheet){ closeSheet(); return; }
-  if (!$('#party').hidden){ $('#party').hidden=true; stopConfetti(); }
-});
+// Les popups se ferment uniquement par la croix ou par un bouton d'action (ni glissement, ni clic à côté, ni Échap).
 
 /* ---------- Accès administrateur : appui long 5 s sur le pion de l'accueil ---------- */
 let admT=null;
@@ -4954,7 +4950,8 @@ const matchPlayed = () => !!(M && !TR && (M.done || M.rounds.length || (G && G.m
 /* ---------- Coffres ---------- */
 const CHESTS={bois:{n:(T("Coffre en bois")), c:'#c98a4b', coins:[30,60], item:.15, maxP:2},
   argent:{n:(T("Coffre d'argent")), c:'#cfe3ff', coins:[60,120], item:.35, maxP:4},
-  or:{n:(T("Coffre d'or")), c:'#ffd75e', coins:[120,250], item:.7, maxP:6}};
+  or:{n:(T("Coffre d'or")), c:'#ffd75e', coins:[120,250], item:.7, maxP:6},
+  legendaire:{n:(T("Coffre légendaire")), c:'#ff3dd8', coins:[300,600], item:1, maxP:6}};
 const chestSVG = c => `<svg viewBox="0 0 120 100" class="chest" aria-hidden="true"><defs><linearGradient id="chg${c.replace('#','')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}"/><stop offset="1" stop-color="#3a2410"/></linearGradient></defs>
   <g class="lid"><path d="M14 44 Q14 14 60 14 Q106 14 106 44 Z" fill="url(#chg${c.replace('#','')})" stroke="#000" stroke-width="3"/><path d="M14 44 H106" stroke="#000" stroke-width="3"/><rect x="52" y="14" width="16" height="30" fill="#ffd75e" stroke="#000" stroke-width="3"/></g>
   <rect x="14" y="44" width="92" height="46" rx="6" fill="url(#chg${c.replace('#','')})" stroke="#000" stroke-width="3"/><rect x="52" y="44" width="16" height="46" fill="#ffd75e" stroke="#000" stroke-width="3"/><rect x="54" y="52" width="12" height="14" rx="3" fill="#3a2410"/></svg>`;
@@ -4982,7 +4979,7 @@ function rewardDraw(){
   if (R.type==='chest' && !R.opened) body=`<p class="lvtag">${esc(R.why)}</p><button type="button" class="chestbtn shake" data-act="chest-pop" aria-label="${T("Ouvrir le coffre")}">${IMG('coffre-'+R.tier)}</button><h2 class="wtitle">${CHESTS[R.tier].n}</h2><p class="sub">${T("Touche pour ouvrir")}</p>`;
   else {
     const it=R.item, itn=it?CAT[it[0]][it[1]]:null;
-    body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${IMG('coffre-'+R.tier+'-ouvert')}</div>`:`<svg class="bigcoin" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>`}
+    body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${IMG('coffre-'+(R.tier==='legendaire'?'or':R.tier)+'-ouvert')}</div>`:`<svg class="bigcoin" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>`}
       <h2 class="wtitle">${T("Gagné !")}</h2><div class="gain">${ic('coin')} +<b>${R.coins}</b></div>
       ${itn?`<div class="loot"><div class="pv">${it[0]==='theme'?'🎨':it[0]==='trail'||it[0]==='win'?itn.e:pawnSVG({...P.skin,[it[0]]:it[1]})}</div><b>${esc(itn.n)}</b><small>${KIND_N[it[0]]}${rarity(itn.p)?' · '+rarity(itn.p).n:''}</small>${it[0]!=='theme'?`<button class="secondary" type="button" data-act="loot-equip">${T("Équiper")}</button>`:''}</div>`:''}
       ${!R.x2 && R.coins?adBtn('reward-x2',T("×2 pièces")):''}
@@ -5068,7 +5065,7 @@ const weekFrac = () => Math.min(1, Math.max(0, 1-(weekEnd()-Date.now())/(7*DAY_M
 function lgWeek(){
   const wk=weekKey(); P.lg=P.lg||{};
   if (P.lg.wk!==wk){
-    if (P.lg.wk && (P.lg.xp||0)>0) P.lg.due={wk:P.lg.wk, xp:P.lg.xp, rank:P.lg.rank||null};
+    if (P.lg.wk && (P.lg.xp||0)>0) P.lg.due={wk:P.lg.wk, xp:P.lg.xp, rank:P.lg.rank||null, n:P.lg.n||0};
     P.lg={...P.lg, wk, xp:0, rank:null}; saveP();
   }
   return P.lg;
@@ -5081,6 +5078,7 @@ async function lgSync(){
   if (!P.lgKey){ const a='abcdefghijklmnopqrstuvwxyz0123456789'; let k=''; for (let i=0;i<24;i++) k+=a[Math.floor(Math.random()*a.length)]; P.lgKey=k; saveP(); }
   lgWeek();
   try { await db.rpc('lastep_upsert', {p_uid:P.uid, p_key:P.lgKey, p_name:lgName(), p_skin:cleanSkin(P.skin), p_week:P.lg.wk, p_wxp:Math.min(100000,P.lg.xp||0), p_stars:parcTotal(), p_elo:arenaElo()}); } catch(e){}
+  if (window.Acc && Acc.on && (P.lg.xp||0)>0){ try { const r=await db.rpc('lastep_board', {p_mode:'adv', p_week:P.lg.wk, p_v:P.lg.xp||0}); if (r.data){ P.lg.rank=(r.data.above||0)+1; P.lg.n=r.data.n||0; saveP(); } } catch(e){} }
 }
 const lgName = () => P.name && P.name!==T('Toi') && P.name!=='Toi' ? P.name : `${T("Joueur")} ${P.uid.slice(0,4).toUpperCase()}`;
 // Le classement de l'Arène ne vient que des parties contre de vrais joueurs (l'ordinateur sert à s'entraîner)
@@ -5091,30 +5089,27 @@ const rivalRows = mode => RIVALS.map(([k,base],i)=>({bot:1, name:BOTS[k].name, s
 let LB={mode:'adv', rows:null, me:null, err:false, at:0};
 async function lbLoad(mode){
   LB={mode, rows:null, me:null, err:false, at:Date.now()}; render();
-  const db=lgClient(); lgWeek(); let real=[], myRank=null;
+  const db=lgClient(); lgWeek(); let real=[], n=0, above=0;
+  const acc=!!(window.Acc && Acc.on), myV = mode==='adv' ? (P.lg.xp||0) : arenaElo();
   if (db){
     try {
       const to = ms => new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), ms));
-      await Promise.race([lgSync(), to(6000)]);
-      if (mode==='adv'){
-        const r=await Promise.race([db.from('lastep_players').select('uid,name,skin,wxp').eq('week',P.lg.wk).gt('wxp',0).order('wxp',{ascending:false}).limit(50), to(6000)]);
-        if (r.error) throw r.error; real=(r.data||[]).map(x=>({uid:x.uid, name:x.name, skin:x.skin, v:x.wxp}));
-        const c=await Promise.race([db.from('lastep_players').select('uid',{count:'exact', head:true}).eq('week',P.lg.wk).gt('wxp',P.lg.xp||0), to(6000)]);
-        if (typeof c.count==='number') myRank=c.count+1;
-      } else {
-        const since=new Date(Date.now()-30*DAY_MS).toISOString();
-        const r=await Promise.race([db.from('lastep_players').select('uid,name,skin,elo').gte('updated_at',since).order('elo',{ascending:false}).limit(50), to(6000)]);
-        if (r.error) throw r.error; real=(r.data||[]).map(x=>({uid:x.uid, name:x.name, skin:x.skin, v:x.elo}));
-      }
+      if (acc) await Promise.race([lgSync(), to(6000)]);
+      // seuls les joueurs avec un compte figurent au classement (fonction côté serveur)
+      const r=await Promise.race([db.rpc('lastep_board', {p_mode:mode, p_week:P.lg.wk, p_v:myV}), to(6000)]);
+      if (r.error) throw r.error; const d=r.data||{};
+      real=(d.rows||[]).map(x=>({uid:x.uid, name:x.name, skin:x.skin, v:x.v})); n=d.n||0; above=d.above||0;
     } catch(e){ LB.err=true; }
   } else LB.err=true;
   if (LB.mode!==mode) return;
-  const mine={uid:P.uid, me:1, name:lgName(), skin:P.skin, v: mode==='adv' ? (P.lg.xp||0) : arenaElo()};
-  let rows=[...real.filter(x=>x.uid!==P.uid), mine, ...rivalRows(mode==='adv'?'adv':'arena')].sort((a,b)=>b.v-a.v || (a.me?-1:b.me?1:0));
-  { let n=0; rows=rows.map(x=>({...x, rk: x.bot ? null : ++n})); }
+  let rows=real.filter(x=>!acc || x.uid!==P.uid);
+  if (acc) rows.push({uid:P.uid, me:1, name:lgName(), skin:P.skin, v:myV});
+  rows.sort((a,b)=>b.v-a.v || (a.me?-1:b.me?1:0));
+  rows=rows.map((x,k)=>({...x, rk:k+1}));
   const meRow=rows.find(x=>x.me);
-  if (mode==='adv'){ P.lg.rank=meRow.rk; saveP(); }
-  LB.rows=rows; LB.me=meRow; if (sheet && sheet.type==='lb') render();
+  if (meRow && above+1>meRow.rk) meRow.rk=above+1;   // hors du top 50 : vraie place
+  if (mode==='adv' && acc){ P.lg.rank=meRow.rk; P.lg.n=n; saveP(); }
+  LB.rows=rows; LB.me=meRow||null; LB.acc=acc; LB.n=n; if (sheet && sheet.type==='lb') render();
 }
 function lbSheet(mode){ sheet={type:'lb'}; lbLoad(mode||'adv'); }
 function lbHTML(){
@@ -5122,21 +5117,29 @@ function lbHTML(){
   const tabs=`<div class="lbtabs"><button type="button" data-act="lb" data-v="adv" aria-pressed="${m==='adv'}">${IMG('icone-carte')}${T("Aventure")}</button><button type="button" data-act="lb" data-v="arena" aria-pressed="${m==='arena'}">${IMG('icone-epees')}${T("Arène")}</button></div>`;
   const head = m==='adv'
     ? `<div class="lbinfo2"><span class="pill tpill">⏳ ${T("Fin dans")} <b>${d} j ${h} h</b></span></div>
-       <div class="lbrew">${[['coffre-or','1'],['coffre-argent','2–3'],['coffre-bois','4–10']].map(([img,r])=>`<div>${IMG(img)}<b>${r}${r==='1'?(LANG==='en'?'st':'er'):''}</b></div>`).join('')}</div>`
+       <div class="lbrew" style="grid-template-columns:repeat(${lgTiers(LB.n).length},1fr)">${lgTiers(LB.n).map(([t,a,b])=>`<div>${IMG('coffre-'+t)}<b>${a===b?a+(a===1?(LANG==='en'?'st':'er'):''):`${a}–${b}`}</b></div>`).join('')}</div>`
     : `<p class="lbnote">${T("Steps des 30 derniers jours.")}</p>`;
   const title=`<div class="lbtitle">${IMG('icone-trophee')}<h2>${T("Classement")}</h2></div>`;
   if (!LB.rows) return `${title}${tabs}${head}<div class="lbload"><div class="radar small"></div><p class="sub">${T("Chargement…")}</p></div>`;
   const rows=LB.rows, me=LB.me, unit=m==='adv'?'XP':'';
-  const top=rows.filter(x=>!x.bot).slice(0,3); let rest=rows.filter(x=>!top.includes(x) && (x.bot || x.rk<=50 || x.me));
+  const top=rows.slice(0,3); let rest=rows.filter(x=>!top.includes(x) && (x.rk<=50 || x.me));
   const pod=i=>{ const x=top[i]; if (!x) return '<div class="pod"></div>'; return `<div class="pod p${x.rk}${x.me?' me':''}${x.bot?' bot':''}"><div class="pav2">${pawnSVG(cleanSkin(x.skin))}${x.rk===1?'<span class="crown">👑</span>':''}</div><b class="pnm">${esc(cleanName(x.name))}</b><small>${x.v} ${unit}</small><div class="blk"><span>${x.rk}</span></div></div>`; };
   const meOut = me && me.rk>10;
   if (meOut) rest=rest.filter(x=>!x.me);   // ta ligne reste épinglée en bas de la liste
   const row=x=>`<div class="lbr2${x.me?' me':''}${x.bot?' bot':''}"><span class="rk2">${x.bot?'🤖':x.rk}</span><span class="av">${pawnSVG(cleanSkin(x.skin))}</span><span class="nm">${esc(cleanName(x.name))}${x.me?` <i class="lbtag">${T("toi")}</i>`:''}</span><b>${x.v}<small>${unit?' '+unit:''}</small></b></div>`;
   return `${title}${tabs}${head}
     <div class="podium2">${pod(1)}${pod(0)}${pod(2)}</div>
-    <div class="lb2">${rest.map(row).join('')}${meOut?`<div class="lbme">${row(me)}</div>`:''}</div>
-    ${LB.err?`<p class="note" style="text-align:center">${T("Hors ligne : seuls toi et les personnages du jeu sont affichés.")}</p>`:''}
-    <p class="lbnote">${m==='adv'?'⭐ 10 XP · 🧩 5 XP · ⚔️ 5 XP · ':''}🤖 = ${T("personnage du jeu, à dépasser")}</p>`;
+    <div class="lb2">${rest.map(row).join('')}${!rows.length?`<p class="sub" style="text-align:center;padding:16px 0">${T("Personne pour l'instant. Sois le premier !")}</p>`:''}${meOut?`<div class="lbme">${row(me)}</div>`:''}</div>
+    ${!LB.acc?`<button class="primary" type="button" data-act="account">${T("Crée ton compte pour y figurer")}</button>`:''}
+    ${LB.err?`<p class="note" style="text-align:center">${T("Hors ligne : classement indisponible.")}</p>`:''}
+    ${m==='adv'?`<p class="lbnote">⭐ 10 XP · ⚔️ 5 XP</p>`:''}`;
+}
+// Récompenses de la ligue selon le nombre de joueurs (avec compte) de la semaine : [coffre, de la place, à la place]
+function lgTiers(n){
+  n=n||0;
+  if (n<50) return [['bois',1,1]];
+  if (n<1000) return [['or',1,1],['argent',2,3],['bois',4,10]];
+  return [['legendaire',1,1],['or',2,3],['argent',4,10],['bois',11,50]];
 }
 function lgDueCheck(){
   const due=lgWeek().due; if (!due || REWARD || view==='game') return;
@@ -5144,7 +5147,8 @@ function lgDueCheck(){
   if (!window.Acc || !Acc.on) return;
   P.lg.due=null; saveP();
   const r=due.rank, why=`${T("Ligue de la semaine")} · ${r?`${r}${LANG==='en'?(r===1?'st':r===2?'nd':r===3?'rd':'th'):(r===1?'er':'e')}`:''}`;
-  if (r===1) openChest('or', why); else if (r && r<=3) openChest('argent', why); else if (r && r<=10) openChest('bois', why); else giveCoins(20, why);
+  const t=r && lgTiers(due.n).find(([_,a,b])=>r>=a && r<=b);
+  if (t) openChest(t[0], why); else if (due.xp>0) giveCoins(20, why);
 }
 
 /* ---------- Écrans : Accueil, Aventure, Arène ---------- */

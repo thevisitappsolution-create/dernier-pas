@@ -156,6 +156,9 @@
     for (const k in PT.used[me]) if (!UI.inv.k[k]) { UI.inv.k[k] = 1; if (k !== 'jump') { try { pwUse(k); } catch (e) {} } }
   }
   const pwOK = (k) => k === 'jump' || (typeof pwHas === 'function' && pwHas(k));
+  // aucun pouvoir acheté : pas de vestiaire, deux sauts d'office
+  const ownsAny = () => ['push', 'swap', 'heavy', 'wall', 'mine'].some(pwOK);
+  function ldAuto() { if (UI.ldSel && !ownsAny()) setTimeout(() => { if (UI.ldSel && PT && PT.pre) ldSend([]); }, 0); }
   function ldSend(sel) {
     const s = clean4((sel || []).filter(pwOK)); UI.ldDone = s; UI.ldSel = null;
     if (NET && !NET.host) { try { NET.conn.send({ t: 'ld', s }); } catch (e) {} }
@@ -189,12 +192,12 @@
   function newGame(seats, first, fol) {
     const inGame = seats.map(s => s.kind !== 'off');
     PT = {
-      id: rid(6), mid: rid(6), seats: seats.map(s => ({ ...s })), inGame, first: first || 0, fol: !!fol,
+      id: rid(6), mid: rid(6), seats: seats.map(s => ({ ...s })), inGame, first: first || 0, fol: true,   // à 4, c'est toujours le mode folie
       round: 0, R: inGame.filter(Boolean).length, wins: [0, 0, 0, 0], score: [0, 0, 0, 0], hist: [], sl: [null, null, null, null], used: [{}, {}, {}, {}],
       over: false, rOver: false, pre: false, preEnd: 0, nextAt: 0, ver: 0,
     };
     PT.mid = PT.id;
-    UI.stage = 'game'; UI.sel = null; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; UI.ldDone = null; UI.ldSel = fol ? [] : null; UI.mine = false;
+    UI.stage = 'game'; UI.sel = null; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; UI.ldDone = null; UI.ldSel = []; UI.mine = false;
     try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; if (typeof musicStart === 'function') musicStart(); } catch (e) {}
     startRound();
   }
@@ -205,7 +208,7 @@
       turn: -1, moves: 0, last: null, msg: '', ev: null, rOver: false, winner: null, rank: null, pts: null, sum: 0, deadline: 0, timeouts: [0, 0, 0, 0] });
     PT.startSeat = act[(PT.first + PT.round - 1) % act.length];   // chacun commence une manche
     UI.sel = null; UI.mine = false;
-    if (PT.fol && PT.round === 1) { PT.pre = true; PT.preEnd = Date.now() + PRE_MS; PT.J = [0, 0, 0, 0]; PT.ver++; broadcast(); draw(); return; }
+    if (PT.fol && PT.round === 1) { PT.pre = true; PT.preEnd = Date.now() + PRE_MS; PT.J = [0, 0, 0, 0]; PT.ver++; broadcast(); draw(); ldAuto(); return; }
     startRoundPlay();
   }
   function startRoundPlay() {
@@ -320,7 +323,7 @@
     const st = packState();
     for (const s in NET.conns) { try { NET.conns[s].send({ t: 'st', st, you: +s }); } catch (e) {} }
   }
-  function lobbyMsg() { return { t: 'lobby', seats: NET.seats.map(s => s && { kind: s.kind, name: s.name, skin: s.skin }), code: NET.code, quick: NET.quick, fol: !NET.quick && !!UI.fol, wait: NET.quick ? Math.max(0, NET.startAt - Date.now()) : 0 }; }
+  function lobbyMsg() { return { t: 'lobby', seats: NET.seats.map(s => s && { kind: s.kind, name: s.name, skin: s.skin }), code: NET.code, quick: NET.quick, fol: true, wait: NET.quick ? Math.max(0, NET.startAt - Date.now()) : 0 }; }
   function sendLobby() { if (!NET || !NET.host) return; const m = lobbyMsg(); for (const s in NET.conns) { try { NET.conns[s].send({ ...m, you: +s }); } catch (e) {} } draw(); }
   function meSeat() { return { kind: 'human', name: P.name, skin: P.skin }; }
 
@@ -408,7 +411,7 @@
       const st = d.st, isNew = !PT || PT.id !== st.id;
       const prev = PT;
       PT = { ...st, deadline: Date.now() + (st.left || 0), preEnd: Date.now() + (st.preLeft || 0), nextAt: Date.now() + (st.nextLeft || 0), timeouts: [0, 0, 0, 0] };
-      if (isNew) { UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; UI.ldDone = null; UI.ldSel = st.fol && st.pre ? [] : null; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
+      if (isNew) { UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; UI.ldDone = null; UI.ldSel = st.fol && st.pre ? [] : null; ldAuto(); try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
       if (prev && !isNew && st.moves === prev.moves + 1) { try { if (st.ev && st.ev.k === 'push') { sfx.wizz(); if (st.ev.dead) vibrate([120, 60, 200]); } else if (st.ev && st.ev.k === 'minep') sfx.jump(); else if (st.ev && (st.ev.k === 'heavy' || st.ev.k === 'wall')) sfx.round(); else sfx.move(); } catch (e) {} }
       if (st.rOver && !(prev && prev.rOver && prev.round === st.round)) { try { sfx.round(); } catch (e) {} }
       if (st.over && !(prev && prev.over)) reward();
@@ -708,7 +711,6 @@
       ${quick ? `<p class="note" data-wait="1">${tr('Recherche de joueurs…')} ${Math.ceil(wait / 1000)} s · ${tr('ensuite, des ordinateurs complètent la table.')}</p>` : ''}
       ${rows}
       ${voiceBar() ? `<div class="acts">${voiceBar()}</div><p class="note">${tr('Facultatif : parlez-vous pendant la partie, même chacun chez soi. Rien n\'est enregistré.')}</p>` : ''}
-      ${host && !quick ? `<label class="fol"><span>🤪 <b>${tr('Mode folie')}</b><small>${tr('Vestiaire de 10 s, puis Saut, Pousser, Inversion, Poids lourd, Mur et Mine. Pour rire, sans classement.')}</small></span><input type="checkbox" id="pt4fol" ${UI.fol ? 'checked' : ''}></label>` : !host && UI.lobby && UI.lobby.fol ? `<p class="note">🤪 ${tr('Mode folie activé par l\'hôte')}</p>` : ''}
       ${host && !quick ? `<button class="btn pr" style="width:100%;margin-top:12px" data-a="start" ${n < 2 ? 'disabled' : ''}>${tr('Lancer la partie')} (${n}/4)</button><p class="note">${tr('Les places vides seront jouées par l\'ordinateur.')}</p>` : ''}
       ${!host && !quick ? `<p class="note">${tr('L\'hôte lance la partie quand tout le monde est là.')}</p>` : ''}`;
   }

@@ -1282,4 +1282,7 @@ Object.assign(window.EN_DICT, {"Mon classement":"My ranking","Compte":"Account",
 "4 joueurs":"4 players",
 "Réussis le puzzle du jour pour tourner.":"Solve today's puzzle to spin.",
 "Puzzle du jour":"Daily puzzle",
-"Plus tard":"Later"});
+"Plus tard":"Later",
+"Personne pour l'instant. Sois le premier !":"Nobody yet. Be the first!",
+"Crée ton compte pour y figurer":"Create your account to be ranked",
+"Hors ligne : classement indisponible.":"Offline: ranking unavailable."});
