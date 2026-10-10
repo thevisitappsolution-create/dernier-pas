@@ -23,6 +23,7 @@ Ce qui est déjà prêt dans le projet, et ce qu'il te reste à faire dans les c
 - [ ] Apple Developer : demande envoyée (Kbis fourni), en attente de validation puis paiement 99 €
 - [ ] Google Play Console : compte créé (Organisation « 111 Solutions »), site validé (TXT Search Console dans la zone DNS, ne pas supprimer), identité en cours de vérification, puis validation des téléphones
 - [ ] AdMob → RevenueCat et produits → builds → fiches → tests privés → publication
+- [ ] Avant le lancement : remettre `PW_FREE_TEST = false` dans index.html (pouvoirs gratuits pendant les tests sur le web ; déjà coupé dans l'appli des stores)
 
 ## 1. Supabase (15 min)
 

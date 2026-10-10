@@ -1440,7 +1440,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 102,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 103,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1691,10 +1691,12 @@ const PW_ON=['push','swap','heavy','wall','mine'];
 const PW_SLOT=['jump','push','swap','heavy','wall','mine'], PW_DEF=['heavy','wall'], PW_KEYS=PW_ON;
 const pwPrice = k => k==='mine' ? 2000 : PW_PRICE;
 const pwPass = k => P.pw && P.pw[k] && P.pw[k].u > Date.now();
-const pwLeft = k => k==='jump' ? Infinity : !PW_ON.includes(k)||!P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
+// PHASE DE TEST (version web uniquement) : pouvoirs gratuits et illimités. À mettre à false avant le lancement.
+const PW_FREE_TEST = true && !CONFIG.store;
+const pwLeft = k => k==='jump' || (PW_FREE_TEST && PW_ON.includes(k)) ? Infinity : !PW_ON.includes(k)||!P.pw||!P.pw[k] ? 0 : pwPass(k) ? Infinity : (P.pw[k].n||0);
 const pwHas = k => pwLeft(k) > 0;
-function pwUse(k){ if (k==='jump' || !P.pw[k] || pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); if (window.Acc) Acc.queuePwUse(k); saveP(); }
-const pwLabel = k => k==='jump' ? T("gratuit") : pwPass(k) ? `Gold · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
+function pwUse(k){ if (k==='jump' || PW_FREE_TEST || !P.pw[k] || pwPass(k)) return; P.pw[k].n=Math.max(0,(P.pw[k].n||0)-1); if (window.Acc) Acc.queuePwUse(k); saveP(); }
+const pwLabel = k => k==='jump' || PW_FREE_TEST ? T("gratuit") : pwPass(k) ? `Gold · ${Math.ceil((P.pw[k].u-Date.now())/864e5)} ${T("j")}` : `×${pwLeft(k)}`;
 const unlocked = (kind,id) => CONFIG.season0 || CAT[kind][id].p===0 || P.owned.includes(kind+':'+id);
 if (!P.uid){ const abc='abcdefghjkmnpqrstuvwxyz23456789'; let u=''; for (let i=0;i<8;i++) u+=abc[Math.floor(Math.random()*abc.length)]; P.uid=u; }
 if (!Array.isArray(P.friends)) P.friends=[];
