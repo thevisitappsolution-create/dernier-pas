@@ -51,7 +51,7 @@
         for (let d = 1; d <= 3; d++) {
           const r = r0 + dr * d, c = c0 + dc * d; if (r < 0 || c < 0 || r >= N || c >= N) break;
           const i = r * N + c;
-          if (occ.has(i) || st.cells[i] === 0 || (st.dyn && st.dyn.some(d => d.i === i))) { if (!st.J[s]) break; crossed = true; continue; }
+          if (occ.has(i) || st.cells[i] === 0) { if (!st.J[s]) break; crossed = true; continue; }
           out.push([k, i, crossed ? 1 : 0]);
         }
       }
@@ -64,98 +64,110 @@
     return from;
   }
   const visibleSum = (st) => { const occ = occupied(st.pawns); return st.cells.reduce((a, v, i) => a + (occ.has(i) ? 0 : v), 0); };
-  const clone = (st) => ({ cells: st.cells.slice(), pawns: st.pawns.map(p => p.slice()), J: st.J.slice(), alive: st.alive.slice(), dyn: st.dyn });
+  const clone = (st) => ({ cells: st.cells.slice(), pawns: st.pawns.map(p => p.slice()), J: st.J.slice(), alive: st.alive.slice() });
 
-  /* ---------- Mode folie (salles privées, sans classement) : pousser, poids lourd, dynamite ---------- */
-  // Équipement : PT.ld[s] = {push, swap, dyn, def:'heavy'|'ghost'|null}. À 4, une seule manche : un seul pouvoir actif par partie.
-  const usedAny = (s) => !!(PT.used && PT.used[s]);
-  const can = (s, k) => !!(PT && PT.fol && PT.ld && PT.ld[s] && (PT.ld[s].pw || []).includes(k) && !usedAny(s));
-  const DEFS = ['heavy', 'ghost', 'wall'];
-  const defOn = (o, k) => !!(PT.df && PT.df[o] && PT.ld && PT.ld[o] && PT.ld[o].def === k);
+  /* ---------- Partie en manches ---------- */
+  // Une manche par joueur : chacun commence une fois. Classement de la partie : manches gagnées, puis points.
+  // Égalité parfaite : plusieurs vainqueurs. Points d'une manche : 10 / 5 / 2 / 0 selon la place,
+  // + bonus cases : le vainqueur prend la somme des cases restantes jusqu'à 10 ; s'il en reste moins de 10, le 2e reçoit la différence.
+  const RPTS = [10, 5, 2, 0];
+  const stopped = () => !PT || PT.over || PT.rOver;
+
+  /* ---------- Mode folie : les mêmes pouvoirs qu'en duel ---------- */
+  // Vestiaire de 10 s avant la 1re manche (2 emplacements, Saut + Saut par défaut), chaque emplacement sert une fois par manche.
+  // Pousser, Inversion (attaques), Poids lourd, Mur (défenses automatiques), Mine (posée à côté, invisible après 5 s : le pion qui marche dessus perd la manche).
+  const PRE_MS = 10000, MINE_SEE = 5000;
+  const PWE = { jump: '🦘', push: '💥', swap: '🔄', heavy: '🏋️', wall: '🧱', mine: '💣' };
+  const pwName = (k) => tr((typeof PW !== 'undefined' && PW[k]) ? PW[k].n : k);
+  const slotsOf4 = (s) => (PT && PT.sl && Array.isArray(PT.sl[s])) ? PT.sl[s] : ['jump', 'jump'];
+  const clean4 = (x) => (typeof cleanSlots === 'function' ? cleanSlots(x) : ['jump', 'jump']);
+  const powN4 = (s, k) => k === 'jump' ? ((PT && PT.J && PT.J[s]) || 0) : ((PT && PT.pl && PT.pl[s] && PT.pl[s][k]) || 0);
+  const can = (s, k) => !!(PT && PT.fol && !PT.pre && !stopped() && powN4(s, k) > 0);
+  function spend(s, k) {
+    if (k !== 'jump') PT.pl[s][k] = Math.max(0, powN4(s, k) - 1);
+    PT.used = PT.used || [{}, {}, {}, {}]; PT.used[s] = { ...(PT.used[s] || {}), [k]: 1 };
+  }
+  const nb = (i) => { const r = Math.floor(i / N), c = i % N, out = []; for (const [dr, dc] of DIRS) { const rr = r + dr, cc = c + dc; if (rr >= 0 && cc >= 0 && rr < N && cc < N) out.push({ i: rr * N + cc, dr, dc }); } return out; };
+  const seatAt = (st, i) => st.pawns.findIndex(p => p.includes(i));
+  const mineAt4 = (i) => (PT.mines || []).find(m => m.i === i);
   function pushTargets(st, s) {
-    const out = []; if (!st || !st.fol || !st.ld || !st.ld[s] || !(st.ld[s].pw || []).includes('push') || (st.used && st.used[s])) return out; const occ = occupied(st.pawns);
-    (st.pawns[s] || []).forEach((a, k) => {
-      const r = Math.floor(a / N), c = a % N;
-      for (const [dr, dc] of DIRS) {
-        const br = r + dr, bc = c + dc; if (br < 0 || bc < 0 || br >= N || bc >= N) continue;
-        const b = br * N + bc, o = st.pawns.findIndex((p, j) => j !== s && p.includes(b)); if (o < 0) continue;
-        const cr = br + dr, cc = bc + dc; if (cr < 0 || cc < 0 || cr >= N || cc >= N) continue;
-        const c2 = cr * N + cc; if (occ.has(c2)) continue;
-        out.push({ k, a, b, c: c2, o });
-      }
-    });
+    const out = []; if (!can(s, 'push')) return out; const a = st.pawns[s] && st.pawns[s][0]; if (a == null) return out;
+    for (const n of nb(a)) { const o = seatAt(st, n.i); if (o < 0 || o === s) continue;
+      const r = Math.floor(n.i / N) + n.dr, c = n.i % N + n.dc; if (r < 0 || c < 0 || r >= N || c >= N) continue;
+      const c2 = r * N + c; if (seatAt(st, c2) >= 0) continue; out.push({ a, b: n.i, c: c2, o }); }
     return out;
   }
-  function dynTick() { if (PT.dyn && PT.dyn.length) { PT.dyn.forEach(d => d.left--); PT.dyn = PT.dyn.filter(d => d.left > 0); } }
-  const holeAt = (i) => PT.cells[i] === 0 || (PT.dyn || []).some(d => d.i === i);
-  function usePow(s) { PT.used = PT.used || [false, false, false, false]; PT.used[s] = true; }
+  function swapTargets(st, s) {
+    const out = []; if (!can(s, 'swap')) return out; const a = st.pawns[s] && st.pawns[s][0]; if (a == null) return out;
+    for (const n of nb(a)) { const o = seatAt(st, n.i); if (o >= 0 && o !== s) out.push({ a, b: n.i, o }); }
+    return out;
+  }
+  function mineTargets(st, s) {
+    if (!can(s, 'mine')) return []; const a = st.pawns[s] && st.pawns[s][0]; if (a == null) return [];
+    return nb(a).map(n => n.i).filter(i => st.cells[i] > 0 && seatAt(st, i) < 0 && !(st.mines || []).some(m => m.i === i));
+  }
+  const evN = () => PT.round + ':' + PT.moves + ':' + rid(3);
+  function heavy(s, o, at) {
+    if (powN4(o, 'heavy') <= 0) return false;
+    spend(o, 'heavy'); PT.msg = `🏋️ ${PT.seats[o].name} ${tr('est un poids lourd : rien ne bouge, le pouvoir est perdu !')}`; PT.ev = { k: 'heavy', at, n: evN() };
+    try { sfx.round(); } catch (e) {} return true;
+  }
+  function endAct(s) { PT.timeouts[s] = 0; PT.moves++; nextTurn(false); return true; }
   function pushAct(s, b) {
-    if (!PT || PT.over || s !== PT.turn || !can(s, 'push')) return false;
-    const tg = pushTargets(PT, s).find(x => x.b === b); if (!tg) return false;
-    PT.timeouts[s] = 0; usePow(s); const def = PT.df && PT.df[tg.o] && PT.ld[tg.o] ? PT.ld[tg.o].def : null; if (def === 'heavy' || def === 'ghost') PT.df[tg.o] = false;
-    if (def === 'heavy') {
-      PT.msg = `🏋️ ${PT.seats[tg.o].name} ${tr('est un poids lourd : impossible de le pousser !')}`; PT.ev = { k: 'heavy', at: b, n: PT.moves };
-      try { sfx.round(); } catch (e) {}
-      dynTick(); PT.moves++; nextTurn(false); return true;
-    }
-    PT.cells[tg.a]--;
-    if (def === 'ghost') {
-      const dead = holeAt(tg.c); PT.last = { s, from: tg.a, to: tg.c, jump: 0 };
-      if (dead) { PT.dyn = (PT.dyn || []).filter(d => d.i !== tg.c); eliminate(s, 'push'); PT.msg = `👻 ${PT.seats[tg.o].name} ${tr('est un fantôme :')} ${PT.seats[s].name} ${tr('passe à travers et tombe !')}`; }
-      else { PT.pawns[s][tg.k] = tg.c; PT.msg = `👻 ${PT.seats[s].name} ${tr('passe à travers')} ${PT.seats[tg.o].name} !`; }
-      PT.ev = { k: 'ghost', at: tg.c, dead, n: PT.moves }; try { sfx.wizz(); } catch (e) {}
-      dynTick(); PT.moves++; nextTurn(false); return true;
-    }
-    const dead = holeAt(tg.c); PT.pawns[s][tg.k] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 };
-    if (dead) { PT.dyn = (PT.dyn || []).filter(d => d.i !== tg.c); eliminate(tg.o, 'push'); PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} ${tr('dans le vide : éliminé !')}`; }
-    else { PT.pawns[tg.o][0] = tg.c; PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} !`; }
-    PT.ev = { k: 'push', at: tg.c, dead, n: PT.moves };
-    try { sfx.wizz(); if (dead) vibrate([120, 60, 200]); } catch (e) {}
-    dynTick(); PT.moves++; nextTurn(false); return true;
+    if (stopped() || s !== PT.turn) return false; const tg = pushTargets(PT, s).find(x => x.b === b); if (!tg) return false;
+    spend(s, 'push'); if (heavy(s, tg.o, b)) return endAct(s);
+    PT.cells[tg.a]--; PT.pawns[s][0] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 };
+    if (PT.cells[tg.c] === 0) { eliminate(tg.o, 'push'); PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} ${tr('dans le vide : éliminé !')}`; PT.ev = { k: 'push', at: tg.c, dead: 1, n: evN() }; }
+    else { PT.pawns[tg.o][0] = tg.c; PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} !`; PT.ev = { k: 'push', at: tg.c, n: evN() }; mineHit(tg.o, tg.c); }
+    try { sfx.wizz(); } catch (e) {} return endAct(s);
   }
   function swapAct(s, b) {
-    if (!PT || PT.over || s !== PT.turn || !can(s, 'swap')) return false;
-    const o = PT.pawns.findIndex((p, j) => j !== s && p.includes(b)); if (o < 0) return false;
-    const a = PT.pawns[s][0]; PT.timeouts[s] = 0; usePow(s);
-    PT.pawns[s][0] = b; PT.pawns[o][PT.pawns[o].indexOf(b)] = a; PT.last = { s, from: a, to: b, jump: 0 };
-    PT.msg = `🔄 ${PT.seats[s].name} ${tr('échange sa place avec')} ${PT.seats[o].name} !`; PT.ev = { k: 'swap', at: b, n: PT.moves };
-    try { sfx.jump(); } catch (e) {}
-    dynTick(); PT.moves++; nextTurn(false); return true;
+    if (stopped() || s !== PT.turn) return false; const tg = swapTargets(PT, s).find(x => x.b === b); if (!tg) return false;
+    spend(s, 'swap'); if (heavy(s, tg.o, b)) return endAct(s);
+    PT.cells[tg.a]--; PT.pawns[s][0] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 };
+    if (PT.cells[tg.a] === 0) { eliminate(tg.o, 'push'); PT.msg = `🔄 ${PT.seats[s].name} ${tr('échange sa place avec')} ${PT.seats[tg.o].name}… ${tr('qui tombe dans le trou !')}`; }
+    else { PT.pawns[tg.o][0] = tg.a; PT.msg = `🔄 ${PT.seats[s].name} ${tr('échange sa place avec')} ${PT.seats[tg.o].name} !`; }
+    PT.ev = { k: 'swap', at: b, n: evN() }; try { sfx.jump(); } catch (e) {} return endAct(s);
   }
-  // Saut en plus ou défense : s'active pendant son tour, sans le terminer
-  function actAct(s, k) {
-    if (!PT || PT.over || s !== PT.turn || !can(s, k) || !(k === 'jump' || DEFS.includes(k))) return false;
-    usePow(s);
-    if (k === 'jump') { PT.J[s] = (PT.J[s] || 0) + 1; PT.msg = `🦘 ${PT.seats[s].name} ${tr('active un pouvoir')}`; }
-    else { PT.df = PT.df || [false, false, false, false]; PT.df[s] = true; PT.msg = `🛡️ ${PT.seats[s].name} ${tr('active un pouvoir')}`; }
-    PT.ver++; broadcast(); draw(); return true;
+  function mineAct(s, i) {
+    if (stopped() || s !== PT.turn || !mineTargets(PT, s).includes(i)) return false;
+    spend(s, 'mine'); const id = evN(); (PT.mines = PT.mines || []).push({ i, by: s, life: 2, id });
+    PT.msg = `💣 ${PT.seats[s].name} ${tr('pose une mine… regarde bien, elle disparaît dans 5 secondes !')}`; PT.ev = { k: 'minep', at: i, n: id };
+    try { sfx.jump(); } catch (e) {} return endAct(s);
   }
-  function dynAct(s, i) {
-    if (!PT || PT.over || s !== PT.turn || !can(s, 'dyn')) return false;
-    if (!gen(PT, s).some(m => m[1] === i)) return false;
-    PT.timeouts[s] = 0; usePow(s); dynTick(); (PT.dyn = PT.dyn || []).push({ i, left: 3 * aliveSeats().length });
-    PT.msg = `🧨 ${PT.seats[s].name} ${tr('pose une dynamite (3 tours)')}`; PT.ev = { k: 'dyn', at: i, n: PT.moves };
-    try { sfx.jump(); } catch (e) {}
-    PT.moves++; nextTurn(false); return true;
+  // un pion arrive sur une mine : il saute, son joueur perd la manche
+  function mineHit(s, i) {
+    const m = mineAt4(i); if (!m) return false;
+    PT.mines = PT.mines.filter(x => x !== m); eliminate(s, 'mine'); PT.ev = { k: 'mine', at: i, n: evN() };
+    try { vibrate([80, 40, 120]); } catch (e) {} return true;
   }
-  const pwOK = (k) => typeof pwHas === 'function' && pwHas(k);
-  const pwTake = (k) => { try { pwUse(k); } catch (e) {} };
-  function heavyAsk() { if (PT && PT.fol && mySeat() != null && UI.hvAsked !== PT.id) { UI.hvAsked = PT.id; UI.ld = { pw: [], vis: false }; UI.hvAsk = true; draw(); } }
-  function ldSend() {
-    const pw = ((UI.ld && UI.ld.pw) || []).filter(pwOK).slice(0, 2), vis = !!(UI.ld && UI.ld.vis) && pwOK('vision'); if (vis) pwTake('vision');
-    const ld = { pw, def: pw.find(k => DEFS.includes(k)) || null, vis };
-    UI.myLd = ld; UI.hvAsk = false;
-    if (NET && !NET.host) { try { NET.conn.send({ t: 'ld', ld }); } catch (e) {} } else if (PT && PT.ld) { PT.ld[mySeat()] = ld; PT.ver++; broadcast(); }
+  // Mur : sauter par-dessus un joueur qui a un Mur est refusé (tour perdu)
+  function wallStop(s, m) {
+    if (!PT.fol || !m[2]) return false;
+    const f = PT.pawns[s][m[0]], dr = Math.sign(Math.floor(m[1] / N) - Math.floor(f / N)), dc = Math.sign(m[1] % N - f % N);
+    for (let i = f + dr * N + dc; i !== m[1]; i += dr * N + dc) { const o = seatAt(PT, i);
+      if (o >= 0 && o !== s && powN4(o, 'wall') > 0) { spend(o, 'wall'); PT.J[s] = Math.max(0, PT.J[s] - 1); PT.msg = `🧱 ${PT.seats[o].name} ${tr('a un mur : impossible de sauter par-dessus !')}`; PT.ev = { k: 'wall', at: i, n: evN() }; try { sfx.round(); } catch (e) {} endAct(s); return true; } }
+    return false;
+  }
+  // l'inventaire de chaque joueur baisse une fois par pouvoir et par partie (sur son propre téléphone)
+  function invSync() {
+    const me = mySeat(); if (me == null || !PT || !PT.fol || !PT.used || !PT.used[me]) return;
+    UI.inv = UI.inv && UI.inv.id === PT.mid ? UI.inv : { id: PT.mid, k: {} };
+    for (const k in PT.used[me]) if (!UI.inv.k[k]) { UI.inv.k[k] = 1; if (k !== 'jump') { try { pwUse(k); } catch (e) {} } }
+  }
+  const pwOK = (k) => k === 'jump' || (typeof pwHas === 'function' && pwHas(k));
+  function ldSend(sel) {
+    const s = clean4((sel || []).filter(pwOK)); UI.ldDone = s; UI.ldSel = null;
+    if (NET && !NET.host) { try { NET.conn.send({ t: 'ld', s }); } catch (e) {} }
+    else if (PT) { PT.sl[mySeat()] = s; preCheck(); }
     draw();
   }
-  const PWK = ['push', 'swap', 'dyn', 'jump', 'heavy', 'ghost', 'wall'].filter(k => typeof PW_ON === 'undefined' || PW_ON.includes(k));
-  const cleanLd = (d) => { if (!d || typeof d !== 'object') return null; const pw = (Array.isArray(d.pw) ? d.pw : []).filter(k => PWK.includes(k)).slice(0, 2); return { pw, def: pw.find(k => DEFS.includes(k)) || null, vis: !!d.vis }; };
-  const PWE = { push: '💥', swap: '🔄', dyn: '🧨', jump: '🦘', heavy: '🏋️', ghost: '👻', wall: '🧱', vision: '👁️' };
-  function powIcons(i) {
-    const L = PT.ld && PT.ld[i]; if (!PT.fol || !L) return '';
-    const me = mySeat(), mine = i === me, see = mine || (PT.ld[me] && PT.ld[me].vis), off = PT.used && PT.used[i];
-    if (!see) return L.pw.length ? `<span class="pwt${off ? ' off' : ''}">⚡</span>` : '';
-    return L.pw.map(k => `<span class="pwt${off && !(DEFS.includes(k) && PT.df && PT.df[i]) ? ' off' : ''}">${PWE[k]}</span>`).join('') + (L.vis ? `<span class="pwt">👁️</span>` : '');
+  // l'arbitre lance la 1re manche quand tous les humains ont choisi, ou au bout de 10 s
+  function preCheck() {
+    if (!PT || !PT.pre || !isReferee()) return;
+    const ready = PT.seats.every((x, i) => !PT.inGame[i] || x.kind === 'ai' || PT.sl[i]);
+    if (ready || Date.now() >= PT.preEnd) { PT.sl = PT.sl.map((x, i) => x || ['jump', 'jump']); PT.pre = false; startRoundPlay(); }
+    else { PT.ver++; broadcast(); draw(); }
   }
   /* ---------- Ordinateur : garder de la place, en retirer aux autres ---------- */
   function aiPick(st, s, noise = 2) {
@@ -175,33 +187,50 @@
 
   /* ---------- Déroulement (côté arbitre : partie locale ou hôte) ---------- */
   function newGame(seats, first, fol) {
-    const alive = seats.map(s => s.kind !== 'off');
+    const inGame = seats.map(s => s.kind !== 'off');
     PT = {
-      id: rid(6), cells: newBoard(), pawns: START.map((p, i) => alive[i] ? p.slice() : []), J: [JUMPS, JUMPS, JUMPS, JUMPS], alive, place: [],
-      seats: seats.map(s => ({ ...s })), first: first || 0, fol: !!fol, dyn: [], ld: [null, null, null, null], used: [false, false, false, false], df: [false, false, false, false], ev: null, turn: -1, moves: 0, last: null, msg: '', over: false, winner: null, deadline: 0, timeouts: [0, 0, 0, 0], pts: null, ver: 0,
+      id: rid(6), mid: rid(6), seats: seats.map(s => ({ ...s })), inGame, first: first || 0, fol: !!fol,
+      round: 0, R: inGame.filter(Boolean).length, wins: [0, 0, 0, 0], score: [0, 0, 0, 0], hist: [], sl: [null, null, null, null], used: [{}, {}, {}, {}],
+      over: false, rOver: false, pre: false, preEnd: 0, nextAt: 0, ver: 0,
     };
-    UI.stage = 'game'; UI.sel = null; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0;
+    PT.mid = PT.id;
+    UI.stage = 'game'; UI.sel = null; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; UI.ldDone = null; UI.ldSel = fol ? [] : null; UI.mine = false;
     try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; if (typeof musicStart === 'function') musicStart(); } catch (e) {}
+    startRound();
+  }
+  function startRound() {
+    PT.round++;
+    const alive = PT.inGame.slice(), act = [0, 1, 2, 3].filter(i => alive[i]);
+    Object.assign(PT, { cells: newBoard(), pawns: START.map((p, i) => alive[i] ? p.slice() : []), alive, place: [], J: [JUMPS, JUMPS, JUMPS, JUMPS], pl: [{}, {}, {}, {}], mines: [],
+      turn: -1, moves: 0, last: null, msg: '', ev: null, rOver: false, winner: null, rank: null, pts: null, sum: 0, deadline: 0, timeouts: [0, 0, 0, 0] });
+    PT.startSeat = act[(PT.first + PT.round - 1) % act.length];   // chacun commence une manche
+    UI.sel = null; UI.mine = false;
+    if (PT.fol && PT.round === 1) { PT.pre = true; PT.preEnd = Date.now() + PRE_MS; PT.J = [0, 0, 0, 0]; PT.ver++; broadcast(); draw(); return; }
+    startRoundPlay();
+  }
+  function startRoundPlay() {
+    if (PT.fol) { PT.pl = [0, 1, 2, 3].map(s => { const o = {}; for (const k of slotsOf4(s)) o[k] = (o[k] || 0) + 1; return o; }); PT.J = [0, 1, 2, 3].map(s => PT.pl[s].jump || 0); }
+    PT.msg = `${tr('Manche')} ${PT.round}/${PT.R} · ${PT.seats[PT.startSeat].name} ${tr('commence')}`;
     nextTurn(true);
-    if (fol) setTimeout(heavyAsk, 600);
   }
   function aliveSeats() { return [0, 1, 2, 3].filter(i => PT.alive[i]); }
   function eliminate(s, why) {
-    PT.alive[s] = false; PT.place.push(s); PT.pawns[s] = [];
-    PT.msg = `${PT.seats[s].name} ${tr(why === 'afk' ? 'est éliminé (absent).' : why === 'push' ? 'est éliminé !' : 'est bloqué : éliminé !')}`;
+    PT.alive[s] = false; PT.place.push(s); PT.pawns[s] = []; PT.mines = (PT.mines || []).filter(m => m.by !== s);
+    PT.msg = `${PT.seats[s].name} ${tr(why === 'afk' ? 'est éliminé (absent).' : why === 'mine' ? 'marche sur une mine : éliminé !' : why === 'push' ? 'est éliminé !' : 'est bloqué : éliminé !')}`;
     try { sfx.fall(); } catch (e) {}
   }
+  const canAnything = (s) => gen(PT, s).length || (PT.fol && (pushTargets(PT, s).length || swapTargets(PT, s).length || mineTargets(PT, s).length));
   function nextTurn(first) {
-    if (PT.over) return;
-    // au premier tour, on part du joueur « first » (il tourne à chaque revanche)
-    let s = first ? (PT.first + 3) % 4 : PT.turn;
+    if (stopped()) return;
+    let s = first ? (PT.startSeat + 3) % 4 : PT.turn;
     for (let guard = 0; guard < 8; guard++) {
       if (aliveSeats().length <= 1) return finish();
       s = (s + 1) % 4;
       if (!PT.alive[s]) continue;
-      if (!gen(PT, s).length) { eliminate(s); continue; }
+      if (PT.mines && PT.mines.length) { for (const m of PT.mines) if (m.by === s) m.life--; PT.mines = PT.mines.filter(m => m.life > 0); }   // la mine disparaît au 2e tour de son poseur
+      if (!canAnything(s)) { eliminate(s); continue; }
       PT.turn = s; PT.deadline = Date.now() + TURN_MS; PT.ver++;
-      UI.sel = null;
+      UI.sel = null; UI.mine = false;
       const ks = [...new Set(gen(PT, s).map(m => m[0]))]; if (ks.length === 1) UI.sel = ks[0];
       broadcast(); draw(); scheduleBot();
       return;
@@ -210,43 +239,58 @@
   }
   function scheduleBot() {
     clearTimeout(aiTimer);
-    if (!PT || PT.over || PT.turn < 0) return;
+    if (stopped() || PT.turn < 0) return;
     const seat = PT.seats[PT.turn];
-    if (seat.kind === 'ai') { const ver = PT.ver; aiTimer = setTimeout(() => { if (PT && PT.ver === ver && !PT.over) { const m = aiPick(PT, PT.turn); if (m) play(PT.turn, m); } }, 650 + Math.random() * 600); }
+    if (seat.kind === 'ai') { const ver = PT.ver; aiTimer = setTimeout(() => { if (PT && PT.ver === ver && !stopped()) { const m = aiPick(PT, PT.turn); if (m) play(PT.turn, m); else nextTurn(false); } }, 650 + Math.random() * 600); }
   }
   function play(s, m) {
-    if (!PT || PT.over || s !== PT.turn) return false;
+    if (stopped() || s !== PT.turn) return false;
     const ok = gen(PT, s).some(x => x[0] === m[0] && x[1] === m[1] && x[2] === m[2]); if (!ok) return false;
-    if (PT.fol && m[2] && PT.df) {   // Mur : on ne saute pas par-dessus ; tour perdu, le mur s'éteint
-      const f = PT.pawns[s][m[0]], dr = Math.sign(Math.floor(m[1] / N) - Math.floor(f / N)), dc = Math.sign(m[1] % N - f % N);
-      for (let i = f + dr * N + dc; i !== m[1]; i += dr * N + dc) { const o = PT.pawns.findIndex((p, j) => j !== s && p.includes(i)); if (o >= 0 && defOn(o, 'wall')) { PT.df[o] = false; PT.msg = `🧱 ${PT.seats[o].name} ${tr('a un mur : impossible de sauter par-dessus !')}`; PT.ev = { k: 'wall', at: i, n: PT.moves }; PT.timeouts[s] = 0; try { sfx.round(); } catch (e) {} if (PT.dyn) dynTick(); PT.moves++; nextTurn(false); return true; } }
-    }
+    if (wallStop(s, m)) return true;
     const from = applyMove(PT, s, m);
     PT.last = { s, from, to: m[1], jump: m[2] }; PT.moves++; PT.msg = m[2] ? `${PT.seats[s].name} ${tr('utilise son saut ↷')}` : '';
-    PT.timeouts[s] = 0; if (PT.dyn) dynTick(); PT.ev = null;
+    PT.timeouts[s] = 0; PT.ev = null;
     try { sfx.move(); if (PT.cells[from] === 0) setTimeout(() => sfx.fall(), 200); if (m[2]) sfx.jump(); } catch (e) {}
+    mineHit(s, m[1]);
     nextTurn(false);
     return true;
   }
+  // fin de manche : places, points, bonus cases
   function finish() {
     clearTimeout(aiTimer);
-    const left = aliveSeats(); PT.over = true; PT.winner = left.length ? left[0] : PT.place[PT.place.length - 1];
-    const rank = [PT.winner, ...PT.place.slice().reverse().filter(x => x !== PT.winner)];
-    const vs = visibleSum(PT);
-    PT.rank = rank; PT.pts = {}; rank.forEach((s, i) => { PT.pts[s] = i === 0 ? 10 + vs : RANKPTS[i] ?? 0; });
-    PT.msg = PT.winner === mySeat() && !(!NET && PT.seats.filter(x => x.kind === 'human').length > 1) ? tr('Tu fais le dernier pas !') : `${PT.seats[PT.winner].name} ${tr('fait le dernier pas !')}`; PT.ver++;
+    const left = aliveSeats(), w = left.length ? left[0] : PT.place[PT.place.length - 1];
+    const rank = [w, ...PT.place.slice().reverse().filter(x => x !== w)];
+    const vs = visibleSum(PT), bonus = Math.min(10, vs), pts = {};
+    rank.forEach((s, i) => { pts[s] = RPTS[i] ?? 0; });
+    pts[w] += bonus; if (bonus < 10 && rank[1] != null) pts[rank[1]] += 10 - bonus;
+    rank.forEach(s => { PT.score[s] += pts[s]; }); PT.wins[w]++;
+    PT.winner = w; PT.rank = rank; PT.pts = pts; PT.sum = vs; PT.hist.push({ w, pts, sum: vs }); PT.rOver = true;
+    if (PT.round >= PT.R) matchEnd();
+    else { PT.nextAt = Date.now() + 8000; PT.msg = `${PT.seats[w].name} ${tr('remporte la manche')} ${PT.round} !`; }
+    PT.ver++;
     try { sfx.round(); } catch (e) {}
-    reward(); broadcast(); draw();
+    broadcast(); draw();
+  }
+  function matchEnd() {
+    const seats = [0, 1, 2, 3].filter(i => PT.inGame[i]).sort((a, b) => PT.wins[b] - PT.wins[a] || PT.score[b] - PT.score[a]);
+    const top = seats.filter(i => PT.wins[i] === PT.wins[seats[0]] && PT.score[i] === PT.score[seats[0]]);
+    PT.final = seats; PT.champs = top; PT.over = true;
+    const solo = !(!NET && PT.seats.filter(x => x.kind === 'human').length > 1);
+    PT.msg = top.length > 1 ? `${top.map(i => PT.seats[i].name).join(' & ')} ${tr('sont vainqueurs ex aequo !')}` : top[0] === mySeat() && solo ? tr('Tu remportes la partie !') : `${PT.seats[top[0]].name} ${tr('remporte la partie !')}`;
+    reward();
     try { if (mySeat() != null && typeof badge === 'function') badge('fete'); } catch (e) {}
   }
+  function nextRound() { if (!PT || !isReferee() || !PT.rOver || PT.over) return; startRound(); }
   function reward() {
-    const me = mySeat(); if (me == null || !PT.rank) return;
-    const r = PT.rank.indexOf(me); if (r < 0) return;
+    const me = mySeat(); if (me == null || !PT.final) return;
+    const r = PT.champs.includes(me) ? 0 : PT.final.indexOf(me); if (r < 0) return;
     try { P.coins = (P.coins || 0) + RANKCOINS[r]; saveP(); } catch (e) {}
   }
   function onTick() {
     if (!PT || PT.over) { drawTimer(); return; }
     drawTimer();
+    if (PT.pre) { if (isReferee() && Date.now() >= PT.preEnd) preCheck(); else if (UI.ldSel && Date.now() >= PT.preEnd) ldSend(UI.ldSel); return; }
+    if (PT.rOver) { if (isReferee() && Date.now() >= PT.nextAt) nextRound(); return; }
     if (!isReferee() || PT.turn < 0) return;
     if (Date.now() > PT.deadline) {
       const s = PT.turn, seat = PT.seats[s];
@@ -266,9 +310,12 @@
   }
   function packState() {
     return { id: PT.id, cells: PT.cells, pawns: PT.pawns, J: PT.J, alive: PT.alive, place: PT.place, seats: PT.seats.map(s => ({ kind: s.kind === 'remote' ? 'remote' : s.kind, name: s.name, skin: s.skin })),
-      turn: PT.turn, moves: PT.moves, last: PT.last, msg: PT.msg, fol: PT.fol, dyn: PT.dyn || [], ev: PT.ev, ld: PT.ld, used: PT.used, df: PT.df, over: PT.over, winner: PT.winner, rank: PT.rank, pts: PT.pts, left: Math.max(0, PT.deadline - Date.now()), ver: PT.ver };
+      turn: PT.turn, moves: PT.moves, last: PT.last, msg: PT.msg, fol: PT.fol, ev: PT.ev, used: PT.used, sl: PT.sl, pl: PT.pl, mines: PT.mines || [], over: PT.over, rOver: PT.rOver, winner: PT.winner, rank: PT.rank, pts: PT.pts, sum: PT.sum,
+      mid: PT.mid, inGame: PT.inGame, round: PT.round, R: PT.R, wins: PT.wins, score: PT.score, hist: PT.hist, final: PT.final, champs: PT.champs, first: PT.first, startSeat: PT.startSeat,
+      pre: PT.pre, preLeft: PT.pre ? Math.max(0, PT.preEnd - Date.now()) : 0, nextLeft: PT.rOver ? Math.max(0, PT.nextAt - Date.now()) : 0, left: Math.max(0, PT.deadline - Date.now()), ver: PT.ver };
   }
   function broadcast() {
+    invSync();
     if (!NET || !NET.host || !PT) return;
     const st = packState();
     for (const s in NET.conns) { try { NET.conns[s].send({ t: 'st', st, you: +s }); } catch (e) {} }
@@ -312,9 +359,8 @@
     if (d.t === 'mv' && Array.isArray(d.m) && PT && PT.turn === s) play(s, [d.m[0] | 0, d.m[1] | 0, d.m[2] ? 1 : 0]);
     if (d.t === 'push' && PT) pushAct(s, d.b | 0);
     if (d.t === 'swap' && PT) swapAct(s, d.b | 0);
-    if (d.t === 'act' && PT) actAct(s, String(d.k || ''));
-    if (d.t === 'dyn' && PT) dynAct(s, d.i | 0);
-    if (d.t === 'ld' && PT && PT.fol && PT.ld) { PT.ld[s] = cleanLd(d.ld); PT.ver++; broadcast(); draw(); }
+    if (d.t === 'mine' && PT) mineAct(s, d.i | 0);
+    if (d.t === 'ld' && PT && PT.fol && PT.pre) { PT.sl[s] = clean4(d.s); preCheck(); }
     if (d.t === 'chat') { const id = String(d.id || ''); if (typeof phText === 'function' && phText(id)) { showBubble(s, id); relay({ t: 'chat', s, id }, s); } }
     if (d.t === 'wz' && WZE[d.k] && PT && PT.seats[d.to | 0]) { const m = { t: 'wz', f: s, to: d.to | 0, k: d.k }; relay(m, s); gotWz(m.f, m.to, m.k); }
   }
@@ -361,10 +407,13 @@
     if (d.t === 'st' && d.st) {
       const st = d.st, isNew = !PT || PT.id !== st.id;
       const prev = PT;
-      PT = { ...st, deadline: Date.now() + (st.left || 0), timeouts: [0, 0, 0, 0] };
-      if (isNew) { if (st.fol) setTimeout(heavyAsk, 600); UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
-      if (prev && !isNew && st.moves === prev.moves + 1) { try { if (st.ev && st.ev.k === 'push') { sfx.wizz(); if (st.ev.dead) vibrate([120, 60, 200]); } else if (st.ev && st.ev.k === 'dyn') sfx.jump(); else if (st.ev && st.ev.k === 'heavy') sfx.round(); else sfx.move(); } catch (e) {} }
-      if (st.over && !(prev && prev.over)) { try { sfx.round(); } catch (e) {} reward(); }
+      PT = { ...st, deadline: Date.now() + (st.left || 0), preEnd: Date.now() + (st.preLeft || 0), nextAt: Date.now() + (st.nextLeft || 0), timeouts: [0, 0, 0, 0] };
+      if (isNew) { UI.stage = 'game'; UI.bubbles = {}; UI.wz = null; UI.wzLeft = 3; UI.wzLast = 0; UI.ldDone = null; UI.ldSel = st.fol && st.pre ? [] : null; try { if (typeof MUSIC !== 'undefined' && MUSIC.el) MUSIC.el.currentTime = 0; musicStart(); } catch (e) {} }
+      if (prev && !isNew && st.moves === prev.moves + 1) { try { if (st.ev && st.ev.k === 'push') { sfx.wizz(); if (st.ev.dead) vibrate([120, 60, 200]); } else if (st.ev && st.ev.k === 'minep') sfx.jump(); else if (st.ev && (st.ev.k === 'heavy' || st.ev.k === 'wall')) sfx.round(); else sfx.move(); } catch (e) {} }
+      if (st.rOver && !(prev && prev.rOver && prev.round === st.round)) { try { sfx.round(); } catch (e) {} }
+      if (st.over && !(prev && prev.over)) reward();
+      if (!st.pre) UI.ldSel = null;
+      invSync(); UI.mine = false;
       UI.sel = null; if (PT.turn === me.seat && !PT.over) { const ks = [...new Set(gen(PT, me.seat).map(m => m[0]))]; if (ks.length === 1) UI.sel = ks[0]; }
       draw(); return;
     }
@@ -557,15 +606,20 @@
   const av = (skin) => `<div class="av">${pawnSVG(cleanSkin(skin))}</div>`;
   function seatCard(i) {
     const s = PT.seats[i]; if (!s || s.kind === 'off') return `<div class="pc" style="--sc:#444;visibility:hidden"></div>`;
-    const on = !PT.over && PT.turn === i, out = !PT.alive[i];
+    const on = !stopped() && !PT.pre && PT.turn === i, out = !PT.alive[i];
     const b = UI.bubbles[i] && UI.bubbles[i].until > Date.now() ? `<div class="bub">${esc4(UI.bubbles[i].tx)}</div>` : '';
     const tag = s.kind === 'ai' ? tr('Ordinateur') : (NET && NET.seat === i) || (!NET && i === mySeat()) ? tr('Toi') : '';
     const me = mySeat(), tap = !PT.over && !out && i !== me && me != null;
     const pop = UI.wz === i ? `<div class="wzpop">${['wizz', 'toc', 'haha'].map(k => `<button type="button" data-a="wz" data-v="${k}">${WZE[k]}<span>${tr(WZN[k])}</span></button>`).join('')}${VOK() && Voice.seatState(i) ? `<button type="button" data-a="vdeaf">${Voice.seatState(i).deaf ? '🔊' : '🔕'}<span>${Voice.seatState(i).deaf ? tr('Réécouter') : tr('Couper sa voix')}</span></button>` : ''}<small>${UI.wzLeft > 0 ? UI.wzLeft + '/3' : tr('Plus de taquineries')}</small></div>` : '';
-    return `<div class="pc${on ? ' on' : ''}${out ? ' out' : ''}${tap ? ' tap' : ''}${vTalk(i)}${UI.hit && UI.hit.s === i && UI.hit.until > Date.now() ? ' hit-' + UI.hit.k : ''}" style="--sc:${SEATC[i]}"${tap ? ` data-a="seat" data-v="${i}" role="button" aria-label="${tr('Taquiner')} ${esc4(s.name)}"` : ''}>${b}${pop}${av(s.skin)}<div style="min-width:0"><b>${esc4(s.name)}</b><small>${out ? '✖ ' + tr('Éliminé') : vIcon(i) + (PT.J[i] ? '↷'.repeat(PT.J[i]) + ' ' : '') + powIcons(i) + ' ' + tag}</small></div>${on ? `<div class="tm" data-tm="${i}"></div>` : ''}</div>`;
+    return `<div class="pc${on ? ' on' : ''}${out ? ' out' : ''}${tap ? ' tap' : ''}${vTalk(i)}${UI.hit && UI.hit.s === i && UI.hit.until > Date.now() ? ' hit-' + UI.hit.k : ''}" style="--sc:${SEATC[i]}"${tap ? ` data-a="seat" data-v="${i}" role="button" aria-label="${tr('Taquiner')} ${esc4(s.name)}"` : ''}>${b}${pop}${av(s.skin)}<div style="min-width:0"><b>${esc4(s.name)}</b><small>${PT.R > 1 ? `🏆${PT.wins[i]} · ${PT.score[i]} · ` : ''}${out ? '✖ ' + tr('Éliminé') : vIcon(i) + (PT.J[i] ? '↷'.repeat(PT.J[i]) + ' ' : '') + powIcons(i) + ' ' + tag}</small></div>${on ? `<div class="tm" data-tm="${i}"></div>` : ''}</div>`;
+  }
+  function powIcons(i) {
+    if (!PT.fol || PT.pre) return ''; const sl = slotsOf4(i).filter(k => k !== 'jump'); if (!sl.length) return '';
+    if (i !== mySeat()) return `<span class="pwt${sl.some(k => powN4(i, k) > 0) ? '' : ' off'}">⚡</span>`;
+    return [...new Set(sl)].map(k => `<span class="pwt${powN4(i, k) > 0 ? '' : ' off'}">${PWE[k]}</span>`).join('');
   }
   function canAct() {
-    if (!PT || PT.over || PT.turn < 0) return false;
+    if (stopped() || PT.pre || PT.turn < 0) return false;
     const s = PT.seats[PT.turn];
     if (NET) return NET.seat === PT.turn;
     return s.kind === 'human';
@@ -576,37 +630,50 @@
   function viewRot() { const m = mySeat(); return m == null || m < 0 ? 0 : m; }
   const toView = (i, k) => { for (let n = 0; n < k; n++) i = rotCCW(i); return i; };
   const fromView = (d, k) => { for (let n = 0; n < k; n++) d = rotCW(d); return d; };
+  const secs = (t) => Math.max(0, Math.ceil((t - Date.now()) / 1000));
+  const mineSeen = (m) => { UI.mseen = UI.mseen || {}; if (UI.mseen[m.id] == null) { UI.mseen[m.id] = Date.now(); setTimeout(draw, MINE_SEE + 60); } return Date.now() - UI.mseen[m.id] < MINE_SEE; };
+  function standings(final) {
+    const order = final ? PT.final : [0, 1, 2, 3].filter(i => PT.inGame[i]).sort((a, b) => PT.wins[b] - PT.wins[a] || PT.score[b] - PT.score[a]);
+    return `<ol class="podium">${order.map((s, i) => `<li style="--sc:${SEATC[s]}"><span>${final ? (PT.champs.includes(s) ? '🥇' : ['🥇', '🥈', '🥉', '4'][i]) : i + 1}</span>${av(PT.seats[s].skin)}<b>${esc4(PT.seats[s].name)}</b><span>🏆 ${PT.wins[s]} · ${PT.score[s]} pts</span></li>`).join('')}</ol>`;
+  }
   function drawGame() {
     const my = canAct(), ms = my ? gen(PT, PT.turn) : [], rot = viewRot();
     const sel = UI.sel != null ? UI.sel : (my && PT.pawns[PT.turn] && PT.pawns[PT.turn].length === 1 ? 0 : null);
-    const tg = new Map(); if (my && sel != null) ms.filter(m => m[0] === sel).forEach(m => tg.set(m[1], m[2]));
+    const tg = new Map(); if (my && sel != null && !UI.mine) ms.filter(m => m[0] === sel).forEach(m => tg.set(m[1], m[2]));
     const mine = new Set(my ? PT.pawns[PT.turn] : []);
-    const fol = my && PT.fol, pu = new Set(fol && pwOK('push') ? pushTargets(PT, PT.turn).map(x => x.b) : []), dt = new Set(fol && UI.dyn ? ms.map(m => m[1]) : []), dmap = new Map((PT.dyn || []).map(d => [d.i, d]));
-    const sw = new Set(fol && UI.swap ? PT.pawns.flatMap((p, j) => j === PT.turn ? [] : p) : []);
-    const alive = Math.max(1, PT.alive.filter(Boolean).length);
-    const cells = Array.from({ length: N * N }, (_, d) => fromView(d, rot)).map((i) => { const v = PT.cells[i]; return `<button type="button" class="cl${v === 0 ? ' h' : ''}${mine.has(i) ? ' me' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}${pu.has(i) ? ' pu' : ''}${dt.has(i) ? ' dt' : ''}${sw.has(i) ? ' sw' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}${dmap.has(i) ? `<span class="dy">🧨<i>${Math.ceil(dmap.get(i).left / alive)}</i></span>` : ''}</button>`; }).join('');
+    const fol = my && PT.fol && !PT.pre, pu = new Set(fol ? pushTargets(PT, PT.turn).map(x => x.b) : []), sw = new Set(fol ? swapTargets(PT, PT.turn).map(x => x.b) : []);
+    const dt = new Set(fol && UI.mine ? mineTargets(PT, PT.turn) : []), dmap = new Set((PT.mines || []).filter(mineSeen).map(m => m.i));
+    const cells = Array.from({ length: N * N }, (_, d) => fromView(d, rot)).map((i) => { const v = PT.cells[i]; return `<button type="button" class="cl${v === 0 ? ' h' : ''}${mine.has(i) ? ' me' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}${pu.has(i) ? ' pu' : ''}${dt.has(i) ? ' dt' : ''}${sw.has(i) ? ' sw' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}${dmap.has(i) ? `<span class="dy">💣</span>` : ''}</button>`; }).join('');
     const pawns = PT.pawns.map((ps, s) => ps.map((pos, k) => {
       const vp = toView(pos, rot), r = Math.floor(vp / N), c = vp % N;
       return `<div class="pw${my && s === PT.turn && sel === k ? ' sel' : ''}${my && s === PT.turn ? ' mine' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * ((100% - 32px) / 6 + 4px));top:calc(6px + ${r} * ((100% - 32px) / 6 + 4px))"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
     }).join('')).join('');
     const turnName = PT.turn >= 0 && PT.seats[PT.turn] ? PT.seats[PT.turn].name : '';
     const many = !NET && PT.seats.filter(x => x.kind === 'human').length > 1;
-    const status = PT.over ? '' : my ? (many ? `<b style="color:${SEATC[PT.turn]}">${esc4(turnName)}</b> : ${UI.sel == null ? tr('choisis un pion') : tr('touche une case marquée')}` : (UI.sel == null ? tr('À toi : choisis un pion') : tr('Touche une case marquée'))) : `${tr('Au tour de')} ${esc4(turnName)}…`;
+    const status = PT.pre ? `🎽 ${tr('Vestiaire : choisis tes pouvoirs')}` : stopped() ? '' : my ? (UI.mine ? tr('Touche une case libre collée à ton pion pour poser la mine.') : many ? `<b style="color:${SEATC[PT.turn]}">${esc4(turnName)}</b> : ${UI.sel == null ? tr('choisis un pion') : tr('touche une case marquée')}` : (UI.sel == null ? tr('À toi : choisis un pion') : tr('Touche une case marquée'))) : `${tr('Au tour de')} ${esc4(turnName)}…`;
     let end = '';
     if (PT.over) {
+      const me = mySeat(), r = PT.champs && PT.champs.includes(me) ? 0 : PT.final ? PT.final.indexOf(me) : -1;
+      end = `<p class="note">${tr('Classement de la partie : manches gagnées, puis points.')}</p>${standings(true)}${r >= 0 ? `<p class="note">+${RANKCOINS[r]} ${tr('pièces')}</p>` : ''}<div class="acts">${isReferee() ? `<button class="btn pr" data-a="again">${tr('Revanche')}</button>` : ''}<button class="btn" data-a="close">${tr('Quitter')}</button></div>`;
+    } else if (PT.rOver) {
       const rows = (PT.rank || []).map((s, i) => `<li style="--sc:${SEATC[s]}"><span>${['🥇', '🥈', '🥉', '4'][i]}</span>${av(PT.seats[s].skin)}<b>${esc4(PT.seats[s].name)}</b><span>+${PT.pts ? PT.pts[s] : 0} pts</span></li>`).join('');
-      const me = mySeat(), r = PT.rank ? PT.rank.indexOf(me) : -1;
-      end = `<ol class="podium">${rows}</ol>${r >= 0 ? `<p class="note">+${RANKCOINS[r]} ${tr('pièces')}</p>` : ''}<div class="acts">${isReferee() ? `<button class="btn pr" data-a="again">${tr('Revanche')}</button>` : ''}<button class="btn" data-a="close">${tr('Quitter')}</button></div>`;
+      end = `<p class="note">${tr('Manche')} ${PT.round}/${PT.R} · ${tr('cases restantes :')} ${PT.sum} (${tr('bonus jusqu\'à 10')})</p><ol class="podium">${rows}</ol><p class="note">${tr('Classement')}</p>${standings(false)}
+        <div class="acts">${isReferee() ? `<button class="btn pr" data-a="next">${tr('Manche suivante')} (<span data-next>${secs(PT.nextAt)}</span> s)</button>` : `<p class="note">${tr('Manche suivante dans')} <span data-next>${secs(PT.nextAt)}</span> s</p>`}</div>`;
     }
     const chat = NET && !PT.over ? `<button class="btn" data-a="chat">💬 ${tr('Chat')}</button>` : '';
-    const me4 = mySeat(), L4 = PT.ld && PT.ld[me4], used4 = PT.used && PT.used[me4], PWN = { push: tr('Pousser'), swap: tr('Inversion'), dyn: tr('Dynamite'), jump: tr('Saut'), heavy: tr('Poids lourd'), ghost: tr('Fantôme'), wall: tr('Mur'), vision: tr('Vision') };
-    const pows = PT.fol && !PT.over && L4 ? L4.pw.map(k => { const act = k === 'push' ? 'pwpush' : k === 'swap' ? 'pwswap' : k === 'dyn' ? 'pwdyn' : 'pwact', on = (k === 'swap' && UI.swap) || (k === 'dyn' && UI.dyn); return `<button class="btn${on ? ' pr' : ''}" data-a="${act}" data-v="${k}" ${(k === 'push' || my) && !used4 ? '' : 'disabled'}>${PWE[k]} ${PWN[k]}</button>`; }).join('') : '';
-    const lo = UI.ld || { pw: [] }, own = PWK.filter(pwOK), ob = (k) => { const on = lo.pw.includes(k), dis = !on && (lo.pw.length >= 2 || (DEFS.includes(k) && lo.pw.some(x => DEFS.includes(x)))); return `<button class="btn${on ? ' pr' : ''}" data-a="ldtog" data-v="${k}" ${dis ? 'disabled' : ''}>${PWE[k]} ${PWN[k]}</button>`; };
-    const hvq = UI.hvAsk && PT.fol && !PT.over ? `<div class="hvq">🤪 <b>${tr('Ton équipement')}</b><small>${tr('2 pouvoirs au plus, un seul utilisé dans la partie.')}</small><div class="acts">${own.map(ob).join('') || `<small>${tr('Aucun pouvoir : passe par la boutique.')}</small>`}</div>${pwOK('vision') ? `<div class="acts"><button class="btn${lo.vis ? ' pr' : ''}" data-a="ldvis">👁️ ${PWN.vision}</button></div>` : ''}<div class="acts"><button class="btn pr" data-a="ldok">${tr('C\'est parti !')}</button></div></div>` : '';
+    const me4 = mySeat();
+    const pows = PT.fol && !PT.pre && !stopped() && me4 != null && PT.inGame[me4] ? [...new Set(slotsOf4(me4))].filter(k => k !== 'jump').map(k => { const n = powN4(me4, k), on = k === 'mine' && UI.mine, dis = n <= 0 || (k === 'mine' && (!my || !mineTargets(PT, me4).length)); return `<button class="btn${on ? ' pr' : ''}" data-a="${k === 'mine' ? 'pwmine' : 'pwinfo'}" data-v="${k}" ${dis ? 'disabled' : ''}>${PWE[k]} ${pwName(k)}${n > 1 ? ' ×' + n : ''}</button>`; }).join('') : '';
+    let hvq = '';
+    if (PT.pre && UI.ldSel) {
+      const L = UI.ldSel, slot = (n) => L[n] ? `<button class="btn pr" data-a="ldel" data-v="${n}">${PWE[L[n]]} ${pwName(L[n])}</button>` : `<button class="btn" disabled>? ${tr('Emplacement')} ${n + 1}</button>`;
+      const ob = (k) => { const has = pwOK(k), dis = !has || L.length >= 2 || (k === 'mine' && L.includes('mine')); return `<button class="btn" data-a="ladd" data-v="${k}" ${dis ? 'disabled' : ''}>${PWE[k]} ${pwName(k)}</button>`; };
+      hvq = `<div class="hvq">🎽 <b>${tr('Vestiaire')} · <span data-pre>${secs(PT.preEnd)}</span> s</b><small>${tr('Choisis 2 pouvoirs. Le même peut être pris deux fois (sauf la Mine). Chacun sert une fois par manche. Sans choix : Saut + Saut.')}</small><div class="acts">${slot(0)}${slot(1)}</div><div class="acts">${(typeof PW_SLOT !== 'undefined' ? PW_SLOT : ['jump']).map(ob).join('')}</div><div class="acts"><button class="btn pr" data-a="ldok">${L.length ? tr('Prêt !') : tr('Prêt (Saut + Saut)')}</button></div></div>`;
+    } else if (UI.pick != null && my) hvq = `<div class="hvq"><b>${tr('Que veux-tu faire ?')}</b><div class="acts"><button class="btn pr" data-a="pp" data-v="push">💥 ${tr('Pousser')}</button><button class="btn pr" data-a="pp" data-v="swap">🔄 ${tr('Inverser')}</button><button class="btn" data-a="pp" data-v="x">${tr('Annuler')}</button></div></div>`;
+    else if (PT.pre) hvq = `<div class="hvq"><b>${tr('La partie commence dans')} <span data-pre>${secs(PT.preEnd)}</span> s</b>${UI.ldDone ? `<small>${tr('Ton équipement :')} ${UI.ldDone.map(k => PWE[k]).join(' ')}</small>` : ''}</div>`;
     const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...(typeof myRefs === 'function' ? myRefs().map(id => 'r' + id) : []), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';
-    return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Quitter')}">✕</button><h2>${tr('Partie à 4')}${PT.fol ? ' · 🤪' : ''}</h2></div>${hvq}
+    return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Quitter')}">✕</button><h2>${tr('Partie à 4')}${PT.fol ? ' · 🤪' : ''} <small class="note">${tr('Manche')} ${PT.round}/${PT.R}</small></h2></div>${hvq}
       <div class="rows">${seatCard((rot + 1) % 4)}${seatCard((rot + 2) % 4)}</div>
-      <div class="bd${my && !PT.over ? ' spot' : ''}" id="pt4bd">${cells}${pawns}</div>
+      <div class="bd${my && !stopped() ? ' spot' : ''}" id="pt4bd">${cells}${pawns}</div>
       <div class="rows bottom">${seatCard(rot)}${seatCard((rot + 3) % 4)}</div>
       <p class="st">${PT.msg ? `<b>${esc4(PT.msg)}</b><br>` : ''}${status}</p>
       ${end}${PT.over ? (voiceBar() ? `<div class="acts">${voiceBar()}</div>` : '') : `${pows ? `<div class="acts">${pows}</div>` : ''}<div class="acts">${chat}${voiceBar()}</div>${chips}`}`;
@@ -616,7 +683,7 @@
     const opt = (i, v, l) => `<option value="${v}" ${UI.seats[i].kind === v ? 'selected' : ''}>${l}</option>`;
     const seatRow = (i) => `<div class="seat" style="--sc:${SEATC[i]}">${av(UI.seats[i].skin || P.skin)}<b>${i === 0 ? esc4(P.name) : UI.seats[i].kind === 'human' ? tr('Joueur') + ' ' + (i + 1) : UI.seats[i].kind === 'ai' ? esc4(UI.seats[i].name) : '—'}</b>${i === 0 ? `<span class="note">${tr('Toi')}</span>` : `<select data-seat="${i}">${opt(i, 'human', tr('Humain'))}${opt(i, 'ai', tr('Ordinateur'))}${opt(i, 'off', tr('Vide'))}</select>`}</div>`;
     return `<div class="bar"><button class="x" data-a="close" aria-label="${tr('Retour')}">✕</button><h2>${tr('Partie à 4')}</h2></div>
-      <p class="note">${tr('Jusqu\'à 4 joueurs sur un plateau 6×6, un pion et deux sauts chacun. Bloqué à ton tour : éliminé. Le dernier debout gagne.')}</p>
+      <p class="note">${tr('Jusqu\'à 4 joueurs sur un plateau 6×6, un pion et deux sauts chacun. Bloqué à ton tour : éliminé. Une manche par joueur (chacun commence une fois) : le dernier debout gagne la manche, le plus de manches gagnées remporte la partie.')}</p>
       <div class="join4"><b>🔑 ${tr('Rejoindre une salle')}</b><small>${tr('Tape le code que ton ami t\'a donné.')}</small>
         <input id="pt4code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="• • • •" autocomplete="off" aria-label="${tr('Code de la salle')}"></div>
       <button class="big" data-a="room"><span class="e">👥</span><div><b>${tr('Créer une salle')}</b><small>${tr('Tu donnes le code à tes amis, ils le tapent, tu lances.')}</small></div></button>
@@ -639,7 +706,7 @@
       ${quick ? `<p class="note" data-wait="1">${tr('Recherche de joueurs…')} ${Math.ceil(wait / 1000)} s · ${tr('ensuite, des ordinateurs complètent la table.')}</p>` : ''}
       ${rows}
       ${voiceBar() ? `<div class="acts">${voiceBar()}</div><p class="note">${tr('Facultatif : parlez-vous pendant la partie, même chacun chez soi. Rien n\'est enregistré.')}</p>` : ''}
-      ${host && !quick ? `<label class="fol"><span>🤪 <b>${tr('Mode folie')}</b><small>${tr('Pousser, poids lourd, dynamite. Pour rire, sans classement.')}</small></span><input type="checkbox" id="pt4fol" ${UI.fol ? 'checked' : ''}></label>` : !host && UI.lobby && UI.lobby.fol ? `<p class="note">🤪 ${tr('Mode folie activé par l\'hôte')}</p>` : ''}
+      ${host && !quick ? `<label class="fol"><span>🤪 <b>${tr('Mode folie')}</b><small>${tr('Vestiaire de 10 s, puis Saut, Pousser, Inversion, Poids lourd, Mur et Mine. Pour rire, sans classement.')}</small></span><input type="checkbox" id="pt4fol" ${UI.fol ? 'checked' : ''}></label>` : !host && UI.lobby && UI.lobby.fol ? `<p class="note">🤪 ${tr('Mode folie activé par l\'hôte')}</p>` : ''}
       ${host && !quick ? `<button class="btn pr" style="width:100%;margin-top:12px" data-a="start" ${n < 2 ? 'disabled' : ''}>${tr('Lancer la partie')} (${n}/4)</button><p class="note">${tr('Les places vides seront jouées par l\'ordinateur.')}</p>` : ''}
       ${!host && !quick ? `<p class="note">${tr('L\'hôte lance la partie quand tout le monde est là.')}</p>` : ''}`;
   }
@@ -652,7 +719,8 @@
   }
   function drawTimer() {
     if (!root) return;
-    if (UI.stage === 'game' && PT && !PT.over) { const el = root.querySelector('[data-tm]'); if (el) el.style.transform = `scaleX(${Math.max(0, Math.min(1, (PT.deadline - Date.now()) / TURN_MS))})`; }
+    if (UI.stage === 'game' && PT && !PT.over) { const el = root.querySelector('[data-tm]'); if (el) el.style.transform = `scaleX(${Math.max(0, Math.min(1, (PT.deadline - Date.now()) / TURN_MS))})`;
+      root.querySelectorAll('[data-pre]').forEach(x => { x.textContent = secs(PT.preEnd); }); root.querySelectorAll('[data-next]').forEach(x => { x.textContent = secs(PT.nextAt); }); }
     if (UI.stage === 'lobby') {
       const el = root.querySelector('[data-wait]');
       if (el && NET) { const w = NET.host ? Math.max(0, NET.startAt - Date.now()) : UI.lobby ? Math.max(0, (UI.lobby.wait || 0) - (Date.now() - UI.lobbyAt)) : 0; el.textContent = `${tr('Recherche de joueurs…')} ${Math.ceil(w / 1000)} s · ${tr('ensuite, des ordinateurs complètent la table.')}`; }
@@ -661,20 +729,23 @@
   }
 
   /* ---------- Actions ---------- */
+  const send = (msg) => { try { NET.conn.send(msg); } catch (e) {} };
   function onCell(i) {
     if (!canAct()) return;
-    const s = PT.turn, ms = gen(PT, s);
+    const s = PT.turn, ms = gen(PT, s), remote = NET && !NET.host;
     if (PT.fol) {
-      if (UI.swap) { UI.swap = false; const isOpp = PT.pawns.some((p, j) => j !== s && p.includes(i)); if (isOpp && pwOK('swap')) { pwTake('swap'); if (NET && !NET.host) { try { NET.conn.send({ t: 'swap', b: i }); } catch (e) {} } else swapAct(s, i); } else draw(); return; }
-      if (UI.dyn) { UI.dyn = false; if (ms.some(m => m[1] === i) && pwOK('dyn')) { pwTake('dyn'); if (NET && !NET.host) { try { NET.conn.send({ t: 'dyn', i }); } catch (e) {} } else dynAct(s, i); } else draw(); return; }
-      if (pwOK('push') && pushTargets(PT, s).some(x => x.b === i)) { pwTake('push'); if (NET && !NET.host) { try { NET.conn.send({ t: 'push', b: i }); } catch (e) {} } else pushAct(s, i); return; }
+      if (UI.mine) { UI.mine = false; if (mineTargets(PT, s).includes(i)) { if (remote) send({ t: 'mine', i }); else mineAct(s, i); } else draw(); return; }
+      const pu = pushTargets(PT, s).some(x => x.b === i), sw = swapTargets(PT, s).some(x => x.b === i);
+      if (pu && sw) { UI.pick = i; draw(); return; }
+      if (pu) { if (remote) send({ t: 'push', b: i }); else pushAct(s, i); return; }
+      if (sw) { if (remote) send({ t: 'swap', b: i }); else swapAct(s, i); return; }
     }
     const k = PT.pawns[s].indexOf(i);
     if (k >= 0 && ms.some(m => m[0] === k)) { UI.sel = k; draw(); return; }
     if (UI.sel == null && PT.pawns[s].length === 1) UI.sel = 0;
     if (UI.sel == null) return;
     const m = ms.find(x => x[0] === UI.sel && x[1] === i); if (!m) return;
-    if (NET && !NET.host) { try { NET.conn.send({ t: 'mv', m }); } catch (e) {} UI.sel = null; return; }
+    if (remote) { send({ t: 'mv', m }); UI.sel = null; return; }
     play(s, m);
   }
   function onClick(e) {
@@ -691,13 +762,13 @@
     if (a === 'share') return share();
     if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4, fl = PT.fol; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf, fl); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf, fl); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
-    if (a === 'pwdyn') { UI.dyn = !UI.dyn; UI.swap = false; if (UI.dyn) toast(tr('Touche une case où tu pourrais aller pour poser la dynamite.')); draw(); return; }
-    if (a === 'pwswap') { UI.swap = !UI.swap; UI.dyn = false; if (UI.swap) toast(tr('Touche le pion adverse avec qui échanger.')); draw(); return; }
-    if (a === 'ldtog') { const k = b.dataset.v, L = UI.ld = UI.ld || { pw: [] }; if (L.pw.includes(k)) L.pw = L.pw.filter(x => x !== k); else if (L.pw.length < 2 && !(DEFS.includes(k) && L.pw.some(x => DEFS.includes(x)))) L.pw.push(k); draw(); return; }
-    if (a === 'ldvis') { UI.ld = UI.ld || { pw: [] }; UI.ld.vis = !UI.ld.vis; draw(); return; }
-    if (a === 'pwact') { const k = b.dataset.v; if (!canAct() || !pwOK(k)) return; pwTake(k); if (NET && !NET.host) { try { NET.conn.send({ t: 'act', k }); } catch (e) {} } else actAct(PT.turn, k); return; }
-    if (a === 'ldok') { ldSend(); return; }
-    if (a === 'pwpush') { toast(pwOK('push') ? tr('Touche un pion adverse collé au tien (il clignote) pour le pousser.') : tr('Plus de « Pousser » : achète-le dans la boutique, catégorie Pouvoirs.')); return; }
+    if (a === 'next') return nextRound();
+    if (a === 'pwmine') { if (canAct() && can(PT.turn, 'mine')) { UI.mine = !UI.mine; draw(); } return; }
+    if (a === 'pwinfo') { const k = b.dataset.v; if (typeof PW !== 'undefined' && PW[k]) toast(`${PWE[k]} ${tr(PW[k].d)}`); return; }
+    if (a === 'pp') { const i = UI.pick, k = b.dataset.v; UI.pick = null; if (i == null || !canAct() || k === 'x') { draw(); return; } if (NET && !NET.host) send({ t: k, b: i }); else if (k === 'push') pushAct(PT.turn, i); else swapAct(PT.turn, i); return; }
+    if (a === 'ladd') { const k = b.dataset.v, L = UI.ldSel; if (L && L.length < 2 && pwOK(k) && !(k === 'mine' && L.includes('mine'))) L.push(k); draw(); return; }
+    if (a === 'ldel') { if (UI.ldSel) UI.ldSel.splice(+b.dataset.v, 1); draw(); return; }
+    if (a === 'ldok') { if (UI.ldSel) ldSend(UI.ldSel); return; }
     if (a === 'say') return sendPhrase(b.dataset.v);
     if (a === 'voice') return voiceJoin();
     if (a === 'vmute') { Voice.toggleMute(); return; }
@@ -746,5 +817,6 @@
     joinCode(code) { open('lobby'); joinRoom('lastep-r4-' + String(code).toLowerCase(), false); },
     get state() { return PT; }, get net() { return NET; },
     _gen: gen, _ai: aiPick,
+    _t: { newGame: (...a) => { mount(); newGame(...a); }, play: (...a) => play(...a), push: (...a) => pushAct(...a), swap: (...a) => swapAct(...a), mine: (...a) => mineAct(...a), next: () => nextRound(), ld: (x) => ldSend(x), pre: () => preCheck(), targets: (k, s) => (k === 'push' ? pushTargets : k === 'swap' ? swapTargets : mineTargets)(PT, s) },
   };
 })();
