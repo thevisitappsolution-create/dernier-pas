@@ -1246,6 +1246,13 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .lbr2.me{background:linear-gradient(90deg,#0e7fa8,#3a2c86);border:2px solid #2ef2ff;box-shadow:0 0 14px #2ef2ff55}
 .lbr2.me .rk2{background:#2ef2ff;color:#0a0718}
 .lbme{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(180deg,#0c0a1c00,#0c0a1c 30%)}
+/* classement : titre, onglets et podium fixes, seule la liste défile */
+#sheet .sheet.lbsheet{height:calc(var(--vh,1vh)*86);overflow:hidden}
+.lbsheet>*{flex-shrink:0}
+.lbsheet .lb2{flex:1 1 0;min-height:90px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;margin-right:-4px;scrollbar-width:thin;scrollbar-color:#8f7bff66 transparent}
+.lbsheet .lbload{flex:1 1 0}
+.lbsheet .lb2{padding-bottom:0}
+.lbsheet .lbme{margin-top:auto;padding:6px 0 0;background:linear-gradient(180deg,#0c0a1c00,#0c0a1c 8px)}
 .lbload{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
 .gimg{height:auto;aspect-ratio:attr(width)/attr(height)}
 .gimg:not(.logo):not(.art):not(.mmarena){aspect-ratio:1}
@@ -1408,7 +1415,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 96,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 97,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -3004,7 +3011,7 @@ function renderSheet(){
   const w=$('#sheet');
   if (!sheet){ w.hidden=true; sheetKey=''; $('#sheetBody').dataset.h=''; return; }
   w.classList.toggle('center', ['ldone','limit','chalin','premium','loadout','powpick','powdemo'].includes(sheet.type));
-  w.hidden=false;
+  w.hidden=false; $('#sheetBody').classList.toggle('lbsheet', sheet.type==='lb');
   const html=((sheet.type==='loadout'?'':"<button class=\"xclose\" type=\"button\" data-act=\"sheet-close\" aria-label=\""+T("Fermer")+"\">"+"✕"+"</button>"))+sheetHTML();
   if (sheetKey===sheet.type && $('#sheetBody').dataset.h===html) return;
   const keep={}; $('#sheetBody').querySelectorAll('input[id]').forEach(i=>{ if (i.type!=='checkbox') keep[i.id]=i.value; });
@@ -5120,9 +5127,10 @@ function lbHTML(){
   const title=`<div class="lbtitle">${IMG('icone-trophee')}<h2>${T("Classement")}</h2></div>`;
   if (!LB.rows) return `${title}${tabs}${head}<div class="lbload"><div class="radar small"></div><p class="sub">${T("Chargement…")}</p></div>`;
   const rows=LB.rows, me=LB.me, unit=m==='adv'?'XP':'';
-  const top=rows.filter(x=>!x.bot).slice(0,3), rest=rows.filter(x=>!top.includes(x) && (x.bot || x.rk<=30 || x.me));
+  const top=rows.filter(x=>!x.bot).slice(0,3); let rest=rows.filter(x=>!top.includes(x) && (x.bot || x.rk<=50 || x.me));
   const pod=i=>{ const x=top[i]; if (!x) return '<div class="pod"></div>'; return `<div class="pod p${x.rk}${x.me?' me':''}${x.bot?' bot':''}"><div class="pav2">${pawnSVG(cleanSkin(x.skin))}${x.rk===1?'<span class="crown">👑</span>':''}</div><b class="pnm">${esc(cleanName(x.name))}</b><small>${x.v} ${unit}</small><div class="blk"><span>${x.rk}</span></div></div>`; };
   const meOut = me && me.rk>10;
+  if (meOut) rest=rest.filter(x=>!x.me);   // ta ligne reste épinglée en bas de la liste
   const row=x=>`<div class="lbr2${x.me?' me':''}${x.bot?' bot':''}"><span class="rk2">${x.bot?'🤖':x.rk}</span><span class="av">${pawnSVG(cleanSkin(x.skin))}</span><span class="nm">${esc(cleanName(x.name))}${x.me?` <i class="lbtag">${T("toi")}</i>`:''}</span><b>${x.v}<small>${unit?' '+unit:''}</small></b></div>`;
   return `${title}${tabs}${head}
     <div class="podium2">${pod(1)}${pod(0)}${pod(2)}</div>
