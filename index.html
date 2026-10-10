@@ -1339,8 +1339,8 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .dmlist{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;margin-top:8px}
 .dmgo{display:block;margin:8px auto 0}
 #dmre.hot{box-shadow:0 0 14px #2ef2ff;border-color:#2ef2ff}
-.pwv{display:block!important;width:100%}.pwv .dmb{margin:0 auto}
-.stage .center:has(.pwv){width:min(300px,82vw);height:auto;min-height:170px}
+.pwdemo{width:100%}.pwdemo .dmb{margin:0 auto}
+.stage:has(.pwdemo) .center{width:min(280px,72vw);height:auto;margin:0}.stage:has(.pwdemo) .stbg,.stage:has(.pwdemo) .pedestal{display:none}
 .dmhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.dmhead h2{margin:0;padding:0;flex:1;text-align:center}
 .dmar{width:44px;height:44px;border-radius:50%;border:1px solid #ffffff33;background:#ffffff12;color:inherit;font-size:1.6rem;line-height:1;cursor:pointer}
 .dmdots{display:flex;justify-content:center;gap:6px;margin:4px 0 10px}.dmdots button{width:38px;height:38px;border-radius:50%;border:2px solid #ffffff22;background:#ffffff0a;font-size:1.1rem;opacity:.55;cursor:pointer}.dmdots button.on{opacity:1;border-color:#2ef2ff;box-shadow:0 0 10px #2ef2ff88}
@@ -1395,7 +1395,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 89,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 90,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -5225,7 +5225,7 @@ function refBuy(id){
   P.coins-=r.p; P.refs=[...new Set([...(P.refs||[]), id])]; saveP(); sfx.win(); toast(`🔥 ${T("Réf débloquée : tu peux l'envoyer en partie !")}`); render();
 }
 function specialView(k,id,big){
-  if (k==='pw'){ const w=PW[id]; return big ? `<div class="spv big pwv"><div class="dmb" data-k="${id}"></div></div>` : `<div class="spv"><span class="spe">${w.e}</span></div>`; }
+  if (k==='pw'){ const w=PW[id]; return big ? `<div class="pwdemo"><div class="dmb" data-k="${id}"></div></div>` : `<div class="spv"><span class="spe">${w.e}</span></div>`; }
   if (k==='ref'){ const r=REFS[id]; return `<div class="spv ref${big?' big':''}"><span class="rbub">${big?esc(r.t):'💬'}</span></div>`; }
   if (k==='gold'){ const g=GOLD[id]; return `<div class="spv${big?' big':''}">${IMG(g.img,'gimg2')}</div>`; }
   return '';
