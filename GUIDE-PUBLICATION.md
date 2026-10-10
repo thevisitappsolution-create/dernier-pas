@@ -47,8 +47,9 @@ Dans le tableau de bord Supabase du projet `yabdzxowwgtlixomgbhe` :
 1. Crée un projet, puis une app iOS et une app Android.
 2. Crée les produits dans App Store Connect et Google Play, avec exactement ces identifiants :
    - abonnements : `lastep_premium_month` (4,99 €), `lastep_premium_year` (49,99 €), dans un même groupe d'abonnement ;
-   - consommables : `lastep_coins_500` (0,99 €), `lastep_coins_1200` (1,99 €), `lastep_coins_3500` (4,99 €), `lastep_coins_8000` (9,99 €).
-3. Dans RevenueCat, importe ces produits, crée l'accès « premium » relié aux deux abonnements, et une offre par défaut qui contient les 6 produits.
+   - consommables : `lastep_coins_500` (0,99 €), `lastep_coins_1200` (1,99 €), `lastep_coins_3500` (4,99 €), `lastep_coins_8000` (9,99 €) ;
+   - « Sans pub », achat unique non renouvelé (Apple : « Non-Renewing Subscription ») : `lastep_noads_3m` (1,99 €), `lastep_noads_6m` (4,99 €), `lastep_noads_12m` (6,99 €).
+3. Dans RevenueCat, importe ces produits, crée l'accès « premium » relié aux deux abonnements, l'accès « noads » relié aux trois produits « Sans pub », et une offre par défaut qui contient les 9 produits.
 4. **Integrations › Webhooks** :
    - URL : `https://yabdzxowwgtlixomgbhe.supabase.co/functions/v1/lastep-revenuecat`
    - Authorization : la valeur du secret `REVENUECAT_WEBHOOK_AUTH`.

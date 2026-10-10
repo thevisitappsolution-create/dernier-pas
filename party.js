@@ -768,6 +768,7 @@
     if (a === 'copy') return copyCode();
     if (a === 'start') return startOnline();
     if (a === 'share') return share();
+    if (a === 'again' && !UI.adOk && typeof adInter === 'function') { adInter().then(() => { UI.adOk = 1; try { onClick({ target: b }); } finally { UI.adOk = 0; } }); return; }   // pub au « Rejouer »
     if (a === 'again') { const nf = ((PT.first || 0) + 1) % 4, fl = PT.fol; if (NET && NET.host) { const seats = PT.seats.map(s => ({ ...s })); newGame(seats, nf, fl); } else if (!NET) newGame(PT.seats.map(s => ({ ...s })), nf, fl); return; }
     if (a === 'chat') { UI.chat = !UI.chat; draw(); return; }
     if (a === 'next') return nextRound();

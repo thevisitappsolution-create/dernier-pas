@@ -1047,6 +1047,9 @@ html:not(.lock) body{background:transparent!important}
 .mode3.wide .art{width:58%;margin:-15% 0 0}
 .mode3.wide .go{font-size:1.15rem}
 .arow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.act .badge.tv{height:20px;min-width:22px;padding:0 3px;font-size:.78rem;line-height:20px;background:#b6ff3b;box-shadow:0 0 10px #b6ff3b99;top:-2px}
+.tpill.x3{border-color:#b6ff3b88;color:#b6ff3b}.tpill.x3.on{border-color:#ffd75e;color:#ffd75e}
+.noav{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.noav b{font-family:var(--fun);font-weight:400;color:#ffd75e;font-size:1.1rem}.noav.big .spe{font-size:3.2rem}.noav.big b{font-size:1.6rem}
 .ldo.lock{opacity:.8;filter:saturate(.6)}.ldo.lock small{color:#ffd75e}
 .fpick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
 .fpb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 8px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(143,123,255,.28),rgba(20,14,48,.9));color:#fff;font:inherit;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
@@ -1428,7 +1431,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 100,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 101,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1721,7 +1724,12 @@ function credUse(k){
 }
 function credAdd(k, n){ if (k==='a'){ const c=cred(); c.xa=(c.xa||0)+n; } else credW(k).b+=n; saveP(); }
 const anLeft = () => credLeft('a');
-const credBadge = k => P.premium ? '' : String(credLeft(k));
+const credBadge = k => P.premium ? '' : credLeft(k)>0 ? String(credLeft(k)) : '📺';
+// Vidéo contre un indice : au plus une par heure
+const HINT_AD_MS=3600e3;
+const hintAdOK = () => Date.now()-(P.hintAd||0) >= HINT_AD_MS;
+const hintAdWait = () => Math.max(1, Math.ceil((HINT_AD_MS-(Date.now()-(P.hintAd||0)))/60000));
+function hintAdGive(k, after){ adReward().then(ok=>{ if (!ok) return; P.hintAd=Date.now(); credAdd(k,1); toast(T("+1 indice")); sheet=null; render(); if (after) after(); }); }
 const TIERS=[[900,(T("Bronze")),'#c98a5b'],[1150,(T("Argent")),'#c9d1cf'],[1400,(T("Or")),'#ecd59c'],[1650,(T("Platine")),'#8fd1c9'],[1e9,(T("Diamant")),'#9fb6ff']];
 const tierOf = r => TIERS.find(t => r < t[0]);
 function applyElo(score){
@@ -2964,7 +2972,7 @@ function renderActions(){
   if (TR) return renderTrActions();
   const seat=humanSeat(), playing=!G.over, myTurn=playing&&(seat===null||G.turn===seat), social=online();
   const me=seat===null?G.turn:seat, a=[];
-  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`${T("aria-pressed=\"")}${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
+  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.pressed!==undefined?`${T("aria-pressed=\"")}${o.pressed}"`:''} ${o.dis?'disabled':''} style="--pc:${S[me].hex}">${icon?ic(icon):''}${label}${o.badge?`<span class="badge${o.badge==='📺'?' tv':''}">${o.badge}</span>`:''}</button>`;
   if (playing){
     if (M.assist && !coachOn()) a.push(btn('as-hint','bulb',T("Coach"),{badge:credBadge('h'), cls:'hot'}));
     if (M.train){ a.push(btn('undo','undo',(T("Annuler")),{dis:!(HIST[G.round]||[]).some(h=>h.turn===0)})); }
@@ -3082,9 +3090,10 @@ function sheetHTML(){
   if (s.type==='nocred'){ const k=s.k, pk=CRED_PACK[k], ad=P.adCoins&&P.adCoins.d===dayKey()?P.adCoins.n:0, nm=k==='a'?T("analyses"):T("indices");
     return `<div class="modicon">${k==='a'?'📊':'💡'}</div><h2>${k==='a'?T("Plus d'analyse ce mois-ci"):T("Plus d'indice pour l'instant")}</h2>
     <p>${k==='a'?`${T("Chaque mois, tu as")} ${CRED_FREE.a} ${T("analyses gratuites. Elles reviennent le 1er du mois.")}`:`${k==='pa'?T("Aventure"):T("Cours")} : ${T("tu gagnes 1 indice gratuit chaque semaine (5 gratuits au maximum). Ceux que tu achètes restent jusqu'à ce que tu les utilises.")}`}</p>
+    ${k!=='a'?(hintAdOK()?adBtn('hint-ad', `${T("Regarder une vidéo")} : +1 ${T("indice")}`):`<p class="note" style="text-align:center">📺 ${T("Prochaine vidéo dans")} ${hintAdWait()} min</p>`):''}
     <div class="credrow"><span>${ic('coin')} <b>${P.coins||0}</b></span></div>
-    <button class="primary" type="button" data-act="buy-pack" data-v="${k}" ${(P.coins||0)<pk.price?'disabled':''}>${T("Acheter")} ${pk.n} ${nm} · ${pk.price} ${ic('coin','ic sm')}</button>
-    ${ad<5?adBtn('coins-ad', `${T("Regarder une pub")} : +25 ${T("pièces")}`):''}
+    <button class="${k!=='a'?'secondary':'primary'}" type="button" data-act="buy-pack" data-v="${k}" ${(P.coins||0)<pk.price?'disabled':''}>${T("Acheter")} ${pk.n} ${nm} · ${pk.price} ${ic('coin','ic sm')}</button>
+    ${k==='a'&&ad<5?adBtn('coins-ad', `${T("Regarder une pub")} : +25 ${T("pièces")}`):''}
     <p class="note">💎 ${T("Premium : indices, analyses et cours illimités, sans publicité.")}</p>`; }
   if (s.type==='resign') return `<h2>${online()?(T("Quitter la partie ?")):(T("Abandonner la partie ?"))}</h2><p>${false?'':online()?(T("Ton adversaire gagne la partie et tu perds des points de championnat.")):(T("Tu retournes au menu."))}</p>
     <div class="row"><button class="danger" type="button" data-act="resign-ok">${online()?(T("Quitter")):(T("Abandonner"))}</button><button class="secondary" type="button" data-act="sheet-close">${T("Continuer")}</button></div>`;
@@ -3346,9 +3355,14 @@ document.addEventListener('click', e=>{
     case 'demo-replay': if (TR) demoGo(TR.step||0); break;
     case 'tr-replay': if (TR) startLesson(TR.i); break;
     case 'tr-go': startExercise(); break;
-    case 'tr-restart': sheet=null; trRestart(); break;
-    case 'tr-next': trNext(); break;
-    case 'tr-quit': trQuit(); break;
+    case 'tr-restart': { sheet=null; const pe=parcEnded(); if (pe) $('#party').hidden=true; (pe?adInter():Promise.resolve()).then(trRestart); break; }
+    case 'tr-next': { const pe=parcEnded(); if (pe) $('#party').hidden=true; (pe?adInter():Promise.resolve()).then(trNext); break; }
+    case 'tr-quit': { const pe=parcEnded(); if (pe) $('#party').hidden=true; (pe?adInter():Promise.resolve()).then(trQuit); break; }
+    case 'tr-retry': $('#party').hidden=true; trRestart(); break;
+    case 'hint-ad': { const k=sheet&&sheet.k; if (k) hintAdGive(k, ()=>trHint()); break; }
+    case 'hint-ad-parc': hintAdGive('pa', ()=>{ const tr=TR; if (!tr) return; $('#party').hidden=true; stopConfetti(); startParc(tr.i, '', tr.tries+1); setTimeout(()=>{ if (isParc() && TR.state==='play') trHint(); }, 500); }); break;
+    case 'x3-ad': adReward().then(ok=>{ if (!ok) return; P.x3={d:dayKey(), on:1}; saveP(); sfx.win(); toast(T("Ta prochaine victoire rapporte ×3 !")); render(); }); break;
+    case 'noads-buy': noadsBuy(v); break;
     case 'dj': startDJ(); break;
     case 'dj-share': if (P.dj) shareText(djShareText(), `${baseURL()}${T("?dj=1")}`); break;
     case 'pz-stop': if (TR && TR.state==='play') (isParc()?parcDone(false):trDone(false)); break;
@@ -3428,7 +3442,7 @@ document.addEventListener('click', e=>{
     case 'sheet-close': if (sheet && sheet.type==='loadout') break; closeSheet(); break;
     case 'settings': sheet={type:'settings'}; render(); break;
     case 'resign': if (M && M.done){ leaveGame(); } else { sheet={type:'resign'}; render(); } break;
-    case 'resign-ok': { const pl=matchPlayed(); sheet=null; resignNow(); if (pl) adInter(); break; }
+    case 'resign-ok': { sheet=null; resignNow(); break; }   // la pub viendra au « Rejouer » ou « Quitter »
     case 'calm': P.calm=!P.calm; saveP(); render(); break;
     case 'match': goMatch(0); break;
     case 'mm-cancel': mmCancel(); break;
@@ -3546,6 +3560,7 @@ setInterval(()=>{
   if (isParc() && view==='game') parcTick(dt);
   if (TR && TR.mode && TR.mode!=='rush' && view==='game'){ const el=document.getElementById('clk0'); if (el) el.textContent=fmt(now-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)); }
   if (!document.hidden) graceTick(Math.min(dt,1000));
+  if (!document.hidden && (view==='game' || (window.Party && document.getElementById('pt4')))) P.interMs=(P.interMs||0)+Math.min(dt,1000);
   if (G && !G.over && view==='game' && !document.hidden){ ptAdd(Math.min(dt,1000)); P.playMs=(P.playMs||0)+Math.min(dt,1000); if (P.playMs>=60000){ P.playMs-=60000; addCoins(2,true); } }
   if (!(G && G.pre)){ const pb=document.getElementById('prebar'); if (pb) pb.remove(); }
   if (G && G.pre && view==='game'){ preTick(); return; }
@@ -3616,7 +3631,7 @@ function recordGame(){
   P.games=[...(P.games||[]), {gid:M.id, nm:[S[0].name,S[1].name], mv:packRounds(), anOK:M.anOK?1:0, op:op.name, sk:op.skin, w, sc:`${M.wins[me]}-${M.wins[1-me]}`, d:new Date().toLocaleDateString((T("fr-FR")),{day:'numeric',month:'short'}), de, src, t:P.time, uid: online()&&PEERS[1-me]?PEERS[1-me].uid:''}].slice(-50);
   P.games.forEach((g,i)=>{ if (i<P.games.length-GAMES_KEEP) delete g.mv; });
   if (M.daily && w){ const d=P.daily||{}, today=dayKey(), y=new Date(); y.setDate(y.getDate()-1); if (d.last!==today){ P.daily={last:today, streak: d.last===dayKey(y) ? (d.streak||0)+1 : 1}; } }
-  addCoins(w?10:3, true);
+  if (w && P.x3 && P.x3.on){ P.x3.on=0; addCoins(30, true); toast(T("Victoire ×3 : +30 pièces !")); } else addCoins(w?10:3, true);
   if (w && src==='ia') xpAdd(5); if (w && src==='online') xpAdd(10);
   if (M.assist && coachOn() && !M.forfeit){ badge('coach1'); if (w && !M.coachErr) badge('parfait'); }
   if (w && !M.forfeit){ if (M.rounds.length===3) badge('belle'); if (M.wins[1-me]===0) badge('carton'); if (vsAI==='expert' && !M.assist) badge('sphinx'); if (TAUNT_ID!==M.id) badge('zen'); }
@@ -3893,7 +3908,7 @@ function trStatus(){
 }
 function renderTrActions(){
   const tr=TR, a=[];
-  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.dis?'disabled':''} style="--pc:#2ef2ff">${icon?ic(icon):''}${label}${o.badge?`<span class="badge">${o.badge}</span>`:''}</button>`;
+  const btn=(act,icon,label,o={})=>`<button type="button" class="act${o.cls?' '+o.cls:''}" data-act="${act}" ${o.dis?'disabled':''} style="--pc:#2ef2ff">${icon?ic(icon):''}${label}${o.badge?`<span class="badge${o.badge==='📺'?' tv':''}">${o.badge}</span>`:''}</button>`;
   if (tr.kind==='lesson' && tr.phase==='demo'){ const n=tr.step||0;
     a.push(btn('demo-prev','back',(T("Précédent")),{dis:n<=0}).replace('<button','<button aria-label="'+T('Explication précédente')+'"'));
     const last=n>=tr.L.demo.steps.length-1, hasMv=!!(tr.L.demo.steps[Math.max(0,n)] && stepMove(tr.L, tr.L.demo.steps[Math.max(0,n)]));
@@ -4595,11 +4610,18 @@ function parcResult(){
   box.style.setProperty('--pc', ok?'#ffd75e':'#ff4f6d');
   const title = ok ? (tr.stars===3 ? (T("Parfait !")) : tr.stars===2 ? (T("Génial !")) : (T("Bravo !"))) : tr.why==='time' ? (T("Temps écoulé !")) : (T("Bloqué !"));
   const canExt = !ok && tr.why==='time' && tr.ext<1;
+  if (!ok && !P.premium && !tr.mode && (tr.tries+1)%5===0 && hintAdOK()){
+    $('#partyCard').innerHTML=`<button class="xclose" type="button" data-act="tr-retry" aria-label="${T("Fermer")}">✕</button>
+      <div class="bigfail" aria-hidden="true">💡</div><h2 class="wtitle">${T("Coincé ?")}</h2>
+      <p>${T("Regarde une vidéo et reçois un indice pour ce niveau.")}</p>
+      ${adBtn('hint-ad-parc', T("Regarder : +1 indice"))}`;
+    box.hidden=false; return;
+  }
   $('#partyCard').innerHTML=`<button class="xclose" type="button" data-act="tr-quit" aria-label="${T("Fermer")}">✕</button>
     <p class="lvtag">${T("Niveau")} ${tr.i+1}</p>
     ${ok?`<div class="bigstars" aria-label="${tr.stars} ${T("étoiles")}">${[0,1,2].map(k=>`<span class="${k<tr.stars?'on':''}" style="--k:${k}">★</span>`).join('')}</div>`:`<div class="bigfail" aria-hidden="true">${tr.why==='time'?'⏱️':'🧱'}</div>`}
     <h2 class="wtitle">${title}</h2>
-    ${ok&&tr.gain?`<div class="gain">${ic('coin')} +<b id="gainN">${tr.gain}</b></div>${typeof adBtn==='function'?adBtn('parc-x2',T("×2 pièces")):''}`:''}
+    ${ok&&tr.gain?`<div class="gain">${ic('coin')} +<b id="gainN">${tr.gain}</b></div>${tr.gain>=30&&typeof adBtn==='function'?adBtn('parc-x2',T("×2 pièces")):''}`:''}
     ${canExt?(typeof adBtn==='function'?adBtn('parc-ext',T("+20 secondes")):''):''}
     <div class="row">${ok?`${tr.stars<3?`<button class="secondary" type="button" data-act="tr-restart">${T("Rejouer")}</button>`:''}<button class="primary big2" type="button" data-act="tr-next">${T("Suivant")}</button>`:`<button class="primary big2" type="button" data-act="tr-restart">${T("Réessayer")}</button>`}</div>`;
   box.hidden=false;
@@ -4956,7 +4978,10 @@ const adReward = () => adShow('reward');
 const adBtn = (act,label) => `<button class="adbtn" type="button" data-act="${act}"><span aria-hidden="true">📺</span> ${label}</button>`;
 // Pub de fin de partie (victoire, défaite, abandon, adversaire parti) : à chaque partie, on peut la passer après quelques secondes,
 // elle ne rapporte rien. Jamais en Premium, jamais pendant les 3 toutes premières parties d'un nouveau joueur.
-function adInter(){ if (P.premium || inGrace() || (P.stat.games||0)<3) return Promise.resolve(); return adShow('inter'); }
+const INTER_MS=5*60000;   // au plus une pub imposée toutes les 5 minutes de jeu
+const noAds = () => P.premium || Date.now()<(P.noAdsUntil||0);
+function adInter(){ if (noAds() || inGrace() || (P.stat.games||0)<3 || (P.interMs||0)<INTER_MS) return Promise.resolve(); P.interMs=0; saveP(); return adShow('inter'); }
+const parcEnded = () => !!(TR && TR.kind==='parc' && TR.state!=='play' && !TR.mode);
 // Découverte : aucune pub imposée pendant les 30 premières minutes de jeu. Le compteur se met en pause quand on quitte
 // l'appli ; une absence de 25 min ou plus termine la période de découverte. Les pubs volontaires restent possibles.
 const GRACE_MS=30*60000, GRACE_GAP=25*60000;
@@ -5005,7 +5030,7 @@ function rewardDraw(){
     body=`<p class="lvtag">${esc(R.why)}</p>${R.type==='chest'?`<div class="chestbtn open">${IMG('coffre-'+(R.tier==='legendaire'?'or':R.tier)+'-ouvert')}</div>`:`<svg class="bigcoin" viewBox="0 0 24 24" aria-hidden="true">${COIN_SVG}</svg>`}
       <h2 class="wtitle">${T("Gagné !")}</h2><div class="gain">${ic('coin')} +<b>${R.coins}</b></div>
       ${itn?`<div class="loot"><div class="pv">${it[0]==='theme'?'🎨':it[0]==='trail'||it[0]==='win'?itn.e:pawnSVG({...P.skin,[it[0]]:it[1]})}</div><b>${esc(itn.n)}</b><small>${KIND_N[it[0]]}${rarity(itn.p)?' · '+rarity(itn.p).n:''}</small>${it[0]!=='theme'?`<button class="secondary" type="button" data-act="loot-equip">${T("Équiper")}</button>`:''}</div>`:''}
-      ${!R.x2 && R.coins?adBtn('reward-x2',T("×2 pièces")):''}
+      ${!R.x2 && R.coins>=30?adBtn('reward-x2',T("×2 pièces")):''}
       <button class="primary big2" type="button" data-act="reward-close" style="width:100%">${T("Super !")}</button>`;
   }
   $('#partyCard').innerHTML=body; box.hidden=false;
@@ -5282,7 +5307,7 @@ function renderPlay(){
   <div class="mode3 arena wide" data-act="match" role="button" tabindex="0" aria-label="${T("Combattre")}"><span class="shine"></span>${IMG('arene','art')}
     <div class="chips3"><span style="color:${t[2]}">${t[1]}</span><span>${arenaElo()} ${T("steps")}</span></div>
     <div class="go">${T("Combattre")}</div></div>
-  <div class="arow"><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button><button class="pill tpill" type="button" data-act="lb-open">🏅 ${P.lg&&P.lg.rank?`${T("Ligue")} · ${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue")}</button></div>
+  <div class="arow"><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button><button class="pill tpill" type="button" data-act="lb-open">🏅 ${P.lg&&P.lg.rank?`${T("Ligue")} · ${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue")}</button>${!(P.x3 && P.x3.d===dayKey()) ? `<button class="pill tpill x3" type="button" data-act="x3-ad" aria-label="${T("Prochaine victoire ×3")}">📺 ×3</button>` : P.x3.on ? `<span class="pill tpill x3 on" title="${T("Ta prochaine victoire rapporte ×3")}">⚡ ×3</span>` : ''}</div>
   <div class="grid4">
     ${tile('fpick','icone-amis','🤝',T("Défier un ami"))}
     ${tile('rush-pick','icone-chrono','⏱️',T("Défi chrono"))}
@@ -5296,7 +5321,18 @@ function renderPlay(){
 
 /* ---------- Boutique : carrousel autour de ton pion ; Vestiaire : ce que tu possèdes ---------- */
 const SHOP_KINDS=['color','fur','fin','eyes','acc','trail','win','theme'];
-const SHOP_SPECIAL=['pw','ref','gold'];
+const SHOP_SPECIAL=['pw','ref','gold','noads'];
+// Sans pub : achat unique (non renouvelé automatiquement), les vidéos à récompense restent au choix
+const NOADS={na3:{m:3, eur:'1,99 €'}, na6:{m:6, eur:'4,99 €'}, na12:{m:12, eur:'6,99 €'}};
+async function noadsBuy(id){
+  const o=NOADS[id], iap=window.LastepIAP; if (!o) return;
+  if (iap && typeof iap.buy==='function'){
+    if (!window.Acc || !Acc.on){ sheet={type:'account', why:'buy'}; render(); return; }
+    try { const ok=await iap.buy('lastep_noads_'+o.m+'m'); if (ok){ const d=new Date(Math.max(Date.now(), P.noAdsUntil||0)); d.setMonth(d.getMonth()+o.m); P.noAdsUntil=d.getTime(); saveP(); Acc.log('purchase',{p:'noads_'+o.m+'m'}); sfx.win(); toast(T("Plus de pub imposée !")); render(); } } catch(e){ toast(T("Paiement annulé")); }
+    return;
+  }
+  sheet={type:'info', t:T("Bientôt disponible"), p:T("Le paiement se fera par l'App Store et Google Play quand l'appli sera publiée. Cette version web est une version de test.")}; render();
+}
 const shopKinds = mode => mode==='shop' ? [...SHOP_KINDS, ...SHOP_SPECIAL] : SHOP_KINDS;
 // Coffres de pièces : uniquement avec de l'argent réel (App Store / Google Play)
 const GOLD={g500:{c:500, eur:'0,99 €', img:'coffre-bois', n:"Petit coffre"}, g1200:{c:1200, eur:'1,99 €', img:'coffre-argent', n:"Coffre d'argent"},
@@ -5325,11 +5361,12 @@ function specialView(k,id,big){
   if (k==='pw'){ const w=PW[id]; return big ? `<div class="pwdemo"><div class="dmb" data-k="${id}"></div></div>` : `<div class="spv"><span class="spe">${w.e}</span></div>`; }
   if (k==='ref'){ const r=REFS[id]; return `<div class="spv ref${big?' big':''}"><span class="rbub">${big?esc(r.t):'💬'}</span></div>`; }
   if (k==='gold'){ const g=GOLD[id]; return `<div class="spv${big?' big':''}">${IMG(g.img,'gimg2')}</div>`; }
+  if (k==='noads'){ const o=NOADS[id]; return `<div class="spv noav${big?' big':''}"><span class="spe">🚫📺</span><b>${o.m} ${T("mois")}</b></div>`; }
   return '';
 }
-const KIND_PL={pw:T("Pouvoirs"),ref:T("Réfs"),gold:T("Pièces"),color:T("Couleur"),fur:T("Forme"),fin:T("Finition"),eyes:T("Yeux"),acc:T("Accessoire"),trail:T("Traînée"),win:T("Célébration"),theme:T("Plateau")};
+const KIND_PL={pw:T("Pouvoirs"),ref:T("Réfs"),gold:T("Pièces"),noads:T("Sans pub"),color:T("Couleur"),fur:T("Forme"),fin:T("Finition"),eyes:T("Yeux"),acc:T("Accessoire"),trail:T("Traînée"),win:T("Célébration"),theme:T("Plateau")};
 let SHOP={mode:'shop', k:'color', i:0, dir:0};
-const shopList = (k, mode) => k==='pw' ? PW_KEYS : k==='ref' ? Object.keys(REFS).filter(id=>mode==='shop' ? !(P.refs||[]).includes(id) : (P.refs||[]).includes(id)) : k==='gold' ? Object.keys(GOLD) : Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
+const shopList = (k, mode) => k==='pw' ? PW_KEYS : k==='ref' ? Object.keys(REFS).filter(id=>mode==='shop' ? !(P.refs||[]).includes(id) : (P.refs||[]).includes(id)) : k==='gold' ? Object.keys(GOLD) : k==='noads' ? Object.keys(NOADS) : Object.keys(CAT[k]).filter(id => mode==='shop' ? (CAT[k][id].p>0 && !unlocked(k,id)) : unlocked(k,id));
 const isEq = (k,id) => k==='theme' ? P.theme===id : P.skin[k]===id;
 function itemView(k, id, big){
   const it=CAT[k][id];
@@ -5361,6 +5398,9 @@ function renderShop(){
       btn=`<div class="pwbtns"><button class="buybtn${P.coins<pwPrice(id)?' poor':''}" type="button" data-act="pw-buy" data-v="${id}">×${PW_PACK} · ${ic('coin')} ${pwPrice(id)}</button><button class="buybtn gold${P.coins<PW_GOLD?' poor':''}" type="button" data-act="pw-gold" data-v="${id}">🥇 ${T("Gold 7 j")} · ${ic('coin')} ${PW_GOLD}</button></div>`; }
     else if (SHOP.k==='ref'){ const r=REFS[id]; info=`<span class="rar r-rare">${r.l==='fr'?'🇫🇷 '+T("Réf française"):'🇬🇧 '+T("Réf anglaise")}</span><h2>🔥 ${T("Réf culte")}</h2><small>${T("À envoyer pendant tes parties en ligne")}</small>`;
       btn=`<button class="buybtn${P.coins<r.p?' poor':''}" type="button" data-act="ref-buy" data-v="${id}">${T("Acheter")} · ${ic('coin')} ${r.p}</button>`; }
+    else if (SHOP.k==='noads'){ const o=NOADS[id], on=Date.now()<(P.noAdsUntil||0);
+      info=`${on?`<span class="rar r-epique">✓ ${T("Actif jusqu'au")} ${new Date(P.noAdsUntil).toLocaleDateString(T("fr-FR"))}</span>`:''}<h2>${T("Sans pub")} · ${o.m} ${T("mois")}</h2><small>${T("Plus aucune pub imposée. Les vidéos à récompense restent au choix.")}</small>`;
+      btn=`<button class="buybtn eur" type="button" data-act="noads-buy" data-v="${id}">${o.eur}</button>`; }
     else { const g=GOLD[id]; info=`${g.tag?`<span class="rar r-legendaire">${g.tag}</span>`:''}<h2>${T(g.n)}</h2><small>${ic('coin')} <b>+${g.c.toLocaleString('fr-FR')}</b> ${T("pièces")}</small>`;
       btn=`<button class="buybtn eur" type="button" data-act="gold-buy" data-v="${id}">${g.eur}</button>`; }
   }
@@ -5369,8 +5409,8 @@ function renderShop(){
     else btn = isEq(SHOP.k,id) ? `<button class="buybtn eq" type="button" disabled>✓ ${T("Équipé")}</button>` : `<button class="buybtn" type="button" data-act="shop-equip">${T("Équiper")}</button>`;
   }
   const KS=shopKinds(mode), ki=KS.indexOf(SHOP.k), NK=KS.length, kp=KS[(ki-1+NK)%NK], kn=KS[(ki+1)%NK];
-  const CE={color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪',pw:'⚡',ref:'💬',gold:'💰'};
-  const kinfo=k=>{ if (k==='pw') return T("Mode folie"); if (k==='gold') return T("Coffres de pièces"); const L=shopList(k,mode).length; return mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`; };
+  const CE={color:'🎨',fur:'🔷',fin:'💎',eyes:'👀',acc:'👑',trail:'🌠',win:'🎆',theme:'🟪',pw:'⚡',ref:'💬',gold:'💰',noads:'🚫'};
+  const kinfo=k=>{ if (k==='pw') return T("Mode folie"); if (k==='gold') return T("Coffres de pièces"); if (k==='noads') return Date.now()<(P.noAdsUntil||0)?'✓ '+T("actif"):T("3, 6 ou 12 mois"); const L=shopList(k,mode).length; return mode==='shop'?(L?`${L} ${T("à débloquer")}`:'✓ '+T("tout possédé")):`${L} ${T("possédé(s)")}`; };
   const cats=`<div class="catcar" aria-label="${T("Catégories")}">
     <button type="button" class="ccs l" data-act="cat-prev" aria-label="${KIND_PL[kp]}"><span>${CE[kp]}</span><small>${KIND_PL[kp]}</small></button>
     <div class="ccc ${SHOP.cdir>0?'inR':SHOP.cdir<0?'inL':''}"><span class="cce">${CE[SHOP.k]}</span><b>${KIND_PL[SHOP.k]}</b><small>${kinfo(SHOP.k)}</small></div>
