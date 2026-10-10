@@ -1297,6 +1297,7 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .assist .vd{flex:none;padding:2px 8px;border-radius:10px;font-weight:800;font-size:.75rem;color:#0b0620}
 .vd.top{background:#2effa8}.vd.good{background:#9dff5a}.vd.inacc{background:#ffe94a}.vd.mist{background:#ffb13b}.vd.blun{background:#ff3b7a;color:#fff}.vd.ok{background:#b9b3ff}
 .act.on{box-shadow:0 0 0 2px #2ef2ff,0 0 14px #2ef2ff88}
+.verline{text-align:center;margin:22px 0 8px;opacity:.9;font-size:.85rem}
 </style>
 
 </head>
@@ -1347,7 +1348,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 83,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 84,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -5029,7 +5030,8 @@ function renderProfile(){
   ${sec('friends',`${T("Amis")} · ${P.friends.length}`, `${friendsHTML()}<div class="fbtns"><button type="button" data-act="addfriend">${ic('plus')}${T("Ajouter")}</button></div>`)}
   ${sec('games',`${T("Parties contre de vrais joueurs ·")} ${realGames().length}`, realGames().length?`<div class="list">${realGames().slice(-5).reverse().map(gameRow).join('')}</div><button class="linkbtn" type="button" data-act="games">${T("Tout voir ›")}</button>`:("<p class=\"sub\">"+T("Tes parties en ligne et contre tes amis apparaîtront ici.")+"</p>"))}
   ${sec('set',`⚙️ ${T("Réglages")}`, settingsBody())}
-  ${sec('about',T("À propos"), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="cgu.html" style="color:inherit">${T("Conditions")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}`;
+  ${sec('about',T("À propos"), `${installCard()}<p class="note">${T("Lastep ·")} <a href="privacy.html" style="color:inherit">${T("Confidentialité")}</a> · <a href="cgu.html" style="color:inherit">${T("Conditions")}</a> · <a href="site/" style="color:inherit">${T("Site")}</a> ${T("· contact :")} ${esc(CONFIG.contact)}</p>`)}
+  <p class="note verline">${T("Lastep · version")} ${CONFIG.version}</p>`;
 }
 
 const backHead = (title, to) => `<div class="pagehead"><button class="iconbtn" type="button" data-act="tab" data-v="${to}" aria-label="${T("Retour")}">${ic('back')}</button><h1 class="logo">${title}</h1>${topRight()}</div>`;
