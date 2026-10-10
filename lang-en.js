@@ -1285,4 +1285,5 @@ Object.assign(window.EN_DICT, {"Mon classement":"My ranking","Compte":"Account",
 "Plus tard":"Later",
 "Personne pour l'instant. Sois le premier !":"Nobody yet. Be the first!",
 "Crée ton compte pour y figurer":"Create your account to be ranked",
-"Hors ligne : classement indisponible.":"Offline: ranking unavailable."});
+"Hors ligne : classement indisponible.":"Offline: ranking unavailable.",
+"Débloque-les dans la Boutique":"Unlock them in the Shop"});

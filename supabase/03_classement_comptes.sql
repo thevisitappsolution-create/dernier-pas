@@ -1,4 +1,4 @@
--- Classements : seuls les joueurs qui ont un compte (e-mail) y figurent.
+-- Classements : seuls les joueurs qui ont un compte (e-mail) ET qui ont joué y figurent.
 -- n = nombre de joueurs avec compte dans ce classement, above = combien ont plus que p_v (pour calculer sa place).
 create or replace function public.lastep_board(p_mode text, p_week text, p_v integer default 0)
 returns jsonb language sql stable security definer set search_path = public as $$
@@ -6,7 +6,7 @@ returns jsonb language sql stable security definer set search_path = public as $
     select p.uid, p.name, p.skin, case when p_mode = 'adv' then p.wxp else p.elo end as v
     from lastep_players p join lastep_accounts a on a.uid = p.uid
     where case when p_mode = 'adv' then p.week = p_week and p.wxp > 0
-               else p.updated_at > now() - interval '30 days' end
+               else p.updated_at > now() - interval '30 days' and p.elo <> 1000 end
   )
   select jsonb_build_object(
     'n', (select count(*) from b),

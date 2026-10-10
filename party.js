@@ -156,9 +156,8 @@
     for (const k in PT.used[me]) if (!UI.inv.k[k]) { UI.inv.k[k] = 1; if (k !== 'jump') { try { pwUse(k); } catch (e) {} } }
   }
   const pwOK = (k) => k === 'jump' || (typeof pwHas === 'function' && pwHas(k));
-  // aucun pouvoir acheté : pas de vestiaire, deux sauts d'office
   const ownsAny = () => ['push', 'swap', 'heavy', 'wall', 'mine'].some(pwOK);
-  function ldAuto() { if (UI.ldSel && !ownsAny()) setTimeout(() => { if (UI.ldSel && PT && PT.pre) ldSend([]); }, 0); }
+  function ldAuto() {}   // le vestiaire s'affiche toujours : on voit aussi les pouvoirs qu'on pourrait acheter
   function ldSend(sel) {
     const s = clean4((sel || []).filter(pwOK)); UI.ldDone = s; UI.ldSel = null;
     if (NET && !NET.host) { try { NET.conn.send({ t: 'ld', s }); } catch (e) {} }
@@ -576,6 +575,7 @@
 #pt4 .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 #pt4 .btn{min-height:46px;padding:0 18px;border-radius:14px;border:1px solid #2c2558;background:#15112d;color:inherit;font:inherit;font-weight:700}
 #pt4 .btn:disabled{opacity:.4;filter:grayscale(.6)}
+#pt4 .btn.lk:disabled{opacity:.75;filter:saturate(.6)}#pt4 .btn.lk small{color:#ffd75e}
 #pt4 .btn.pr{background:linear-gradient(90deg,#2ef2ff,#ff3dd8);color:#0a0718;border:0;box-shadow:0 0 18px #2ef2ff66}
 #pt4 .big{width:100%;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid #2c2558;background:#15112d;color:inherit;font:inherit}
 #pt4 .big b{display:block;font-size:1.05rem}#pt4 .big small{color:#a39cd0}
@@ -671,8 +671,8 @@
     let hvq = '';
     if (PT.pre && UI.ldSel) {
       const L = UI.ldSel, slot = (n) => L[n] ? `<button class="btn pr" data-a="ldel" data-v="${n}">${PWE[L[n]]} ${pwName(L[n])}</button>` : `<button class="btn" disabled>? ${tr('Emplacement')} ${n + 1}</button>`;
-      const ob = (k) => { const has = pwOK(k), dis = !has || L.length >= 2 || (k === 'mine' && L.includes('mine')); return `<button class="btn" data-a="ladd" data-v="${k}" ${dis ? 'disabled' : ''}>${PWE[k]} ${pwName(k)}</button>`; };
-      hvq = `<div class="hvq">🎽 <b>${tr('Vestiaire')} · <span data-pre>${secs(PT.preEnd)}</span> s</b><small>${tr('Choisis 2 pouvoirs. Le même peut être pris deux fois (sauf la Mine). Chacun sert une fois par manche. Sans choix : Saut + Saut.')}</small><div class="acts">${slot(0)}${slot(1)}</div><div class="acts">${(typeof PW_SLOT !== 'undefined' ? PW_SLOT : ['jump']).map(ob).join('')}</div><div class="acts"><button class="btn pr" data-a="ldok">${L.length ? tr('Prêt !') : tr('Prêt (Saut + Saut)')}</button></div></div>`;
+      const ob = (k) => { const has = pwOK(k), dis = !has || L.length >= 2 || (k === 'mine' && L.includes('mine')); return `<button class="btn${has ? '' : ' lk'}" data-a="ladd" data-v="${k}" ${dis ? 'disabled' : ''}>${PWE[k]} ${pwName(k)}${has ? '' : ` <small>🔒 ${typeof pwPrice === 'function' ? pwPrice(k) : ''}</small>`}</button>`; };
+      hvq = `<div class="hvq">🎽 <b>${tr('Vestiaire')} · <span data-pre>${secs(PT.preEnd)}</span> s</b><small>${tr('Choisis 2 pouvoirs. Le même peut être pris deux fois (sauf la Mine). Chacun sert une fois par manche. Sans choix : Saut + Saut.')}</small><div class="acts">${slot(0)}${slot(1)}</div><div class="acts">${(typeof PW_SLOT !== 'undefined' ? PW_SLOT : ['jump']).map(ob).join('')}</div>${ownsAny() ? '' : `<small>🔒 ${tr('Débloque-les dans la Boutique')}</small>`}<div class="acts"><button class="btn pr" data-a="ldok">${L.length ? tr('Prêt !') : tr('Prêt (Saut + Saut)')}</button></div></div>`;
     } else if (UI.pick != null && my) hvq = `<div class="hvq"><b>${tr('Que veux-tu faire ?')}</b><div class="acts"><button class="btn pr" data-a="pp" data-v="push">💥 ${tr('Pousser')}</button><button class="btn pr" data-a="pp" data-v="swap">🔄 ${tr('Inverser')}</button><button class="btn" data-a="pp" data-v="x">${tr('Annuler')}</button></div></div>`;
     else if (PT.pre) hvq = `<div class="hvq"><b>${tr('La partie commence dans')} <span data-pre>${secs(PT.preEnd)}</span> s</b>${UI.ldDone ? `<small>${tr('Ton équipement :')} ${UI.ldDone.map(k => PWE[k]).join(' ')}</small>` : ''}</div>`;
     const chips = UI.chat && typeof myPiques === 'function' ? `<div class="chips">${[...myPiques(), ...(typeof myRefs === 'function' ? myRefs().map(id => 'r' + id) : []), ...Object.keys(PHRASES.pol.l), ...Object.keys(PHRASES.enc.l)].map(id => `<button data-a="say" data-v="${id}">${esc4(phText(id))}</button>`).join('')}</div>` : '';

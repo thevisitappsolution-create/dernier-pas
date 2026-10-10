@@ -740,6 +740,13 @@ html.calm .hcard,html.calm .tile,html.calm .fc{background:var(--raise);border-co
 html.calm .bub{box-shadow:none} html.calm .lnode{box-shadow:inset 0 -7px 0 #0004}
 html.homefix,html.homefix body{height:100%;overflow:hidden}
 html.homefix #app{height:100%;box-sizing:border-box;overflow:hidden}
+/* Aventure : le haut (profil, titre, chapitre) reste fixe, seul le chemin défile */
+html.parcfix,html.parcfix body{height:100%;overflow:hidden}
+html.parcfix #app{height:100%;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column}
+html.parcfix #screen{flex:1 1 0;min-height:0}
+html.parcfix .lvpath{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;margin:0 -16px;padding:18px 16px 120px;scrollbar-width:none;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 26px);mask-image:linear-gradient(180deg,transparent 0,#000 26px)}
+html.parcfix .lvpath::-webkit-scrollbar{display:none}
+html.parcfix .pgtop{flex:none}html.parcfix .chapcard{flex:none}
 @media (max-height:700px){html.homefix .screen{gap:9px}.hcard{min-height:96px!important}.hcard .primary{padding:8px 16px}.fc .secondary{padding:6px}.h2{font-size:.95rem}}
 @media (max-height:760px){.hcard{min-height:118px;padding:12px}.hcard h3{font-size:1.15rem}.tile{padding:8px 6px}.tile .em{font-size:1.1rem}.fc{padding:8px 6px;width:118px}.fc .av{width:42px}.fc small{min-height:0}.playbar .big{padding:13px}}
 .logo .brand{color:#fff;background:linear-gradient(90deg,#ffffff 0%,#2ef2ff 45%,#ff3dd8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;animation:none;filter:drop-shadow(0 0 8px #ff3dd888) drop-shadow(0 0 18px #2ef2ff55)}
@@ -1040,6 +1047,7 @@ html:not(.lock) body{background:transparent!important}
 .mode3.wide .art{width:58%;margin:-15% 0 0}
 .mode3.wide .go{font-size:1.15rem}
 .arow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.ldo.lock{opacity:.8;filter:saturate(.6)}.ldo.lock small{color:#ffd75e}
 .fpick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
 .fpb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 8px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(143,123,255,.28),rgba(20,14,48,.9));color:#fff;font:inherit;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
 .fpb .e{font-size:2.2rem;line-height:1}.fpb b{font-size:1.15rem}.fpb small{opacity:.65;font-size:.72rem}
@@ -1420,7 +1428,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 99,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 100,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2261,7 +2269,6 @@ const mineVisible = m => MINESEEN[m.id]!=null && performance.now()-MINESEEN[m.id
 // Vestiaire (au début de la partie, hors chrono)
 function loadoutAsk(){
   if (!M || !M.fol || !online() || LDASK===M.id || (net.seat!==0 && net.seat!==1)) return; LDASK=M.id; LDSENT=null;
-  if (!PW_ON.some(pwHas)){ setTimeout(()=>loadoutSend([]),0); return; }   // aucun pouvoir acheté : deux sauts d'office
   sheet={type:'loadout', sel:[]}; render();
 }
 function loadoutSend(sel){
@@ -3144,11 +3151,12 @@ function sheetHTML(){
   if (s.type==='loadout'){ const sl=s.sel, left=preLeft();
     const slot=n=>{ const k=sl[n]; return k ? `<button type="button" class="ldslot on" data-act="ld-del" data-v="${n}" aria-label="${esc(T("Retirer"))} ${esc(T(PW[k].n))}"><b>${PW[k].e}</b><small>${T(PW[k].n)}</small></button>` : `<div class="ldslot"><b>?</b><small>${T("Emplacement")} ${n+1}</small></div>`; };
     const chip=k=>{ const has=k==='jump'||pwHas(k), dis=!has || sl.length>=2 || (k==='mine' && sl.includes('mine'));
-      return `<button type="button" class="ldo" data-act="ld-add" data-v="${k}" ${dis?'disabled':''}><span class="lde">${PW[k].e}</span> ${T(PW[k].n)}<small>${has?pwLabel(k):T("Boutique")}</small></button>`; };
+      return `<button type="button" class="ldo${has?'':' lock'}" data-act="ld-add" data-v="${k}" ${dis?'disabled':''}><span class="lde">${PW[k].e}</span> ${T(PW[k].n)}<small>${has?pwLabel(k):`🔒 ${pwPrice(k)} ${ic('coin','ic sm')}`}</small></button>`; };
     return `<div class="modicon">🎽</div><h2 style="padding:0">${T("Vestiaire")} <span class="ldt" id="ldtime">${left} s</span></h2>
     <p>${T("Choisis 2 pouvoirs. Le même peut être pris deux fois (sauf la Mine). Chacun sert une fois par manche. Sans choix : Saut + Saut.")}</p>
     <div class="ldslots">${slot(0)}${slot(1)}</div>
     <div class="ldg"><div class="ldr">${PW_SLOT.map(chip).join('')}</div></div>
+    ${PW_ON.some(pwHas)?'':`<p class="note" style="text-align:center">🔒 ${T("Débloque-les dans la Boutique")}</p>`}
     <button class="primary big2" type="button" data-act="ld-ok">${sl.length?T("Prêt !"):T("Prêt (Saut + Saut)")}</button>`; }
   if (s.type==='powdemo'){ const w=PW[s.k];
     return `<div class="dmswipe"><div class="dmhead"><button type="button" class="dmar" data-act="dm-go" data-v="-1" aria-label="${T("Précédent")}">${CHEV(-1)}</button><h2>${w.e} ${T(w.n)}</h2><button type="button" class="dmar" data-act="dm-go" data-v="1" aria-label="${T("Suivant")}">${CHEV(1)}</button></div>
@@ -3293,6 +3301,7 @@ function render(){
   $('#app').classList.toggle('ingame', !!inGame);
   document.documentElement.classList.toggle('lock', !!inGame);
   document.documentElement.classList.toggle('homefix', !inGame && view==='home');
+  document.documentElement.classList.toggle('parcfix', !inGame && view==='parc');
   $('#game').hidden=!inGame; $('#screen').hidden=!!inGame; $('#tabs').hidden=!!inGame;
   if (inGame) renderGame();
   else {
@@ -3536,6 +3545,7 @@ setInterval(()=>{
   if (RUSH && TR && TR.rush && view==='game'){ rushTick(dt); }
   if (isParc() && view==='game') parcTick(dt);
   if (TR && TR.mode && TR.mode!=='rush' && view==='game'){ const el=document.getElementById('clk0'); if (el) el.textContent=fmt(now-(TR.mode==='dj'&&DJ?DJ.t0:TR.t0)); }
+  if (!document.hidden) graceTick(Math.min(dt,1000));
   if (G && !G.over && view==='game' && !document.hidden){ ptAdd(Math.min(dt,1000)); P.playMs=(P.playMs||0)+Math.min(dt,1000); if (P.playMs>=60000){ P.playMs-=60000; addCoins(2,true); } }
   if (!(G && G.pre)){ const pb=document.getElementById('prebar'); if (pb) pb.remove(); }
   if (G && G.pre && view==='game'){ preTick(); return; }
@@ -3906,7 +3916,9 @@ function trNext(){
   trQuit();
 }
 function lnScroll(){ pzScroll(); }
-function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.lv.cur')||document.querySelector('.node.cur')||[...document.querySelectorAll('.lv.done,.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
+function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.lv.cur')||document.querySelector('.node.cur')||[...document.querySelectorAll('.lv.done,.node.done')].pop(); const lp0=view==='parc'&&document.querySelector('.lvpath');
+    if (n && lp0){ const d=(n.getBoundingClientRect().top - lp0.getBoundingClientRect().top)/(ZF||1); lp0.scrollTop += d - lp0.clientHeight/2 + n.offsetHeight/2; window.scrollTo(0,0); }
+    else if (n) n.scrollIntoView({block:'center'}); else { const lp=document.querySelector('.lvpath'); if (lp && view==='parc') lp.scrollTop=lp.scrollHeight; else window.scrollTo(0, document.body.scrollHeight); } }, 0); }
 function trQuit(){ const kind=TR&&TR.kind, wh=TR&&TR.mode==='wh'; $('#party').hidden=true; stopConfetti(); if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (wh){ sheet=null; view='home'; } else if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 // Aventure : cherche une suite de pas qui fait tomber toutes les cases depuis la position actuelle
 function parcSolve(){
@@ -4944,7 +4956,18 @@ const adReward = () => adShow('reward');
 const adBtn = (act,label) => `<button class="adbtn" type="button" data-act="${act}"><span aria-hidden="true">📺</span> ${label}</button>`;
 // Pub de fin de partie (victoire, défaite, abandon, adversaire parti) : à chaque partie, on peut la passer après quelques secondes,
 // elle ne rapporte rien. Jamais en Premium, jamais pendant les 3 toutes premières parties d'un nouveau joueur.
-function adInter(){ if (P.premium || (P.stat.games||0)<3) return Promise.resolve(); return adShow('inter'); }
+function adInter(){ if (P.premium || inGrace() || (P.stat.games||0)<3) return Promise.resolve(); return adShow('inter'); }
+// Découverte : aucune pub imposée pendant les 30 premières minutes de jeu. Le compteur se met en pause quand on quitte
+// l'appli ; une absence de 25 min ou plus termine la période de découverte. Les pubs volontaires restent possibles.
+const GRACE_MS=30*60000, GRACE_GAP=25*60000;
+if (!P.grace){ P.grace={ms:0, last:Date.now(), over:(P.stat.games||0)>=3}; saveP(); }   // joueurs déjà installés : rien ne change
+let graceSave=0;
+function graceTick(dt){
+  const g=P.grace; if (!g || g.over) return; const now=Date.now();
+  if (g.ms>0 && now-g.last>=GRACE_GAP) g.over=true; else { g.ms+=dt; if (g.ms>=GRACE_MS) g.over=true; }
+  g.last=now; if (g.over || now-graceSave>15000){ graceSave=now; saveP(); }
+}
+const inGrace = () => !!(P.grace && !P.grace.over);
 const matchPlayed = () => !!(M && !TR && (M.done || M.rounds.length || (G && G.moves>0)));
 
 /* ---------- Coffres ---------- */
@@ -5077,6 +5100,7 @@ async function lgSync(){
   const db=lgClient(); if (!db || !P.uid) return;
   if (!P.lgKey){ const a='abcdefghijklmnopqrstuvwxyz0123456789'; let k=''; for (let i=0;i<24;i++) k+=a[Math.floor(Math.random()*a.length)]; P.lgKey=k; saveP(); }
   lgWeek();
+  if (!(P.lg.xp>0) && arenaElo()===1000 && !parcTotal()) return;   // pas encore joué : on ne crée pas de ligne vide
   try { await db.rpc('lastep_upsert', {p_uid:P.uid, p_key:P.lgKey, p_name:lgName(), p_skin:cleanSkin(P.skin), p_week:P.lg.wk, p_wxp:Math.min(100000,P.lg.xp||0), p_stars:parcTotal(), p_elo:arenaElo()}); } catch(e){}
   if (window.Acc && Acc.on && (P.lg.xp||0)>0){ try { const r=await db.rpc('lastep_board', {p_mode:'adv', p_week:P.lg.wk, p_v:P.lg.xp||0}); if (r.data){ P.lg.rank=(r.data.above||0)+1; P.lg.n=r.data.n||0; saveP(); } } catch(e){} }
 }
@@ -5103,7 +5127,7 @@ async function lbLoad(mode){
   } else LB.err=true;
   if (LB.mode!==mode) return;
   let rows=real.filter(x=>!acc || x.uid!==P.uid);
-  if (acc) rows.push({uid:P.uid, me:1, name:lgName(), skin:P.skin, v:myV});
+  if (acc && (mode==='adv' ? myV>0 : myV!==1000)) rows.push({uid:P.uid, me:1, name:lgName(), skin:P.skin, v:myV});   // il faut avoir joué pour figurer
   rows.sort((a,b)=>b.v-a.v || (a.me?-1:b.me?1:0));
   rows=rows.map((x,k)=>({...x, rk:k+1}));
   const meRow=rows.find(x=>x.me);
@@ -5247,7 +5271,6 @@ function renderParc(){
   return `<div class="pgtop">${pillsTop()}${pageTitle('icone-carte','🗺️',T("Aventure"))}</div>
   <div class="chapcard"><div><small>${T("Chapitre")} ${ch+1}</small><b>${esc(PARC_CH[ch]||'')}</b></div><div class="chprog"><i style="width:${chStars/(PARC_PER*3)*100}%"></i></div><span>⭐ ${tot}/${max}</span></div>
   <div class="lvpath">${html}</div>
-  <div class="spacer"></div>
   <div class="playbar"><div class="in"><button class="gobig" type="button" data-act="parc" data-v="${np}">${T("Niveau")} ${np+1} ▶</button></div></div>`;
 }
 
