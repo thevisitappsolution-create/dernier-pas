@@ -1352,6 +1352,8 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 #sheet .sheet{max-width:440px;border-radius:22px;max-height:calc(var(--vh,1vh)*86);padding:14px 16px 18px;animation:pop .28s cubic-bezier(.2,1.25,.4,1) both;box-shadow:0 20px 60px #000b,0 0 0 1px #ffffff14}
 @keyframes pop{from{transform:scale(.85);opacity:0}}
 #sheet .sheet .grab{display:none}
+html.fit #app{max-width:430px}
+html.fit .sheet{max-width:410px}
 </style>
 
 </head>
@@ -1402,7 +1404,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 93,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 94,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2912,6 +2914,7 @@ function setAppH(){
   let z = phone || !zoomOK ? 1 : Math.min(w/FIT_W, h/FIT_H);
   z = Math.max(.55, Math.min(1.8, z)); if (Math.abs(z-1)<.02) z=1;
   if (z!==ZOOM){ ZOOM=z; de.style.zoom = z===1 ? '' : String(z); }
+  de.classList.toggle('fit', !phone && zoomOK);   // tablette / ordinateur : largeur d'un téléphone, puis zoom
   de.style.setProperty('--apph', Math.round(h/z)+'px'); de.style.setProperty('--vh', (h/z/100).toFixed(3)+'px'); de.style.setProperty('--vw', (w/z/100).toFixed(3)+'px');
   // certains navigateurs renvoient des mesures zoomées, d'autres non : on mesure pour savoir
   const pr=document.createElement('div'); pr.style.cssText='position:fixed;left:0;top:0;width:100px;height:1px;visibility:hidden;pointer-events:none'; document.body.appendChild(pr);
