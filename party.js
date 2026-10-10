@@ -107,38 +107,38 @@
     return nb(a).map(n => n.i).filter(i => st.cells[i] > 0 && seatAt(st, i) < 0 && !(st.mines || []).some(m => m.i === i));
   }
   const evN = () => PT.round + ':' + PT.moves + ':' + rid(3);
-  function heavy(s, o, at) {
+  function heavy(s, o, at, a, kind) {
     if (powN4(o, 'heavy') <= 0) return false;
-    spend(o, 'heavy'); PT.msg = `🏋️ ${PT.seats[o].name} ${tr('est un poids lourd : rien ne bouge, le pouvoir est perdu !')}`; PT.ev = { k: 'heavy', at, n: evN() };
+    spend(o, 'heavy'); PT.msg = `🏋️ ${PT.seats[o].name} ${tr('est un poids lourd : rien ne bouge, le pouvoir est perdu !')}`; PT.ev = { k: 'heavy', by: s, vic: o, at, a, kind, n: evN() };
     try { sfx.round(); } catch (e) {} return true;
   }
   function endAct(s) { PT.timeouts[s] = 0; PT.moves++; nextTurn(false); return true; }
   function pushAct(s, b) {
     if (stopped() || s !== PT.turn) return false; const tg = pushTargets(PT, s).find(x => x.b === b); if (!tg) return false;
-    spend(s, 'push'); if (heavy(s, tg.o, b)) return endAct(s);
+    spend(s, 'push'); if (heavy(s, tg.o, b, tg.a, 'push')) return endAct(s);
     PT.cells[tg.a]--; PT.pawns[s][0] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 };
-    if (PT.cells[tg.c] === 0) { eliminate(tg.o, 'push'); PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} ${tr('dans le vide : éliminé !')}`; PT.ev = { k: 'push', at: tg.c, dead: 1, n: evN() }; }
-    else { PT.pawns[tg.o][0] = tg.c; PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} !`; PT.ev = { k: 'push', at: tg.c, n: evN() }; mineHit(tg.o, tg.c); }
+    if (PT.cells[tg.c] === 0) { eliminate(tg.o, 'push'); PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} ${tr('dans le vide : éliminé !')}`; PT.ev = { k: 'push', by: s, vic: tg.o, a: tg.a, b: tg.b, c: tg.c, at: tg.c, dead: 1, n: evN() }; }
+    else { PT.pawns[tg.o][0] = tg.c; PT.msg = `💥 ${PT.seats[s].name} ${tr('pousse')} ${PT.seats[tg.o].name} !`; PT.ev = { k: 'push', by: s, vic: tg.o, a: tg.a, b: tg.b, c: tg.c, at: tg.c, n: evN() }; mineHit(tg.o, tg.c); }
     try { sfx.wizz(); } catch (e) {} return endAct(s);
   }
   function swapAct(s, b) {
     if (stopped() || s !== PT.turn) return false; const tg = swapTargets(PT, s).find(x => x.b === b); if (!tg) return false;
-    spend(s, 'swap'); if (heavy(s, tg.o, b)) return endAct(s);
-    PT.cells[tg.a]--; PT.pawns[s][0] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 };
-    if (PT.cells[tg.a] === 0) { eliminate(tg.o, 'push'); PT.msg = `🔄 ${PT.seats[s].name} ${tr('échange sa place avec')} ${PT.seats[tg.o].name}… ${tr('qui tombe dans le trou !')}`; }
+    spend(s, 'swap'); if (heavy(s, tg.o, b, tg.a, 'swap')) return endAct(s);
+    PT.cells[tg.a]--; PT.pawns[s][0] = tg.b; PT.last = { s, from: tg.a, to: tg.b, jump: 0 }; const dead = PT.cells[tg.a] === 0;
+    if (dead) { eliminate(tg.o, 'push'); PT.msg = `🔄 ${PT.seats[s].name} ${tr('échange sa place avec')} ${PT.seats[tg.o].name}… ${tr('qui tombe dans le trou !')}`; }
     else { PT.pawns[tg.o][0] = tg.a; PT.msg = `🔄 ${PT.seats[s].name} ${tr('échange sa place avec')} ${PT.seats[tg.o].name} !`; }
-    PT.ev = { k: 'swap', at: b, n: evN() }; try { sfx.jump(); } catch (e) {} return endAct(s);
+    PT.ev = { k: 'swap', by: s, vic: tg.o, a: tg.a, b: tg.b, at: b, dead, n: evN() }; try { sfx.jump(); } catch (e) {} return endAct(s);
   }
   function mineAct(s, i) {
     if (stopped() || s !== PT.turn || !mineTargets(PT, s).includes(i)) return false;
     spend(s, 'mine'); const id = evN(); (PT.mines = PT.mines || []).push({ i, by: s, life: 2, id });
-    PT.msg = `💣 ${PT.seats[s].name} ${tr('pose une mine… regarde bien, elle disparaît dans 5 secondes !')}`; PT.ev = { k: 'minep', at: i, n: id };
+    PT.msg = `💣 ${PT.seats[s].name} ${tr('pose une mine… regarde bien, elle disparaît dans 5 secondes !')}`; PT.ev = { k: 'minep', by: s, at: i, n: id };
     try { sfx.jump(); } catch (e) {} return endAct(s);
   }
   // un pion arrive sur une mine : il saute, son joueur perd la manche
   function mineHit(s, i) {
     const m = mineAt4(i); if (!m) return false;
-    PT.mines = PT.mines.filter(x => x !== m); eliminate(s, 'mine'); PT.ev = { k: 'mine', at: i, n: evN() };
+    PT.mines = PT.mines.filter(x => x !== m); eliminate(s, 'mine'); PT.ev = { k: 'mine', by: s, vic: s, at: i, n: evN() };
     try { vibrate([80, 40, 120]); } catch (e) {} return true;
   }
   // Mur : sauter par-dessus un joueur qui a un Mur est refusé (tour perdu)
@@ -146,7 +146,7 @@
     if (!PT.fol || !m[2]) return false;
     const f = PT.pawns[s][m[0]], dr = Math.sign(Math.floor(m[1] / N) - Math.floor(f / N)), dc = Math.sign(m[1] % N - f % N);
     for (let i = f + dr * N + dc; i !== m[1]; i += dr * N + dc) { const o = seatAt(PT, i);
-      if (o >= 0 && o !== s && powN4(o, 'wall') > 0) { spend(o, 'wall'); PT.J[s] = Math.max(0, PT.J[s] - 1); PT.msg = `🧱 ${PT.seats[o].name} ${tr('a un mur : impossible de sauter par-dessus !')}`; PT.ev = { k: 'wall', at: i, n: evN() }; try { sfx.round(); } catch (e) {} endAct(s); return true; } }
+      if (o >= 0 && o !== s && powN4(o, 'wall') > 0) { spend(o, 'wall'); PT.J[s] = Math.max(0, PT.J[s] - 1); PT.msg = `🧱 ${PT.seats[o].name} ${tr('a un mur : impossible de sauter par-dessus !')}`; PT.ev = { k: 'wall', by: s, at: i, from: f, to: m[1], n: evN() }; try { sfx.round(); } catch (e) {} endAct(s); return true; } }
     return false;
   }
   // l'inventaire de chaque joueur baisse une fois par pouvoir et par partie (sur son propre téléphone)
@@ -572,6 +572,7 @@
 #pt4 .st{text-align:center;min-height:2.6em;font-size:.95rem;margin:2px 0}
 #pt4 .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 #pt4 .btn{min-height:46px;padding:0 18px;border-radius:14px;border:1px solid #2c2558;background:#15112d;color:inherit;font:inherit;font-weight:700}
+#pt4 .btn:disabled{opacity:.4;filter:grayscale(.6)}
 #pt4 .btn.pr{background:linear-gradient(90deg,#2ef2ff,#ff3dd8);color:#0a0718;border:0;box-shadow:0 0 18px #2ef2ff66}
 #pt4 .big{width:100%;margin-top:10px;text-align:left;display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid #2c2558;background:#15112d;color:inherit;font:inherit}
 #pt4 .big b{display:block;font-size:1.05rem}#pt4 .big small{color:#a39cd0}
@@ -646,6 +647,7 @@
     const cells = Array.from({ length: N * N }, (_, d) => fromView(d, rot)).map((i) => { const v = PT.cells[i]; return `<button type="button" class="cl${v === 0 ? ' h' : ''}${mine.has(i) ? ' me' : ''}${tg.has(i) ? (tg.get(i) ? ' tj' : ' t') : ''}${PT.last && PT.last.from === i ? ' fr' : ''}${pu.has(i) ? ' pu' : ''}${dt.has(i) ? ' dt' : ''}${sw.has(i) ? ' sw' : ''}" data-c="${i}" style="--tc:${v === 1 ? '#2ef2ff' : v === 2 ? '#ff3dd8' : '#b6ff3b'}" aria-label="${v ? tr('case') + ' ' + v : tr('trou')}">${v || ''}${dmap.has(i) ? `<span class="dy">💣</span>` : ''}</button>`; }).join('');
     const pawns = PT.pawns.map((ps, s) => ps.map((pos, k) => {
       const vp = toView(pos, rot), r = Math.floor(vp / N), c = vp % N;
+      if (FXH4.has(pos)) return '';
       return `<div class="pw${my && s === PT.turn && sel === k ? ' sel' : ''}${my && s === PT.turn ? ' mine' : ''}" style="--sc:${SEATC[s]};left:calc(6px + ${c} * ((100% - 32px) / 6 + 4px));top:calc(6px + ${r} * ((100% - 32px) / 6 + 4px))"><span class="rg"></span>${pawnSVG(cleanSkin(PT.seats[s].skin))}</div>`;
     }).join('')).join('');
     const turnName = PT.turn >= 0 && PT.seats[PT.turn] ? PT.seats[PT.turn].name : '';
@@ -710,12 +712,16 @@
       ${host && !quick ? `<button class="btn pr" style="width:100%;margin-top:12px" data-a="start" ${n < 2 ? 'disabled' : ''}>${tr('Lancer la partie')} (${n}/4)</button><p class="note">${tr('Les places vides seront jouées par l\'ordinateur.')}</p>` : ''}
       ${!host && !quick ? `<p class="note">${tr('L\'hôte lance la partie quand tout le monde est là.')}</p>` : ''}`;
   }
+  // animations des pouvoirs, les mêmes qu'en duel (tout le monde les voit)
+  const FXH4 = new Set();
+  const FXCTX4 = { cell: (i) => root && root.querySelector(`#pt4bd [data-c="${i}"]`), skin: (p) => pawnSVG(cleanSkin(PT.seats[p].skin)), hide: FXH4, redraw: () => draw() };
   function draw() {
     if (!root) return;
     const st = root.scrollTop;
     root.innerHTML = UI.stage === 'game' && PT ? drawGame() : UI.stage === 'lobby' ? drawLobby() : drawMenu();
     root.scrollTop = st;
     drawTimer();
+    if (UI.stage === 'game' && PT && PT.ev && PT.ev.n && PT.ev.n !== UI.evSeen) { UI.evSeen = PT.ev.n; const ev = PT.ev; if (typeof powAnim === 'function') requestAnimationFrame(() => powAnim(ev, FXCTX4)); }
   }
   function drawTimer() {
     if (!root) return;

@@ -1306,6 +1306,23 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .ldslot b{font-size:1.8rem;line-height:1}.ldslot small{opacity:.8;font-size:.75rem}
 .ldslot.on{border-style:solid;border-color:#2ef2ff;background:#2ef2ff1a;box-shadow:0 0 14px #2ef2ff55;cursor:pointer}
 .lde{font-size:1.2rem}
+#fxpow{position:fixed;inset:0;z-index:85;pointer-events:none}
+#fxpow .fxa{position:fixed;display:grid;place-items:center;will-change:transform}
+#fxpow .fxb{width:100%;height:100%;display:grid;place-items:center;transform-origin:50% 80%}
+#fxpow .fxb svg{width:88%;height:auto;filter:drop-shadow(0 4px 6px #0008)}
+#fxpow .fxw{position:fixed;transform:translate(-50%,-60%) rotate(var(--rot));font-family:var(--display,system-ui);font-weight:900;font-size:clamp(1.1rem,6vw,1.8rem);color:#fff;-webkit-text-stroke:2px #1a0a2e;paint-order:stroke;text-shadow:0 0 12px var(--c),3px 3px 0 var(--c);animation:fxw 1s ease-out forwards;white-space:nowrap}
+@keyframes fxw{0%{transform:translate(-50%,-30%) rotate(var(--rot)) scale(.2);opacity:0}20%{transform:translate(-50%,-70%) rotate(var(--rot)) scale(1.25);opacity:1}70%{opacity:1}100%{transform:translate(-50%,-120%) rotate(var(--rot)) scale(1);opacity:0}}
+#fxpow .fxe{position:fixed;transform:translate(-50%,-50%);line-height:1;animation:fxe 1.1s ease-out forwards}
+@keyframes fxe{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+#fxpow .fxe.up{animation-name:fxeu}@keyframes fxeu{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{transform:translate(-50%,-110%) scale(1);opacity:1}100%{transform:translate(-50%,-130%) scale(1);opacity:0}}
+#fxpow .fxe.wall{animation-name:fxew}@keyframes fxew{0%{transform:translate(-50%,0) scaleY(0);opacity:0}25%{transform:translate(-50%,-90%) scaleY(1.2);opacity:1}35%{transform:translate(-50%,-80%) scaleY(1)}80%{opacity:1}100%{transform:translate(-50%,-80%);opacity:0}}
+#fxpow .fxe.drop{animation-name:fxed}@keyframes fxed{0%{transform:translate(-50%,-260%);opacity:0}40%{transform:translate(-50%,-50%);opacity:1}55%{transform:translate(-50%,-70%)}70%{transform:translate(-50%,-50%)}85%{opacity:1}100%{opacity:0}}
+#fxpow .fxe.blast{animation-name:fxeb}@keyframes fxeb{0%{transform:translate(-50%,-50%) scale(.2);opacity:1}40%{transform:translate(-50%,-50%) scale(2.2);opacity:1}100%{transform:translate(-50%,-50%) scale(2.6);opacity:0}}
+#fxpow .fxdizzy{position:absolute;inset:0;pointer-events:none}
+#fxpow .fxdizzy i{position:absolute;top:34%;font-style:normal;font-weight:900;font-size:22%;color:#1a0a2e;background:#fff;border-radius:50%;width:18%;height:18%;display:grid;place-items:center;animation:fxdz .5s ease-in-out infinite alternate}
+#fxpow .fxdizzy i:first-child{left:28%}#fxpow .fxdizzy i:nth-child(2){right:28%}
+#fxpow .fxdizzy b{position:absolute;left:50%;top:-6%;transform:translateX(-50%);font-size:40%;animation:fxsp 1s linear infinite}
+@keyframes fxdz{to{transform:rotate(45deg)}}@keyframes fxsp{to{transform:translateX(-50%) rotate(360deg)}}
 </style>
 
 </head>
@@ -1356,7 +1373,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 86,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 87,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1889,6 +1906,86 @@ function startTurn(){
   if (ks.length===1){ G.msg=`${T("Un pion de")} ${S[G.turn].name} ${T("est bloqué : il joue l'autre.")}`; (G.stuck=G.stuck||[0,0])[G.turn]=1; }
   if (M && M.assist && vsAI && !TR && G.turn===0) assistTurn();
 }
+/* ---------- Animations des pouvoirs : visibles par tous (joueurs et spectateurs) ---------- */
+// Pousser : le pousseur fonce, l'autre s'écrase puis recule (ou tombe). Bloqué par un Poids lourd : il s'écrase dessus et rebondit.
+// Inversion : les deux pions s'aplatissent, glissent l'un vers l'autre et reprennent forme. Mur : saut raté, retour sonné (yeux en croix).
+// Mine : posée en cliquetant, puis BOUM. Chute : le pion tourne et disparaît dans le trou.
+// ctx : {cell:i=>élément de la case, skin:p=>html du pion, hide:Set des cases dont le pion est masqué pendant l'animation, redraw}
+const FX={busy:0};
+function fxLay(){ let l=document.getElementById('fxpow'); if (!l){ l=document.createElement('div'); l.id='fxpow'; document.body.appendChild(l); } return l; }
+// position de la case sans tenir compte de ses animations (une case qui rebondit ne doit pas rétrécir le pion)
+function fxR(el){ const par=el.offsetParent; let x,y,w=el.offsetWidth,h=el.offsetHeight;
+  if (par){ const pr=par.getBoundingClientRect(); x=pr.left+par.clientLeft+el.offsetLeft; y=pr.top+par.clientTop+el.offsetTop; } else { const r=el.getBoundingClientRect(); x=r.left; y=r.top; w=r.width; h=r.height; }
+  return {x, y, w, h, cx:x+w/2, cy:y+h/2}; }
+function fxActor(html, R){ const d=document.createElement('div'); d.className='fxa'; d.style.cssText=`left:${R.x}px;top:${R.y}px;width:${R.w}px;height:${R.h}px`; d.innerHTML=`<div class="fxb">${html}</div>`; fxLay().appendChild(d); return d; }
+function fxWord(txt, R, col, delay){ setTimeout(()=>{ const w=document.createElement('div'); w.className='fxw'; w.textContent=txt; w.style.cssText=`left:${R.cx}px;top:${R.y}px;--c:${col||'#ffd75e'};--rot:${Math.round(Math.random()*16-8)}deg`; fxLay().appendChild(w); setTimeout(()=>w.remove(),1000); }, delay||0); }
+function fxEmoji(e, R, delay, cls){ setTimeout(()=>{ const w=document.createElement('div'); w.className='fxe '+(cls||''); w.textContent=e; w.style.cssText=`left:${R.cx}px;top:${R.cy}px;font-size:${Math.round(R.w*0.8)}px`; fxLay().appendChild(w); setTimeout(()=>w.remove(),1100); }, delay||0); }
+const fxMv = (A,B,f) => `translate(${(B.x-A.x)*f}px,${(B.y-A.y)*f}px)`;
+// la chute dans un trou : le pion tourne, rétrécit et disparaît
+const FALL = (A,B) => [{transform:fxMv(A,B,1)+' scale(1) rotate(0)', opacity:1},{transform:fxMv(A,B,1)+' scale(.15) rotate(540deg)', opacity:0}];
+function powAnim(ev, ctx){
+  if (!ev || REDUCED) return;
+  const C=i=>{ const el=ctx.cell(i); return el ? fxR(el) : null; };
+  const hide=list=>{ list.forEach(i=>ctx.hide.add(i)); ctx.redraw(); FX.busy++; };
+  const done=(list, ms, actors)=>setTimeout(()=>{ actors.forEach(a=>a.remove()); list.forEach(i=>ctx.hide.delete(i)); FX.busy=Math.max(0,FX.busy-1); ctx.redraw(); }, ms);
+  const ease='cubic-bezier(.3,.7,.4,1)';
+  try {
+  if (ev.k==='push' && ev.a!=null){
+    const A=C(ev.a), B=C(ev.b), Cc=C(ev.c); if (!A||!B||!Cc) return;
+    const keep=[ev.b, ...(ev.dead?[]:[ev.c])]; hide(keep);
+    const p=fxActor(ctx.skin(ev.by), A), v=fxActor(ctx.skin(ev.vic), B);
+    p.animate([{transform:'translate(0,0)'},{transform:fxMv(A,B,.55),offset:.35},{transform:fxMv(A,B,.45),offset:.5},{transform:fxMv(A,B,1)}],{duration:800,easing:ease,fill:'forwards'});
+    p.firstChild.animate([{transform:'scale(1)'},{transform:'scale(1.25,.75)',offset:.35},{transform:'scale(.9,1.1)',offset:.55},{transform:'scale(1)'}],{duration:800,fill:'forwards'});
+    v.firstChild.animate([{transform:'scale(1)'},{transform:'scale(1)',offset:.3},{transform:'scale(.65,1.3) rotate(-8deg)',offset:.42},{transform:'scale(1.1,.9)',offset:.75},{transform:'scale(1)'}],{duration:900,fill:'forwards'});
+    const vk=[{transform:'translate(0,0)'},{transform:'translate(0,0)',offset:.35},{transform:fxMv(B,Cc,1.15)+' translateY(-18%)',offset:.7},{transform:fxMv(B,Cc,1)}];
+    v.animate(vk,{duration:900,easing:ease,fill:'forwards'}).onfinish=()=>{ if (ev.dead) v.animate(FALL(B,Cc),{duration:700,fill:'forwards'}); };
+    fxWord(ev.vic===ev.by?'HOP !':'POUF !', B, '#ff3dd8', 260);
+    if (ev.dead) fxWord(T('AAAH !'), Cc, '#2ef2ff', 950);
+    done(keep, ev.dead?1700:1000, [p,v]); return;
+  }
+  if (ev.k==='heavy' && ev.a!=null){
+    const A=C(ev.a), B=C(ev.at); if (!A||!B) return; const keep=[ev.a, ev.at]; hide(keep);
+    const p=fxActor(ctx.skin(ev.by), A), v=fxActor(ctx.skin(ev.vic), B);
+    if (ev.kind==='swap'){
+      for (const x of [p,v]) x.firstChild.animate([{transform:'scale(1)'},{transform:'scale(1.3,.25)',offset:.35},{transform:'scale(1.3,.25)',offset:.5},{transform:'scale(.9,1.2)',offset:.75},{transform:'scale(1)'}],{duration:900,fill:'forwards'});
+      p.animate([{transform:'translate(0,0)'},{transform:fxMv(A,B,.3),offset:.45},{transform:'translate(0,0)'}],{duration:900,easing:ease,fill:'forwards'});
+    } else {
+      p.animate([{transform:'translate(0,0)'},{transform:fxMv(A,B,.5),offset:.3},{transform:fxMv(A,B,.42),offset:.4},{transform:fxMv(A,B,-.12),offset:.7},{transform:'translate(0,0)'}],{duration:950,easing:ease,fill:'forwards'});
+      p.firstChild.animate([{transform:'scale(1)'},{transform:'scale(1)',offset:.25},{transform:'scale(.6,1.3)',offset:.33},{transform:'scale(1.2,.85)',offset:.6},{transform:'scale(1)'}],{duration:950,fill:'forwards'});
+      v.firstChild.animate([{transform:'scale(1)'},{transform:'scale(1)',offset:.28},{transform:'scale(1.12,.92)',offset:.36},{transform:'scale(1)',offset:.5}],{duration:950,fill:'forwards'});
+    }
+    fxEmoji('🏋️', B, 250, 'up'); fxWord(ev.kind==='swap'?T('RATÉ !'):'BOING !', A, '#ffd75e', 300);
+    done(keep, 1050, [p,v]); return;
+  }
+  if (ev.k==='swap' && ev.a!=null){
+    const A=C(ev.a), B=C(ev.b); if (!A||!B) return; const keep=[ev.b, ...(ev.dead?[]:[ev.a])]; hide(keep);
+    const p=fxActor(ctx.skin(ev.by), A), v=fxActor(ctx.skin(ev.vic), B);
+    const flat=[{transform:'scale(1)'},{transform:'scale(1.35,.12)',offset:.3},{transform:'scale(1.35,.12)',offset:.7},{transform:'scale(.9,1.15)',offset:.85},{transform:'scale(1)'}];
+    p.firstChild.animate(flat,{duration:950,fill:'forwards'}); v.firstChild.animate(flat,{duration:950,fill:'forwards'});
+    p.animate([{transform:'translate(0,0)'},{transform:'translate(0,0)',offset:.3},{transform:fxMv(A,B,1),offset:.7},{transform:fxMv(A,B,1)}],{duration:950,easing:ease,fill:'forwards'});
+    v.animate([{transform:'translate(0,0)'},{transform:'translate(0,0)',offset:.3},{transform:fxMv(B,A,1),offset:.7},{transform:fxMv(B,A,1)}],{duration:950,easing:ease,fill:'forwards'}).onfinish=()=>{ if (ev.dead) v.animate(FALL(B,A),{duration:700,fill:'forwards'}); };
+    fxWord('SWOUP !', A, '#2ef2ff', 250); if (ev.dead) fxWord(T('PLOUF !'), A, '#ff3dd8', 1000);
+    done(keep, ev.dead?1750:1050, [p,v]); return;
+  }
+  if (ev.k==='wall' && ev.from!=null){
+    const A=C(ev.from), W=C(ev.at); if (!A||!W) return; const keep=[ev.from]; hide(keep);
+    const p=fxActor(ctx.skin(ev.by), A);
+    p.animate([{transform:'translate(0,0)'},{transform:fxMv(A,W,.55)+' translateY(-55%)',offset:.35},{transform:fxMv(A,W,.5)+' translateY(-50%)',offset:.42},{transform:fxMv(A,W,.15)+' translateY(-10%)',offset:.7},{transform:'translate(0,0)'}],{duration:1000,easing:ease,fill:'forwards'});
+    p.firstChild.animate([{transform:'rotate(0)'},{transform:'rotate(0)',offset:.36},{transform:'rotate(-25deg) scale(.85,1.1)',offset:.45},{transform:'rotate(10deg)',offset:.8},{transform:'rotate(0)'}],{duration:1000,fill:'forwards'});
+    fxEmoji('🧱', W, 280, 'wall'); fxWord('BONK !', W, '#ff8a3d', 350);
+    setTimeout(()=>{ const d=document.createElement('div'); d.className='fxdizzy'; d.innerHTML='<i>✖</i><i>✖</i><b>💫</b>'; p.appendChild(d); }, 420);
+    done(keep, 1700, [p]); return;
+  }
+  if (ev.k==='minep'){ const A=C(ev.at); if (!A) return; fxEmoji('💣', A, 0, 'drop'); fxWord(T('CLIC'), A, '#b6ff3b', 200); return; }
+  if (ev.k==='mine'){
+    const A=C(ev.at); if (!A || ev.vic==null) return;
+    const v=fxActor(ctx.skin(ev.vic), A);
+    v.animate([{transform:'translate(0,0) rotate(0)', opacity:1},{transform:'translate(0,-120%) rotate(200deg) scale(1.1)', opacity:1, offset:.5},{transform:'translate(0,-40%) rotate(420deg) scale(.2)', opacity:0}],{duration:1100,easing:'ease-out',fill:'forwards'});
+    fxEmoji('💥', A, 0, 'blast'); fxWord('BOUM !', A, '#ff5a3d', 80);
+    done([], 1200, [v]); return;
+  }
+  } catch(e){}
+}
 /* ---------- Mode folie (parties entre amis, sans classement) ---------- */
 // Vestiaire : 10 s avant la partie (hors chrono) pour remplir 2 emplacements parmi Saut, Pousser, Inversion, Poids lourd, Mur et Mine.
 // Le même pouvoir peut être pris deux fois, sauf la Mine. Sans choix à temps : Saut + Saut.
@@ -1962,28 +2059,28 @@ function mineTick(){
   if (gone.some(m=>m.by===humanSeat())) toast(`💣 ${T("Ta mine a disparu.")}`);
 }
 // défense de v contre l'attaque de t : Poids lourd (pousser, inverser)
-function heavyBlocks(t, v, at){
+function heavyBlocks(t, v, at, a, kind){
   if (v===t || powN(v,'heavy')<=0) return false;
-  powSpend(v,'heavy'); G.ev={k:'heavy', by:t, at, n:evN()}; playEv(G.ev); return true;
+  powSpend(v,'heavy'); G.ev={k:'heavy', by:t, vic:v, at, a, kind, n:evN()}; playEv(G.ev); return true;
 }
 function doPush(tg){
   const t=G.turn; if (!canPow(t,'push')) return; powSpend(t,'push');
-  if (heavyBlocks(t, tg.p2, tg.b)){ powFinish(t); return; }
+  if (heavyBlocks(t, tg.p2, tg.b, tg.a, 'push')){ powFinish(t); return; }
   G.cells[tg.a]--; G.pawns[t][tg.k]=tg.b; look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0};
   fx(tg.a,tg.b,t,G.cells[tg.a]===0);
   let dead=G.cells[tg.c]===0;
   if (dead) G.pawns[tg.p2][tg.k2]=-1; else { G.pawns[tg.p2][tg.k2]=tg.c; look(tg.p2,tg.k2,tg.b,tg.c); }
-  G.ev={k:'push', by:t, vic:tg.p2, from:tg.b, to:tg.c, dead, n:evN()}; playEv(G.ev);
+  G.ev={k:'push', by:t, vic:tg.p2, a:tg.a, b:tg.b, c:tg.c, from:tg.b, to:tg.c, dead, n:evN()}; playEv(G.ev);
   if (!dead) landOn(tg.p2, tg.k2, tg.c);
   powFinish(t);
 }
 function doSwap(tg){
   const t=G.turn; if (!canPow(t,'swap')) return; powSpend(t,'swap');
-  if (heavyBlocks(t, 1-t, tg.b)){ powFinish(t); return; }
+  if (heavyBlocks(t, 1-t, tg.b, tg.a, 'swap')){ powFinish(t); return; }
   G.cells[tg.a]--; G.pawns[t][tg.k]=tg.b; look(t,tg.k,tg.a,tg.b); G.last={p:t,from:tg.a,to:tg.b,jump:0};
   const dead=G.cells[tg.a]===0;
   G.pawns[1-t][tg.k2]= dead ? -1 : tg.a;
-  G.ev={k:'swap', by:t, at:tg.b, to:tg.a, dead, n:evN()}; playEv(G.ev);
+  G.ev={k:'swap', by:t, vic:1-t, a:tg.a, b:tg.b, at:tg.b, to:tg.a, dead, n:evN()}; playEv(G.ev);
   powFinish(t);
 }
 function placeMine(i){
@@ -1999,24 +2096,26 @@ function wallBlocks(m){
   const dr=Math.sign(((m[1]/5)|0)-((from/5)|0)), dq=Math.sign(m[1]%5-from%5);
   for (let i=from+dr*5+dq; i!==m[1]; i+=dr*5+dq) if (G.pawns[v].includes(i)){
     powSpend(v,'wall'); G.J[t]=Math.max(0,(G.J[t]||0)-1);
-    G.ev={k:'wall', by:t, at:i, n:evN()}; playEv(G.ev); powFinish(t); return true; }
+    G.ev={k:'wall', by:t, at:i, from, to:m[1], n:evN()}; playEv(G.ev); powFinish(t); return true; }
   return false;
 }
 function playEv(ev){
   if (!ev || !S[ev.by]) return; const who=S[ev.by].name, vic=S[ev.vic!=null?ev.vic:1-ev.by].name;
+  powAnim(ev, FXCTX);
   const flash=(i)=>{ const el=cellEls&&cellEls[i]; if (el){ el.classList.add('heavyhit'); setTimeout(()=>el.classList.remove('heavyhit'),900); } };
   if (ev.k==='push'){ sfx.wizz(); vibrate([30,30,60]);
     const own=ev.vic===ev.by;
-    if (ev.dead){ setTimeout(()=>boom(ev.to, ev.vic), 250); toast(own ? `💥 ${who} ${T("pousse son propre pion dans le vide !")}` : `💥 ${who} ${T("pousse")} ${vic} ${T("dans le vide : un pion de moins !")}`); }
+    if (ev.dead){ setTimeout(()=>{ sfx.fall(); vibrate([120,60,200]); }, 1000); toast(own ? `💥 ${who} ${T("pousse son propre pion dans le vide !")}` : `💥 ${who} ${T("pousse")} ${vic} ${T("dans le vide : un pion de moins !")}`); }
     else toast(own ? `💥 ${who} ${T("pousse son autre pion.")}` : `💥 ${who} ${T("pousse")} ${vic} !`); }
   else if (ev.k==='swap'){ sfx.jump(); vibrate([20,30,20]);
-    if (ev.dead){ setTimeout(()=>boom(ev.to, 1-ev.by), 250); toast(`🔄 ${who} ${T("échange sa place avec")} ${vic}… ${T("qui tombe dans le trou !")}`); }
+    if (ev.dead){ setTimeout(()=>{ sfx.fall(); vibrate([120,60,200]); }, 1000); toast(`🔄 ${who} ${T("échange sa place avec")} ${vic}… ${T("qui tombe dans le trou !")}`); }
     else toast(`🔄 ${who} ${T("échange sa place avec")} ${vic} !`); }
-  else if (ev.k==='heavy'){ sfx.round(); vibrate([60,40,60]); toast(`🏋️ ${T("Poids lourd ! Ce pion ne bouge pas, le pouvoir est perdu.")}`); flash(ev.at); }
-  else if (ev.k==='wall'){ sfx.round(); vibrate([60,40,60]); toast(`🧱 ${T("Mur ! Impossible de sauter par-dessus. Tour perdu.")}`); flash(ev.at); }
+  else if (ev.k==='heavy'){ setTimeout(()=>{ sfx.round(); vibrate([60,40,60]); }, 280); toast(`🏋️ ${T("Poids lourd ! Ce pion ne bouge pas, le pouvoir est perdu.")}`); }
+  else if (ev.k==='wall'){ setTimeout(()=>{ sfx.round(); vibrate([60,40,60]); }, 350); toast(`🧱 ${T("Mur ! Impossible de sauter par-dessus. Tour perdu.")}`); }
   else if (ev.k==='minep'){ sfx.jump(); MINESEEN[ev.n]=MINESEEN[ev.n]||performance.now(); toast(`💣 ${who} ${T("pose une mine… regarde bien, elle disparaît dans 5 secondes !")}`); setTimeout(()=>{ if (G && view==='game') renderGame(); }, MINE_SHOW+50); }
-  else if (ev.k==='mine'){ vibrate([80,40,120]); setTimeout(()=>boom(ev.at, ev.vic), 150); toast(`💣 ${T("Boum ! La mine fait perdre un pion à")} ${S[ev.vic]?S[ev.vic].name:''} !`); }
+  else if (ev.k==='mine'){ vibrate([80,40,120]); sfx.wizz(); const app=$('#app'); app.classList.remove('shake'); void app.offsetWidth; app.classList.add('shake'); toast(`💣 ${T("Boum ! La mine fait perdre un pion à")} ${S[ev.vic]?S[ev.vic].name:''} !`); }
 }
+const FXH=new Set(), FXCTX={cell:i=>cellEls&&cellEls[i], skin:p=>pawnSVG(S[p].skin), hide:FXH, redraw:()=>{ if (G && view==='game') renderGame(); }};
 const mineVisible = m => MINESEEN[m.id]!=null && performance.now()-MINESEEN[m.id] < MINE_SHOW;
 // Vestiaire (au début de la partie, hors chrono)
 function loadoutAsk(){
@@ -2638,7 +2737,7 @@ function renderGame(){
     el.setAttribute('aria-label', `${sq(i)} : ${v===0?T('trou'):T('case')+' '+v}${hp!==undefined?(T(", pion de")+" ")+S[hp].name:''}`);
   });
   for (let p=0;p<2;p++) for (let k=0;k<2;k++){
-    const el=pawnEls[p][k], di=disp(G.pawns[p][k]); el.style.display=G.pawns[p][k]<0?'none':'';
+    const el=pawnEls[p][k], di=disp(G.pawns[p][k]); el.style.display=G.pawns[p][k]<0?'none':''; el.style.visibility=FXH.has(G.pawns[p][k])?'hidden':'';
     el.style.setProperty('--r',(di/5)|0); el.style.setProperty('--q',di%5);
     const lk=LOOK[p][k]; el.style.setProperty('--lx', flipped?-lk.x:lk.x); el.style.setProperty('--ly', flipped?-lk.y:lk.y);
     let cls='pawn'; const mine=myTurn&&p===G.turn;
