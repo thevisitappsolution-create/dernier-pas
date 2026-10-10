@@ -1040,6 +1040,10 @@ html:not(.lock) body{background:transparent!important}
 .mode3.wide .art{width:58%;margin:-15% 0 0}
 .mode3.wide .go{font-size:1.15rem}
 .arow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.fpick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.fpb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 8px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(143,123,255,.28),rgba(20,14,48,.9));color:#fff;font:inherit;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.fpb .e{font-size:2.2rem;line-height:1}.fpb b{font-size:1.15rem}.fpb small{opacity:.65;font-size:.72rem}
+.fpb:active{transform:translateY(2px)}
 .tpill{padding:3px 14px;gap:6px;font-size:.9rem}
 .tpill .ic{width:18px;height:18px;stroke:#ffd75e}
 .tpill .tico{width:26px;height:26px;object-fit:contain}
@@ -1404,7 +1408,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 95,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 96,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -3025,6 +3029,9 @@ function sheetHTML(){
     ${true?'':`<label class="toggle"><span>${T("Partie piégée 💣")}<small class="note">${T("1 bombe cachée chacun")}</small></span><input type="checkbox" id="o-trap" ${P.trap?'checked':''}></label>`}
     <button class="primary" type="button" data-act="go-ai">${s.assist?`💡 ${T("Lancer l'entraînement")}`:`${T("Jouer ·")} ${tLabel(P.time)}`}</button>`;
   }
+  if (s.type==='fpick') return `<h2>${T("Défier un ami")}</h2><div class="fpick">
+    <button class="fpb" type="button" data-act="friend"><span class="e">⚔️</span><b>${T("Duel")}</b><small>1 vs 1</small></button>
+    <button class="fpb" type="button" data-act="fp-4"><span class="e">👥</span><b>${T("4 joueurs")}</b><small>1 vs 1 vs 1 vs 1</small></button></div>`;
   if (s.type==='friend'){
     if (!net){
       if (!peerOK()) return `<h2>${T("Jouer avec un ami")}</h2><p>${T("Le module en ligne n'a pas pu se charger. Vérifie ta connexion internet et relance l'appli.")}</p>`;
@@ -3384,6 +3391,9 @@ document.addEventListener('click', e=>{
     case 'go-ai': startAI(P.level, !!(sheet&&sheet.assist)); break;
     case 'local': leaveOnline(); vsAI=null; training=false; startMatch(); break;
     case 'friend': sheet={type:'friend'}; render(); break;
+    case 'fpick': sheet={type:'fpick'}; render(); break;
+    case 'fp-4': sheet=null; render(); if (window.Party) Party.open(); break;
+    case 'wheel-pz': $('#party').hidden=true; whzStart(); break;
     case 'tournament': sheet={type:'locked',what:'tournament'}; render(); break;
     case 'host': goOnline(newCode(),true); break;
     case 'leave': leaveOnline(); sheet={type:'friend'}; render(); break;
@@ -3772,7 +3782,7 @@ function startExercise(){
 function trRestart(){
   if (!TR) return;
   if (TR.kind==='parc') return startParc(TR.i, '', TR.state==='win' ? 0 : TR.tries+1);
-  if (TR.kind==='puzzle') startPuzzle(TR.cat, TR.idx);
+  if (TR.kind==='puzzle') startPuzzle(TR.cat, TR.idx, TR.mode==='wh'?'wh':undefined);
   else if (TR.phase==='ex' || TR.state==='win' || TR.state==='fail') { sheet=null; startExercise(); }
   else startLesson(TR.i);
 }
@@ -3780,6 +3790,7 @@ function trDone(ok, why){
   const tr=TR; tr.state=ok?'win':'fail'; tr.why=why||''; if (ok) markActive();
   if (tr.rush){ sfx[ok?'move':'round'](); render(); rushAfter(ok); return; }
   if (tr.mode==='dj'){ sfx[ok?'win':'round'](); render(); djAfter(ok); return; }
+  if (tr.mode==='wh'){ sfx[ok?'win':'round'](); render(); if (ok){ whzWon(); setTimeout(()=>{ if (TR!==tr) return; trClear(tr); TR=null; G=null; M=null; musicStop(); sheet=null; view='home'; render(); wheelOpen(); }, 900); } return; }
   if (tr.mode==='chal'){ sfx[ok?'win':'round'](); render(); chalAfter(ok, performance.now()-tr.t0); return; }
   if (ok && tr.kind==='puzzle') tr.ms=performance.now()-tr.t0;
   if (ok){
@@ -3836,6 +3847,7 @@ function trOppReply(){
 function trTitle(){
   if (!TR) return '';
   if (TR.mode==='dj') return `${T("Lastep du jour ·")} ${DJ?Math.min(4,DJ.k+1):4}/4`;
+  if (TR.mode==='wh') return `🧩 ${T("Puzzle du jour")}`;
   if (TR.kind==='parc') return `${T("Niveau")} ${TR.i+1}`;
   if (TR.mode==='chal' && CHAL) return `${T("Défi de")} ${CHAL.n}`;
   if (TR.rush && RUSH) return `⏱️ ${T("Chrono")} · ${RUSH.pts} pts · ${'❤️'.repeat(3-RUSH.err)}${'🖤'.repeat(RUSH.err)}`;
@@ -3866,6 +3878,7 @@ function renderTrActions(){
   else if (tr.kind==='lesson' && tr.phase==='ready'){ a.push(btn('demo-prev','back',(T("Revoir la fin")))); a.push(btn('tr-replay','undo',(T("Revoir tout")))); a.push(btn('tr-go','', (T("À toi !")),{cls:'primary'})); }
   else if (tr.state==='win'){ if (tr.kind==='parc' && tr.stars<3) a.push(btn('tr-restart','undo',(T("Rejouer")))); a.push(btn('tr-next','', (T("Suivant")),{cls:'primary'})); }
   else if (tr.rush){ a.push(btn('rush-stop','flag',(T("Arrêter le défi")))); }
+  else if (tr.mode==='wh' && tr.state==='fail'){ a.push(btn('tr-quit','', (T("Plus tard")))); a.push(btn('tr-restart','undo', (T("Réessayer")),{cls:'primary'})); }
   else if (tr.mode){ a.push(btn('pz-stop','flag',(T("Abandonner")))); }
   else if (tr.state==='fail'){ if (tr.kind!=='puzzle' && tr.kind!=='parc') a.push(btn('tr-sol','bulb',(T("Solution")),{badge:credBadge('h')})); a.push(btn('tr-restart','', (T("Réessayer")),{cls:'primary'})); }
   else { if (tr.kind==='parc' && !tr.mode) a.push(btn('tr-hint','bulb',(T("Indice")),{dis:!!G.hint, badge:credBadge('pa')}));
@@ -3881,7 +3894,7 @@ function trNext(){
 }
 function lnScroll(){ pzScroll(); }
 function pzScroll(){ setTimeout(()=>{ const n=document.querySelector('.lv.cur')||document.querySelector('.node.cur')||[...document.querySelectorAll('.lv.done,.node.done')].pop(); if (n) n.scrollIntoView({block:'center'}); else window.scrollTo(0, document.body.scrollHeight); }, 0); }
-function trQuit(){ const kind=TR&&TR.kind; $('#party').hidden=true; stopConfetti(); if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
+function trQuit(){ const kind=TR&&TR.kind, wh=TR&&TR.mode==='wh'; $('#party').hidden=true; stopConfetti(); if (TR) trClear(TR); TR=null; G=null; M=null; musicStop(); if (wh){ sheet=null; view='home'; } else if (kind==='puzzle'||kind==='parc'){ sheet=null; view=kind==='parc'?'parc':'puzzles'; setTimeout(pzScroll,0); } else { sheet=null; view='learn'; setTimeout(lnScroll,0); } render(); }
 // Aventure : cherche une suite de pas qui fait tomber toutes les cases depuis la position actuelle
 function parcSolve(){
   const c=G.cells.slice(), pos0=G.pawns[0][0], J0=G.J[0], memo=new Set(); let nodes=0;
@@ -4479,7 +4492,7 @@ function rushEnd(){
   if (chest){ P.chrono.day=d; P.chrono.got=tier; P.pendChests=[...(P.pendChests||[]), {t:chest, why:T("Défi chrono"), src:'chrono'}]; }
   saveP(); if (r.pts) xpAdd(r.pts*2);
   if (TR) trClear(TR); TR=null; G=null; M=null; musicStop();
-  view='parc'; sheet={type:'rush', r, rec, best:Math.max(best,r.pts), coins, chest}; RUSH=null; render();
+  view='play'; sheet={type:'rush', r, rec, best:Math.max(best,r.pts), coins, chest}; RUSH=null; render();
 }
 function renderPuzzles(){
   const ok=P.puz||{}, done=pzDone(), cur=PUZ_LIST.findIndex(q=>!ok[pzKey(q)]);
@@ -4879,6 +4892,7 @@ function trProg(){
   else if (tr.mode==='dj'){ n=4; k=DJ?DJ.k:4; label=`${T("Lastep du jour ·")} ${Math.min(4,k+1)}/4`; }
   else if (tr.kind==='parc'){ const left=G?parcSum():0; return `<div class="trprog"><b>${T("Reste")} ${left}</b><div class="prog"><i style="width:${Math.round((tr.n0-left)/tr.n0*100)}%"></i></div></div>`; }
   else if (tr.mode==='chal'){ return `<div class="trprog"><b>${T("Défi de")} ${esc(CHAL?CHAL.n:'')}</b></div>`; }
+  else if (tr.mode==='wh'){ return ''; }
   else { n=PZ_DAY; const t=pzToday()%PZ_DAY; k = tr.state==='win' ? (t||PZ_DAY) : t; label=`${T("Puzzle")} ${Math.min(PZ_DAY, tr.state==='win'?(t||PZ_DAY):t+1)}/${PZ_DAY}`; }
   return `<div class="trprog"><b>${label}</b><div class="prog"><i style="width:${Math.round(k/n*100)}%"></i></div></div>`;
 }
@@ -5011,11 +5025,19 @@ function wheelDraw(){
   const w=wheelInfo(), canFree=!w.free, adsLeft=3-(w.ads||0);
   $('#partyCard').innerHTML=`<button class="xclose" type="button" data-act="reward-close" aria-label="${T("Fermer")}">✕</button><h2 class="wtitle sm">${T("Roue de la chance")}</h2>
     <div class="wheel"><div class="wptr" aria-hidden="true">▼</div>${wheelSVG()}</div>
-    ${canFree?`<button class="primary big2" type="button" data-act="wheel-spin" style="width:100%">${T("Tourner")} · ${T("gratuit")}</button>`
+    ${!whzOk()?`<button class="primary big2" type="button" data-act="wheel-pz" style="width:100%">🧩 ${T("Tourner")}</button><p class="sub">${T("Réussis le puzzle du jour pour tourner.")}</p>`
+      : canFree?`<button class="primary big2" type="button" data-act="wheel-spin" style="width:100%">${T("Tourner")} · ${T("gratuit")}</button>`
       : adsLeft>0 ? adBtn('wheel-ad', `${T("Tourner encore")} (${adsLeft}/3)`) : `<p class="sub">${T("Reviens demain pour un nouveau tour gratuit.")}</p>`}`;
 }
+/* Puzzle du jour : il ouvre la roue. Un nouveau chaque jour, celui de la veille n'est plus jouable. */
+const WHZ_CATS=['win1','win2','win2','win3','win2','win1','win2'];
+function whzToday(){ const d=dayNum(), cat=WHZ_CATS[d%WHZ_CATS.length], L=PUZ[cat]; return {cat, i:hash32('whz'+d)%L.length}; }
+const whzOk = () => !!(P.whz && P.whz.d===dayKey());
+function whzStart(){ const q=whzToday(); startPuzzle(q.cat, q.i, 'wh'); }
+function whzWon(){ P.whz={d:dayKey()}; saveP(); }
 function wheelSpin(paid){
   if (WSPIN) return;
+  if (!whzOk()) return;
   const w=wheelInfo(); if (paid) w.ads=(w.ads||0)+1; else { if (w.free) return; w.free=true; } P.wheel=w; P.stat.wheel=(P.stat.wheel||0)+1; saveP();
   const tot=WHEEL.reduce((a,s)=>a+s.w,0); let t=Math.random()*tot, k=0; while ((t-=WHEEL[k].w)>0) k++;
   const g=document.getElementById('wrot'); const deg=360*6 + (360 - (k+.5)*(360/WHEEL.length));
@@ -5208,12 +5230,7 @@ function renderParc(){
         ${open?`<b>${i+1}</b>`:IMG('icone-cadenas','lkimg')}${s?`<span class="lvst">${[0,1,2].map(k=>`<i class="${k<s?'on':''}">★</i>`).join('')}</span>`:''}${isCur?`<span class="lvme" aria-hidden="true">${pawnSVG(P.skin)}</span>`:''}</button>`;
     }
   });
-  return `<div class="pgtop">${pillsTop()}${pageTitle('icone-carte','🗺️',T("Aventure"))}
-    <div class="rrow2 r3">
-      ${tile('dj','icone-calendrier','📅', d?d.res.map(r=>r?'✅':'❌').join(''):T("Du jour"), {hot:!d})}
-      ${tile('rush-pick','icone-chrono','⏱️',T("Chrono"))}
-      ${tile('lb-open','icone-trophee','🏆', P.lg&&P.lg.rank?`${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue"))}
-    </div></div>
+  return `<div class="pgtop">${pillsTop()}${pageTitle('icone-carte','🗺️',T("Aventure"))}</div>
   <div class="chapcard"><div><small>${T("Chapitre")} ${ch+1}</small><b>${esc(PARC_CH[ch]||'')}</b></div><div class="chprog"><i style="width:${chStars/(PARC_PER*3)*100}%"></i></div><span>⭐ ${tot}/${max}</span></div>
   <div class="lvpath">${html}</div>
   <div class="spacer"></div>
@@ -5228,10 +5245,10 @@ function renderPlay(){
   <div class="mode3 arena wide" data-act="match" role="button" tabindex="0" aria-label="${T("Combattre")}"><span class="shine"></span>${IMG('arene','art')}
     <div class="chips3"><span style="color:${t[2]}">${t[1]}</span><span>${arenaElo()} ${T("steps")}</span></div>
     <div class="go">${T("Combattre")}</div></div>
-  <div class="arow"><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button></div>
+  <div class="arow"><button class="pill tpill" type="button" data-act="lb-arena">${IMG('icone-trophee','tico')}${T("Classement")}</button><button class="pill tpill" type="button" data-act="lb-open">🏅 ${P.lg&&P.lg.rank?`${T("Ligue")} · ${P.lg.rank}${LANG==='en'?'.':'e'}`:T("Ligue")}</button></div>
   <div class="grid4">
-    ${tile('friend','icone-amis','🤝',T("Avec un ami"))}
-    ${tile('party','icone-groupe','👥',T("À 4 joueurs"))}
+    ${tile('fpick','icone-amis','🤝',T("Défier un ami"))}
+    ${tile('rush-pick','icone-chrono','⏱️',T("Défi chrono"))}
     ${tile('ai-sheet','icone-robot','🤖',T("Ordinateur"))}
     ${tile('tab','icone-cours','🎓',T("Cours"),{v:'learn'})}
   </div>

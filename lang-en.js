@@ -1276,4 +1276,10 @@ Object.assign(window.EN_DICT, {"Mon classement":"My ranking","Compte":"Account",
 "Pose-la à côté de toi":"Place it next to you",
 "Visible 5 secondes…":"Visible for 5 seconds…",
 "…puis invisible pour tous":"…then invisible to all",
-"Boum ! Elle part à ton 2e tour":"Boom! Gone on your 2nd turn"});
+"Boum ! Elle part à ton 2e tour":"Boom! Gone on your 2nd turn",
+"Défier un ami":"Challenge a friend",
+"Duel":"Duel",
+"4 joueurs":"4 players",
+"Réussis le puzzle du jour pour tourner.":"Solve today's puzzle to spin.",
+"Puzzle du jour":"Daily puzzle",
+"Plus tard":"Later"});
