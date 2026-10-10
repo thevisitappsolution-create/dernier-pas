@@ -1082,6 +1082,15 @@ html:not(.lock) body{background:transparent!important}
 .stage:has(.pwdemo) .arw{margin-top:-26px}
 @media (max-height:700px){.arw{margin-top:-33px}.stage:has(.pwdemo) .arw{margin-top:-26px}}
 .fxstage{position:relative;width:150px;height:150px}
+.trlane{position:relative;width:180px;height:120px;display:flex;align-items:flex-end;justify-content:center;gap:6px;padding-bottom:4px}
+.trlane>i{width:54px;height:22px;border-radius:8px;background:linear-gradient(180deg,#2ef2ff33,#2ef2ff12);border:1.5px solid #2ef2ff88;box-shadow:0 0 12px #2ef2ff44}
+.trpawn{position:absolute;left:0;bottom:14px;width:64px;height:64px;animation:trgo 2.6s ease-in-out infinite;z-index:2}
+.trpawn svg{width:100%;height:100%;overflow:visible}
+@keyframes trgo{0%,8%{transform:translateX(-2px)}42%,58%{transform:translateX(118px)}25%,75%{translate:0 -14px}92%,100%{transform:translateX(-2px)}}
+.trlane .tp{position:absolute;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);transform:translate(-50%,-50%);animation:trp .8s ease-out forwards;pointer-events:none;z-index:1}
+.trlane .tp.flammes{border-radius:50% 50% 50% 0;rotate:-45deg;animation:tpf .8s ease-out forwards}
+.trlane .tp.galaxie{border-radius:2px;rotate:45deg}
+@keyframes tpf{from{opacity:1;scale:1}to{opacity:0;scale:.3;translate:0 -24px}}
 .fxstage .fxe{position:absolute;right:-12px;bottom:4px;font-size:3rem;filter:drop-shadow(0 0 12px #fff)}
 .fxstage.big .fxe{animation:wig 1.6s ease-in-out infinite}
 .swatch.big{width:150px;transform:rotate(-8deg);box-shadow:0 12px 20px #000a}
@@ -1431,7 +1440,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 101,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 102,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -1578,12 +1587,12 @@ const euro = p => p ? p.toFixed(2).replace('.',',')+' €' : (T("Gratuit"));
 
 /* ---------- Catalogue ---------- */
 const COLORS={ivoire:{n:(T("Ivoire")),hex:'#f2ede1',p:0},azur:{n:(T("Azur")),hex:'#5cb8d6',p:0},corail:{n:(T("Corail")),hex:'#ff8a70',p:0},
-  menthe:{n:(T("Menthe")),hex:'#8fd19e',p:1.99},lavande:{n:(T("Lavande")),hex:'#b9a3ff',p:1.99},rose:{n:(T("Rose")),hex:'#f39ac2',p:1.99},
-  nuit:{n:(T("Nuit")),hex:'#5867a8',p:1.99},or:{n:(T("Or")),hex:'#ffd75e',p:2.99}};
-const FURS={lisse:{n:(T("Lisse")),p:0},poils:{n:(T("Poilu")),p:2.99},pointes:{n:(T("Piquant")),p:2.99},cube:{n:(T("Cube")),p:2.99}};
-const EYES={ronds:{n:(T("Ronds")),p:0},joyeux:{n:(T("Rieurs")),p:.99},colere:{n:(T("Furieux")),p:.99},etoiles:{n:(T("Étoiles")),p:1.49}};
+  menthe:{n:(T("Menthe")),hex:'#8fd19e',p:.69},lavande:{n:(T("Lavande")),hex:'#b9a3ff',p:.69},rose:{n:(T("Rose")),hex:'#f39ac2',p:.69},
+  nuit:{n:(T("Nuit")),hex:'#5867a8',p:.69},or:{n:(T("Or")),hex:'#f2c14e',p:1.49,gold:1}};
+const FURS={lisse:{n:(T("Lisse")),p:0},poils:{n:(T("Poilu")),p:2.99},pointes:{n:(T("Piquant")),p:2.99},cube:{n:(T("Cube")),p:2.99},coeur:{n:(T("Cœur")),p:3.99}};
+const EYES={ronds:{n:(T("Ronds")),p:0},joyeux:{n:(T("Rieurs")),p:.99},colere:{n:(T("Furieux")),p:.99},etoiles:{n:(T("Étoiles")),p:1.49},coeur:{n:(T("Cœurs")),p:1.49}};
 const ACCS={aucun:{n:(T("Aucun")),p:0},couronne:{n:(T("Couronne")),p:3.99},casquette:{n:(T("Casquette")),p:1.99},lunettes:{n:(T("Lunettes")),p:1.99},
-  cornes:{n:(T("Cornes")),p:2.49},noeud:{n:(T("Nœud")),p:1.49},aureole:{n:(T("Auréole")),p:2.99}};
+  cornes:{n:(T("Cornes")),p:2.49},noeud:{n:(T("Nœud")),p:1.49},aureole:{n:(T("Auréole")),p:2.99},chaine:{n:(T("Chaîne en or")),p:2.99},boucles:{n:(T("Boucles d'oreilles")),p:1.99}};
 const THEMES={classique:{n:(T("Néon")),p:0,t1:'#2ef2ff',t2:'#ff3dd8',x1:'#2ef2ff',x2:'#ff3dd8',fr:'#0d0b1f'},
   nuit:{n:(T("Synthwave")),p:2.99,t1:'#8f7bff',t2:'#ff4f9a',x1:'#8f7bff',x2:'#ff4f9a',fr:'#0e0a22'},
   lave:{n:(T("Lave")),p:2.99,t1:'#ffb02e',t2:'#ff3b3b',x1:'#ffb02e',x2:'#ff3b3b',fr:'#1a0a0a'},
@@ -1750,51 +1759,83 @@ function pwDefs(id, defs){
   g.insertAdjacentHTML('beforeend', '<defs>'+defs+'</defs>');
 }
 function pawnSVG(sk, hex){
-  sk = sk || DEF2; hex = hex || (COLORS[sk.color]||COLORS.ivoire).hex;
-  const ink='#14201c', fin=FINS[sk.fin]?sk.fin:'mat';
+  sk = sk || DEF2; const C=COLORS[sk.color]||COLORS.ivoire; hex = hex || C.hex;
+  const gold=!!C.gold && hex===C.hex;
+  const ink='#14201c', fin=FINS[sk.fin]?sk.fin:'mat', fur=FURS[sk.fur]?sk.fur:'lisse';
   // couleurs dérivées : plus clair pour la lumière, plus sombre pour l'ombre
   const mix=(h,t,a)=>{ const p=x=>parseInt(h.slice(x,x+2),16), q=x=>parseInt(t.slice(x,x+2),16); return '#'+[1,3,5].map(i=>Math.round(p(i)+(q(i)-p(i))*a).toString(16).padStart(2,'0')).join(''); };
-  const hi=mix(hex,'#ffffff',.45), lo=mix(hex,'#000000',.38), id='pw'+hex.slice(1)+fin;
+  const hi=mix(hex,'#ffffff',.45), lo=mix(hex,'#000000',.38), id='pw'+hex.slice(1)+fin+(gold?'g':'');
   let defs, fill='url(#'+id+')', extra='', bodyAttr='';
-  if (fin==='metal') defs=`<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mix(hex,'#ffffff',.8)}"/><stop offset=".28" stop-color="${lo}"/><stop offset=".5" stop-color="${mix(hex,'#ffffff',.6)}"/><stop offset=".72" stop-color="${mix(hex,'#000000',.55)}"/><stop offset="1" stop-color="${hi}"/></linearGradient>`;
-  else if (fin==='holo') defs=`<radialGradient id="${id}" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="${hi}"/><stop offset=".6" stop-color="${hex}"/><stop offset="1" stop-color="${lo}"/></radialGradient><linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3dd8"/><stop offset=".25" stop-color="#ffd75e"/><stop offset=".5" stop-color="#5dffa0"/><stop offset=".75" stop-color="#2ef2ff"/><stop offset="1" stop-color="#b36bff"/><animateTransform attributeName="gradientTransform" type="rotate" from="0 .5 .5" to="360 .5 .5" dur="5s" repeatCount="indefinite"/></linearGradient>`;
+  if (gold && (fin==='mat' || fin==='brillant')) defs=`<linearGradient id="${id}" x1=".1" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#fff6c9"/><stop offset=".22" stop-color="#ffd84d"/><stop offset=".48" stop-color="#c8860a"/><stop offset=".66" stop-color="#ffe27a"/><stop offset=".86" stop-color="#9a6100"/><stop offset="1" stop-color="#e0a92a"/></linearGradient>`;
+  else if (fin==='metal') defs=`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${mix(hex,'#ffffff',.92)}"/><stop offset=".3" stop-color="${mix(hex,'#ffffff',.55)}"/><stop offset=".47" stop-color="${mix(hex,'#ffffff',.25)}"/><stop offset=".5" stop-color="${mix(hex,'#000000',.62)}"/><stop offset=".62" stop-color="${mix(hex,'#000000',.35)}"/><stop offset=".85" stop-color="${mix(hex,'#ffffff',.5)}"/><stop offset="1" stop-color="${mix(hex,'#ffffff',.8)}"/></linearGradient>`;
+  else if (fin==='holo') defs=`<radialGradient id="${id}" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="${mix(hex,'#ffffff',.3)}"/><stop offset="1" stop-color="${mix(hex,'#6a5cff',.35)}"/></radialGradient><linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3dd8"/><stop offset=".2" stop-color="#ffd75e"/><stop offset=".4" stop-color="#5dffa0"/><stop offset=".6" stop-color="#2ef2ff"/><stop offset=".8" stop-color="#b36bff"/><stop offset="1" stop-color="#ff3dd8"/><animateTransform attributeName="gradientTransform" type="rotate" from="0 .5 .5" to="360 .5 .5" dur="4s" repeatCount="indefinite"/></linearGradient>`;
   else if (fin==='neon') { defs=`<radialGradient id="${id}" cx=".5" cy=".55" r=".7"><stop offset="0" stop-color="${mix(hex,'#0b0918',.55)}"/><stop offset="1" stop-color="#0b0918"/></radialGradient><filter id="${id}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`; bodyAttr=` stroke="${hi}" stroke-width="3.2" filter="url(#${id}g)"`; }
-  else if (fin==='cristal') { defs=`<radialGradient id="${id}" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".45" stop-color="${hi}" stop-opacity=".7"/><stop offset="1" stop-color="${hex}" stop-opacity=".55"/></radialGradient>`; bodyAttr=` stroke="#ffffffcc" stroke-width="1.6"`; }
-  else if (fin==='brillant') defs=`<radialGradient id="${id}" cx=".34" cy=".28" r=".8"><stop offset="0" stop-color="${mix(hex,'#ffffff',.7)}"/><stop offset=".35" stop-color="${hex}"/><stop offset=".85" stop-color="${mix(hex,'#000000',.45)}"/><stop offset="1" stop-color="${mix(hex,'#ffffff',.25)}"/></radialGradient>`;
+  else if (fin==='cristal') { defs=`<radialGradient id="${id}" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".4" stop-color="${hi}" stop-opacity=".5"/><stop offset="1" stop-color="${hex}" stop-opacity=".38"/></radialGradient>`; bodyAttr=` stroke="#ffffff" stroke-width="2"`; }
+  else if (fin==='brillant') defs=`<radialGradient id="${id}" cx=".32" cy=".26" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="${mix(hex,'#ffffff',.55)}"/><stop offset=".5" stop-color="${hex}"/><stop offset=".86" stop-color="${mix(hex,'#000000',.5)}"/><stop offset="1" stop-color="${mix(hex,'#ffffff',.35)}"/></radialGradient>`;
   else defs=`<radialGradient id="${id}" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="${hi}"/><stop offset=".55" stop-color="${hex}"/><stop offset="1" stop-color="${lo}"/></radialGradient>`;
   pwDefs(id, defs);
   let body='', shapeD='';
-  if (sk.fur==='poils' || sk.fur==='pointes'){
-    const n = sk.fur==='poils' ? 32 : 18, r1 = sk.fur==='poils' ? 37 : 32, r2 = sk.fur==='poils' ? 44 : 46; let d='';
+  if (fur==='poils' || fur==='pointes'){
+    const n = fur==='poils' ? 32 : 18, r1 = fur==='poils' ? 37 : 32, r2 = fur==='poils' ? 44 : 46; let d='';
     for (let a=0;a<n;a++){ const ang=a/n*Math.PI*2-Math.PI/2, r=a%2?r2:r1; d+=(a?'L':'M')+(50+r*Math.cos(ang)).toFixed(1)+' '+(54+r*Math.sin(ang)).toFixed(1); }
     shapeD=d+'Z';
-    body=`<path d="${shapeD}" fill="${fill}" stroke="${fin==='neon'?hi:hex}" stroke-width="${fin==='neon'?3.2:sk.fur==='poils'?6:2}" stroke-linejoin="round"${fin==='neon'?` filter="url(#${id}g)"`:''}/>`;
-  } else if (sk.fur==='cube') { shapeD='M29 17h42a16 16 0 0 1 16 16v42a16 16 0 0 1-16 16H29a16 16 0 0 1-16-16V33a16 16 0 0 1 16-16Z'; body=`<path d="${shapeD}" fill="${fill}"${bodyAttr}/>`; }
-  else { shapeD='M50 15a39 39 0 1 1 0 78a39 39 0 1 1 0-78Z'; body=`<path d="${shapeD}" fill="${fill}"${bodyAttr}/>`; }
-  if (fin==='holo') extra+=`<path d="${shapeD}" fill="url(#${id}h)" opacity=".62" style="mix-blend-mode:overlay"/>`;
-  if (fin==='brillant') extra+=`<path d="${shapeD}" fill="none" stroke="#ffffff70" stroke-width="1.6"/>`;
-  if (fin==='metal') extra+=`<path d="${shapeD}" fill="none" stroke="#ffffff66" stroke-width="1.4"/>`;
-  if (fin==='cristal') extra+=`<path d="M30 40l14-12M58 30l14 14M34 70l18 12" stroke="#ffffffaa" stroke-width="1.6" stroke-linecap="round"/>`;
+    body=`<path d="${shapeD}" fill="${fill}" stroke="${fin==='neon'?hi:gold?'#b8790a':hex}" stroke-width="${fin==='neon'?3.2:fur==='poils'?6:2}" stroke-linejoin="round"${fin==='neon'?` filter="url(#${id}g)"`:''}/>`;
+  } else {
+    shapeD = fur==='cube' ? 'M29 17h42a16 16 0 0 1 16 16v42a16 16 0 0 1-16 16H29a16 16 0 0 1-16-16V33a16 16 0 0 1 16-16Z'
+      : fur==='coeur' ? 'M50 94C30 80 9 64 9 41C9 25 21 15 33 15C41 15 47 20 50 27C53 20 59 15 67 15C79 15 91 25 91 41C91 64 70 80 50 94Z'
+      : 'M50 15a39 39 0 1 1 0 78a39 39 0 1 1 0-78Z';
+    body=`<path d="${shapeD}" fill="${fill}"${bodyAttr}${gold&&!bodyAttr?' stroke="#a86d06" stroke-width="1.6"':''}/>`;
+  }
+  const cid='pc'+fur;   // découpe à la forme du corps (reflets animés)
+  const clip=`<clipPath id="${cid}"><path d="${shapeD}"/></clipPath>`;
+  const sweep=(w,op,dur)=>`<g clip-path="url(#${cid})"><rect x="-70" y="-20" width="${w}" height="150" fill="#fff" opacity="${op}" transform="rotate(22 50 50)"><animate attributeName="x" values="-70;-70;150" keyTimes="0;.45;1" dur="${dur}s" repeatCount="indefinite"/></rect></g>`;
+  const twinkle=(x,y,r,delay,col='#fff')=>`<path d="M${x} ${y-r}L${x+r*.22} ${y-r*.22}L${x+r} ${y}L${x+r*.22} ${y+r*.22}L${x} ${y+r}L${x-r*.22} ${y+r*.22}L${x-r} ${y}L${x-r*.22} ${y-r*.22}Z" fill="${col}" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="2.2s" begin="${delay}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="scale" additive="sum" values="1;1;1" dur="2.2s" repeatCount="indefinite"/></path>`;
+  if (fin==='holo'){ extra+=`<path d="${shapeD}" fill="url(#${id}h)" opacity=".72"/>`+sweep(16,.55,2.4)+twinkle(70,34,6,0)+twinkle(30,72,4.5,1.1); }
+  if (fin==='brillant') extra+=`<path d="${shapeD}" fill="none" stroke="#ffffff99" stroke-width="1.8"/><path d="M22 52Q22 28 44 21" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>`+twinkle(68,30,5,.4);
+  if (fin==='metal') extra+=`<path d="${shapeD}" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".7"/><path d="M24 40Q34 26 52 24" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".9"/>`+sweep(10,.6,3.2);
+  if (fin==='cristal') extra+=`<g clip-path="url(#${cid})" stroke="#ffffff" stroke-width="1.3" fill="none" opacity=".85"><path d="M50 15L30 42L50 56L70 42Z" fill="#ffffff22"/><path d="M30 42L12 60M70 42L88 60M50 56L36 92M50 56L64 92M30 42L36 92M70 42L64 92"/><path d="M12 60L36 92L64 92L88 60" fill="#ffffff14"/></g>`+twinkle(36,30,6,0)+twinkle(66,74,4,1);
+  if (fin==='neon') bodyAttr=bodyAttr;   // le contour lumineux suffit
+  if (gold) extra+=sweep(14,.65,2.6)+twinkle(72,30,6.5,0,'#fffbe0')+twinkle(28,70,5,1.2,'#fffbe0')+twinkle(64,80,3.5,.6,'#fffbe0');
   // ombre portée au sol, puis reflets
   const ground=`<ellipse cx="50" cy="96" rx="30" ry="5" fill="#000" opacity=".28"/>`;
-  const shade=fin==='neon'?'':`<ellipse cx="50" cy="80" rx="27" ry="8" fill="#000" opacity=".12"/>`;
-  const hl=`<ellipse cx="35" cy="36" rx="11" ry="6.5" fill="#fff" opacity="${fin==='brillant'||fin==='cristal'?'.75':fin==='neon'?'.18':'.42'}" transform="rotate(-25 35 36)"/>${fin==='brillant'||fin==='metal'?'<circle cx="28" cy="46" r="2.6" fill="#fff" opacity=".8"/><ellipse cx="66" cy="78" rx="9" ry="3" fill="#fff" opacity=".22"/>':''}`;
+  const glow=c=>`<radialGradient id="pwglow${c.slice(1)}"><stop offset=".55" stop-color="${c}" stop-opacity=".75"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+  const halo=gold?`${'<defs>'+glow('#ffd75e')+'</defs>'}<circle cx="50" cy="54" r="54" fill="url(#pwglowffd75e)" opacity=".55"><animate attributeName="opacity" values=".35;.75;.35" dur="2.6s" repeatCount="indefinite"/></circle>`:fin==='holo'?`${'<defs>'+glow('#b36bff')+'</defs>'}<circle cx="50" cy="54" r="53" fill="url(#pwglowb36bff)" opacity=".45"/>`:'';
+  const shade=fin==='neon'||fin==='cristal'?'':`<ellipse cx="50" cy="80" rx="27" ry="8" fill="#000" opacity=".12"/>`;
+  const hl=`<ellipse cx="35" cy="36" rx="11" ry="6.5" fill="#fff" opacity="${fin==='brillant'||fin==='cristal'||gold?'.8':fin==='neon'?'.18':fin==='metal'?'.5':'.42'}" transform="rotate(-25 35 36)"/>${fin==='brillant'||fin==='metal'||gold?'<circle cx="28" cy="46" r="2.6" fill="#fff" opacity=".9"/><ellipse cx="66" cy="78" rx="9" ry="3" fill="#fff" opacity=".25"/>':''}`;
   const star=(cx,cy)=>{ let pts=''; for(let i=0;i<10;i++){ const a=i/10*Math.PI*2-Math.PI/2, r=i%2?3.6:8.5; pts+=`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)} `; } return `<polygon points="${pts}" fill="#ffd75e" stroke="${ink}" stroke-width="1.6" stroke-linejoin="round"/>`; };
+  const heart=(cx,cy)=>`<path d="M${cx} ${cy+7.5}C${cx-4} ${cy+4.5} ${cx-8.5} ${cy+1} ${cx-8.5} ${cy-3}C${cx-8.5} ${cy-6.5} ${cx-6} ${cy-8.5} ${cx-3.5} ${cy-8.5}C${cx-1.8} ${cy-8.5} ${cx-.6} ${cy-7.6} ${cx} ${cy-6}C${cx+.6} ${cy-7.6} ${cx+1.8} ${cy-8.5} ${cx+3.5} ${cy-8.5}C${cx+6} ${cy-8.5} ${cx+8.5} ${cy-6.5} ${cx+8.5} ${cy-3}C${cx+8.5} ${cy+1} ${cx+4} ${cy+4.5} ${cx} ${cy+7.5}Z" fill="#ff3d6e" stroke="${ink}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${cx-3.6}" cy="${cy-4.4}" r="1.7" fill="#fff" opacity=".9"/>`;
   const ink2 = fin==='neon' ? hi : ink;
   let eyes;
   if (sk.eyes==='joyeux') eyes=`<path d="M31 56q7-9 14 0M55 56q7-9 14 0" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
   else if (sk.eyes==='colere') eyes=`<ellipse cx="38" cy="57" rx="5.5" ry="7" fill="${ink}"/><ellipse cx="62" cy="57" rx="5.5" ry="7" fill="${ink}"/><path d="M28 43l17 7M72 43l-17 7" stroke="${ink}" stroke-width="4.5" stroke-linecap="round"/>`;
   else if (sk.eyes==='etoiles') eyes=star(38,54)+star(62,54);
+  else if (sk.eyes==='coeur') eyes=heart(38,55)+heart(62,55);
   else eyes=`<ellipse cx="38" cy="54" rx="6" ry="8.5" fill="${ink}"/><ellipse cx="62" cy="54" rx="6" ry="8.5" fill="${ink}"/><circle cx="40" cy="50.5" r="2" fill="#fff"/><circle cx="64" cy="50.5" r="2" fill="#fff"/>`;
   if (fin==='neon') eyes=eyes.split(ink).join(ink2);
+  // accessoires (l'or des bijoux a son propre dégradé)
+  const gid='pwbij';
+  const gdef=`<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#ffcb3d"/><stop offset="1" stop-color="#a86d06"/></linearGradient><linearGradient id="pwcap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6a4d"/><stop offset=".7" stop-color="#d93a22"/><stop offset="1" stop-color="#a8260f"/></linearGradient><linearGradient id="pwbrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c22f18"/><stop offset="1" stop-color="#7d1a08"/></linearGradient>`;
+  const chain=()=>{ let o=''; const n=13; for (let k=0;k<n;k++){ const t=k/(n-1), x=(1-t)*(1-t)*20+2*(1-t)*t*50+t*t*80, y=(1-t)*(1-t)*68+2*(1-t)*t*96+t*t*68, a=Math.atan2(((1-t)*(96-68)+t*(68-96))*2, ((1-t)*(50-20)+t*(80-50))*2)*180/Math.PI;
+      o+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${k%2?3.4:2.6}" ry="${k%2?1.9:2.6}" transform="rotate(${a.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="none" stroke="url(#${gid})" stroke-width="1.9"/>`; }
+    return o+`<circle cx="50" cy="86" r="6.8" fill="url(#${gid})" stroke="#8a5600" stroke-width="1.3"/><path d="M47.5 82.5v6.5h5" stroke="#8a5600" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="47.6" cy="83.4" r="1.3" fill="#fff" opacity=".85"/>`; };
+  const hoops=()=>[[9,58],[91,58]].map(([x,y])=>`<circle cx="${x}" cy="${y-7}" r="2.8" fill="url(#${gid})" stroke="#8a5600" stroke-width=".9"/><circle cx="${x}" cy="${y+4}" r="8.5" fill="none" stroke="#8a5600" stroke-width="4.2"/><circle cx="${x}" cy="${y+4}" r="8.5" fill="none" stroke="url(#${gid})" stroke-width="3"/><circle cx="${x-4}" cy="${y-.5}" r="1.3" fill="#fff" opacity=".95"/>`).join('');
   const A={
-    couronne:`<path d="M28 24L33 5L42 16L50 0L58 16L67 5L72 24Z" fill="#ffd75e" stroke="#b8902a" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="12" r="2.8" fill="#ff8a70"/>`,
-    casquette:`<path d="M20 32Q50-4 80 32Z" fill="#e0452d"/><path d="M72 29Q94 28 98 35L72 35Z" fill="#b8341f"/><circle cx="50" cy="12" r="3" fill="#b8341f"/>`,
+    couronne:`<path d="M28 24L33 5L42 16L50 0L58 16L67 5L72 24Z" fill="url(#${gid})" stroke="#b8902a" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="12" r="2.8" fill="#ff8a70"/>`,
+    casquette:`<ellipse cx="50" cy="31" rx="31" ry="5" fill="#000" opacity=".18"/>
+      <path d="M17 31Q16 4 50 2Q84 4 83 31Q50 26 17 31Z" fill="url(#pwcap)" stroke="#7d1a08" stroke-width="1.4"/>
+      <path d="M50 2Q40 14 38 29M50 2Q60 14 62 29M50 2Q28 8 24 30M50 2Q72 8 76 30" stroke="#8f220d" stroke-width="1.1" fill="none" opacity=".75"/>
+      <path d="M18 29Q50 24 82 29" stroke="#fff" stroke-width="2.4" fill="none" opacity=".9"/>
+      <path d="M58 27Q86 21 101 30Q99 36 86 37Q70 37 60 33Z" fill="url(#pwbrim)" stroke="#5c1204" stroke-width="1.3"/>
+      <path d="M62 30Q84 26 97 31" stroke="#ff8c70" stroke-width="1.2" fill="none" opacity=".7"/>
+      <circle cx="50" cy="3" r="3.6" fill="#b8341f" stroke="#7d1a08" stroke-width="1"/>
+      <path d="M40 13l1.6 3.4 3.7.4-2.8 2.5.8 3.6-3.3-1.9-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z" fill="#fff" opacity=".95"/>
+      <path d="M27 12Q34 6 42 5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".45"/>`,
     lunettes:`<rect x="25" y="46" width="22" height="15" rx="5" fill="#111"/><rect x="53" y="46" width="22" height="15" rx="5" fill="#111"/><path d="M47 51h6" stroke="#111" stroke-width="3"/><path d="M29 49h7M57 49h7" stroke="#fff" stroke-width="2" opacity=".45"/>`,
     cornes:`<path d="M28 27Q16 10 25-2Q30 14 39 21Z" fill="#e0452d"/><path d="M72 27Q84 10 75-2Q70 14 61 21Z" fill="#e0452d"/>`,
     noeud:`<g transform="translate(72 21) rotate(18)"><path d="M0 0L-15-10L-15 10ZM0 0L15-10L15 10Z" fill="#f39ac2"/><circle r="4.5" fill="#d9679b"/></g>`,
-    aureole:`<ellipse cx="50" cy="1" rx="23" ry="6" fill="none" stroke="#ffd75e" stroke-width="4.5"/>`};
-  return `<svg viewBox="-6 -10 112 112" aria-hidden="true"><defs>${defs}</defs>${ground}${body}${extra}${shade}${hl}<g class="look"><g class="eyes">${eyes}</g></g>${A[sk.acc]||''}</svg>`;
+    aureole:`<ellipse cx="50" cy="1" rx="23" ry="6" fill="none" stroke="#ffd75e" stroke-width="4.5"/>`,
+    chaine:chain(), boucles:hoops()};
+  return `<svg viewBox="-6 -10 112 112" aria-hidden="true"><defs>${defs}${clip}${gdef}</defs>${halo}${ground}${body}${extra}${shade}${hl}<g class="look"><g class="eyes">${eyes}</g></g>${A[sk.acc]||''}</svg>`;
 }
 const cleanSkin = s => ({color:COLORS[s&&s.color]?s.color:'azur', fur:FURS[s&&s.fur]?s.fur:'lisse', eyes:EYES[s&&s.eyes]?s.eyes:'ronds', acc:ACCS[s&&s.acc]?s.acc:'aucun', fin:FINS[s&&s.fin]?s.fin:'mat', trail:TRAILS[s&&s.trail]?s.trail:'aucune', win:WINS[s&&s.win]?s.win:'confettis'});
 const cleanName = n => (String(n||'').replace(/[\u0000-\u001f]/g,'').trim().slice(0,16)) || (T("Adversaire"));
@@ -4056,8 +4097,23 @@ function winFx(style, hex, cv, dur=4200){
   stopConfetti(); raf=requestAnimationFrame(step);
 }
 // Aperçu d'une célébration depuis la boutique
+/* Boutique : on voit l'effet en vrai. Traînée : le pion fait des allers-retours et laisse sa traînée.
+   Célébration : elle se joue en boucle sur l'écran. */
+let SFX={w:null, at:0};
+setInterval(()=>{
+  const inShop = view==='shop' && !sheet && !document.hidden && !(M && G && view==='game');
+  const lane = inShop && SHOP.k==='trail' && document.querySelector('.trlane');
+  if (lane){ const cols=TRAIL_COLS[lane.dataset.tr], pw=lane.querySelector('.trpawn');
+    if (cols && pw && !REDUCED){ const L=lane.getBoundingClientRect(), R=pw.getBoundingClientRect(), z=ZF||1;
+      for (let j=0;j<2;j++){ const e=document.createElement('b'); e.className='tp '+lane.dataset.tr; const sz=6+Math.random()*9;
+        e.style.cssText=`left:${((R.left+R.width/2-L.left)/z+(Math.random()-.5)*18).toFixed(1)}px;top:${((R.top+R.height*.62-L.top)/z+(Math.random()-.5)*18).toFixed(1)}px;--c:${cols[Math.floor(Math.random()*cols.length)]};width:${sz}px;height:${sz}px`;
+        lane.appendChild(e); setTimeout(()=>e.remove(), 800); } } }
+  const wid = inShop && SHOP.k==='win' ? shopList('win', SHOP.mode)[SHOP.i] : null;
+  if (wid){ if (SFX.w!==wid || Date.now()-SFX.at>4600){ SFX.w=wid; SFX.at=Date.now(); previewWin(wid); } }
+  else if (SFX.w){ SFX.w=null; const cv=document.getElementById('winprev'); if (cv){ cv.getContext('2d').clearRect(0,0,cv.width,cv.height); cv.remove(); } }
+}, 70);
 function previewWin(id){ let cv=document.getElementById('winprev'); if (!cv){ cv=document.createElement('canvas'); cv.id='winprev'; cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:95'; document.body.appendChild(cv); }
-  const hex=(COLORS[P.skin.color]||COLORS.azur).hex; if (id==='confettis'){ winFx('etoiles',hex,cv,1500); return; } winFx(id,hex,cv,3600); }
+  const hex=(COLORS[P.skin.color]||COLORS.azur).hex; if (id==='confettis'){ fxRun('confettis',hex,cv); return; } winFx(id,hex,cv,3600); }
 function celebrate(){
   if (!M || !M.done || view!=='game') return;
   recordGame();
@@ -5371,6 +5427,8 @@ const isEq = (k,id) => k==='theme' ? P.theme===id : P.skin[k]===id;
 function itemView(k, id, big){
   const it=CAT[k][id];
   if (k==='theme') return `<div class="swatch ${big?'big':''}" style="background:${it.fr}">${[1,2,1,2,1,2,1,2,1].map(v=>`<i style="background:${v===1?it.t1:it.t2}"></i>`).join('')}</div>`;
+  if (k==='trail' && big) return `<div class="trlane" data-tr="${id}"><i></i><i></i><i></i><div class="trpawn">${pawnSVG(P.skin)}</div></div>`;
+  if (k==='win' && big) return `<div class="fxstage big">${pawnSVG(P.skin)}</div>`;
   if (k==='trail'||k==='win') return `<div class="fxstage ${big?'big':''}">${pawnSVG({...P.skin,[k]:id})}<span class="fxe fx-${k}-${id}">${it.e}</span></div>`;
   return pawnSVG({...P.skin,[k]:id});
 }
@@ -5428,7 +5486,7 @@ function renderShop(){
     <div class="pedestal"></div>
   </div>
   ${sp&&it?`<div class="iinfo">${info}${btn}</div>`:''}
-  ${it&&!sp?`<div class="iinfo">${rr?`<span class="rar r-${rr.k}">${rr.n}</span>`:''}<h2>${esc(it.n)}</h2><small>${KIND_PL[SHOP.k]} · ${SHOP.i+1}/${n}${SHOP.k==='win'?' · '+T("touche pour voir"):''}</small>${btn}</div>`:''}
+  ${it&&!sp?`<div class="iinfo">${rr?`<span class="rar r-${rr.k}">${rr.n}</span>`:''}<h2>${esc(it.n)}</h2><small>${KIND_PL[SHOP.k]} · ${SHOP.i+1}/${n}</small>${btn}</div>`:''}
   <div class="cats">${cats}</div>`;
 }
 let shopTx=null;

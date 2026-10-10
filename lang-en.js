@@ -1304,4 +1304,8 @@ Object.assign(window.EN_DICT, {"Mon classement":"My ranking","Compte":"Account",
 "Sans pub":"No ads",
 "Plus aucune pub imposée. Les vidéos à récompense restent au choix.":"No more forced ads. Reward videos stay optional.",
 "actif":"active",
-"3, 6 ou 12 mois":"3, 6 or 12 months"});
+"3, 6 ou 12 mois":"3, 6 or 12 months",
+"Cœur":"Heart",
+"Cœurs":"Hearts",
+"Chaîne en or":"Gold chain",
+"Boucles d'oreilles":"Earrings"});
