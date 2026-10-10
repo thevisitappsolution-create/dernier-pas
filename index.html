@@ -1063,6 +1063,9 @@ html:not(.lock) body{background:transparent!important}
 .side .swatch,.side .fxstage{transform:scale(.55)}
 .arw{position:absolute;z-index:4;top:50%;margin-top:-34px;width:40px;height:52px;border-radius:14px;border:2px solid #ffffff55;background:linear-gradient(180deg,#ffe14d,#ffb02e);color:#3a2400;font-family:var(--fun);font-size:2rem;line-height:1;cursor:pointer;box-shadow:inset 0 -4px 0 #0004,0 4px 0 #0009}
 .arw.l{left:0}.arw.r{right:0}
+.arw{display:grid;place-items:center;padding:0;margin-top:-38px}.arw svg{display:block}
+.stage:has(.pwdemo) .arw{margin-top:-26px}
+@media (max-height:700px){.arw{margin-top:-33px}.stage:has(.pwdemo) .arw{margin-top:-26px}}
 .fxstage{position:relative;width:150px;height:150px}
 .fxstage .fxe{position:absolute;right:-12px;bottom:4px;font-size:3rem;filter:drop-shadow(0 0 12px #fff)}
 .fxstage.big .fxe{animation:wig 1.6s ease-in-out infinite}
@@ -1324,17 +1327,13 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 #fxpow .fxdizzy i:first-child{left:28%}#fxpow .fxdizzy i:nth-child(2){right:28%}
 #fxpow .fxdizzy b{position:absolute;left:50%;top:-6%;transform:translateX(-50%);font-size:40%;animation:fxsp 1s linear infinite}
 @keyframes fxdz{to{transform:rotate(45deg)}}@keyframes fxsp{to{transform:translateX(-50%) rotate(360deg)}}
-.dmb{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:8px;margin:10px auto 6px;width:100%;max-width:330px;box-sizing:border-box;border-radius:14px;background:linear-gradient(180deg,#120e28,#0d0b1f);box-shadow:0 0 0 1px #8f7bff55,0 0 24px #8f7bff40}
-.dmc{position:relative;aspect-ratio:1;border-radius:9px;border:2px solid var(--tc,#ff3dd8);background:color-mix(in srgb,var(--tc,#ff3dd8) 14%,#0b0918);display:grid;place-items:center;color:var(--tc,#ff3dd8);font-weight:900;text-shadow:0 0 8px var(--tc,#ff3dd8)}
-.dmc.v1{--tc:#2ef2ff}.dmc.v2{--tc:#ff3dd8}.dmc.v3{--tc:#b6ff3b}.dmc.h{border-color:transparent;background:#05040a;box-shadow:none}
-.dmc .num{opacity:.55;font-size:.9rem}
-.dmc .dmp{position:absolute;inset:0;display:grid;place-items:center}.dmc .dmp svg{width:88%;height:auto;filter:drop-shadow(0 3px 5px #0009)}
-.dmc .dmp em{position:absolute;top:-8px;right:-6px;font-style:normal;font-size:.9rem;filter:drop-shadow(0 0 4px #000)}
-.dmc .dmm{position:absolute;font-size:1.4rem;animation:dmmb 1s ease-in-out infinite alternate}@keyframes dmmb{to{transform:scale(1.15)}}
-.dmc.tap{box-shadow:0 0 0 3px #fff,0 0 16px #fff}
-.dmc .dmf{position:absolute;right:-4px;bottom:-10px;font-size:1.5rem;z-index:3;animation:dmtap .6s ease-in-out infinite alternate}@keyframes dmtap{to{transform:translate(-4px,-6px) scale(.9)}}
-.dmc{transition:opacity .3s}
-#dmc{display:block;min-height:3.2em;text-align:center;font-weight:800;margin:4px 0 10px;border:0;background:none;aspect-ratio:auto;color:inherit;text-shadow:none}
+.dmb{container-type:inline-size;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:8px;margin:10px auto 6px;width:100%;max-width:330px;box-sizing:border-box;border-radius:14px;background:linear-gradient(180deg,#120e28,var(--bframe,#0d0b1f));box-shadow:inset 0 0 0 1px #ffffff14,0 0 0 1px #8f7bff55,0 0 30px #8f7bff40}
+.dmb .cell .dmp{position:absolute;inset:0;display:grid;place-items:center;z-index:3}.dmb .cell .dmp svg{width:88%;height:auto;filter:drop-shadow(0 3px 5px #0009)}
+.dmb .cell .dmp.me svg{filter:drop-shadow(0 0 6px var(--pc)) drop-shadow(0 3px 5px #0009)}
+.dmb .cell .dmp em{position:absolute;top:-8px;right:-6px;font-style:normal;font-size:.9rem;filter:drop-shadow(0 0 4px #000)}
+.dmb .cell.dtap{box-shadow:0 0 0 3px #fff,0 0 16px #fff!important}
+.dmb .cell .dmf{position:absolute;right:-4px;bottom:-10px;font-size:1.5rem;z-index:6;animation:dmtap .6s ease-in-out infinite alternate}@keyframes dmtap{to{transform:translate(-4px,-6px) scale(.9)}}
+#dmc{display:block;min-height:1.6em;text-align:center;font-weight:800;margin:4px 0 8px}
 #dmc.in{animation:dmin .35s ease-out}@keyframes dmin{from{opacity:0;transform:translateY(6px)}}
 .dmlist{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;margin-top:8px}
 .dmgo{display:block;margin:8px auto 0}
@@ -1342,7 +1341,7 @@ details.sec2 .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px
 .pwdemo{width:100%}.pwdemo .dmb{margin:0 auto}
 .stage:has(.pwdemo) .center{width:min(280px,72vw);height:auto;margin:0}.stage:has(.pwdemo) .stbg,.stage:has(.pwdemo) .pedestal{display:none}
 .dmhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.dmhead h2{margin:0;padding:0;flex:1;text-align:center}
-.dmar{width:44px;height:44px;border-radius:50%;border:1px solid #ffffff33;background:#ffffff12;color:inherit;font-size:1.6rem;line-height:1;cursor:pointer}
+.dmar{display:grid;place-items:center;padding:0;width:44px;height:44px;border-radius:50%;border:1px solid #ffffff33;background:#ffffff12;color:inherit;font-size:1.6rem;line-height:1;cursor:pointer}
 .dmdots{display:flex;justify-content:center;gap:6px;margin:4px 0 10px}.dmdots button{width:38px;height:38px;border-radius:50%;border:2px solid #ffffff22;background:#ffffff0a;font-size:1.1rem;opacity:.55;cursor:pointer}.dmdots button.on{opacity:1;border-color:#2ef2ff;box-shadow:0 0 10px #2ef2ff88}
 .dmswipe{touch-action:pan-y}
 </style>
@@ -1395,7 +1394,7 @@ const CONFIG = {
   season0: false,         // Saison 0 terminée : la personnalisation s'achète avec des pièces gagnées en jouant
   supportUrl: '',         // lien de soutien (Stripe Payment Link, Ko-fi…). Vide = bouton masqué
   contact: (T("contact@lastep.app")),
-  version: 90,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
+  version: 91,           // numéro affiché dans les réglages (à augmenter à chaque mise à jour)
   themeChoice: false,     // choix Néon / Calme masqué pour l'instant (mettre true pour le réafficher)   // À REMPLACER par l'e-mail de contact que tu veux rendre public
 };
 const N=5, DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
@@ -2024,57 +2023,61 @@ function powAnim(ev, ctx){
 /* ---------- Cinématiques d'explication des pouvoirs (Boutique, Règles) ---------- */
 // Un mini-plateau rejoue chaque pouvoir avec les mêmes animations que dans la partie, sous-titres à l'appui.
 let DM=null; const DMH=new Set();
+const CHEV = d => `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="${d<0?'M15 4 7 12l8 8':'M9 4l8 8-8 8'}" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const DM_SKIN = p => p===0 ? P.skin : (BOTS.medium||Object.values(BOTS)[0]).skin;
 // la fenêtre d'explication passe devant la Boutique
 const dmEl = () => { const sh=document.querySelector('#sheet:not([hidden]) .dmb'); return sh || document.querySelector('#screen .dmb'); };
 const DMCTX={cell:i=>{ const b=dmEl(); return b && b.querySelector(`[data-i="${i}"]`); }, skin:p=>pawnSVG(DM_SKIN(p)), hide:DMH, redraw:()=>dmDraw()};
 function dmDraw(){
   const b=dmEl(); if (!b || !DM || !DM.cells || b.dataset.k!==DM.k) return;
-  b.innerHTML=DM.cells.map((v,i)=>{ const p=DM.pawns.findIndex(x=>x===i), m=DM.mine===i && DM.mineVis;
-    return `<div class="dmc${v===0?' h':' v'+v}${DM.tap===i?' tap':''}" data-i="${i}">${v?`<span class="num">${v}</span>`:''}${m?'<span class="dmm">💣</span>':''}${p>=0 && !DMH.has(i)?`<span class="dmp">${pawnSVG(DM_SKIN(p))}${DM.badge && p===1?`<em>${DM.badge}</em>`:''}</span>`:''}${DM.tap===i?'<span class="dmf">👆</span>':''}</div>`; }).join('');
+  b.style.setProperty('--pc', (COLORS[P.skin.color]||{hex:'#2ef2ff'}).hex);
+  // mêmes cases et mêmes repères lumineux que dans une vraie partie, quand c'est ton tour
+  b.innerHTML=DM.cells.map((v,i)=>{ const p=DM.pawns.findIndex(x=>x===i), m=DM.mine===i && DM.mineVis, hl=(DM.hl||{})[i]||'';
+    return `<div class="cell ${v===0?'hole':'v'+v}${hl?' '+hl:''}${DM.tap===i?' dtap':''}" data-i="${i}">${v?`<span class="num">${v}</span>`:''}${m?'<span class="dynm">💣</span>':''}${p>=0 && !DMH.has(i)?`<span class="dmp${p===0?' me':''}">${pawnSVG(DM_SKIN(p))}${DM.badge && p===1?`<em>${DM.badge}</em>`:''}</span>`:''}${DM.tap===i?'<span class="dmf">👆</span>':''}</div>`; }).join('');
 }
 const dmSay = t => { const c=document.getElementById('dmc'); if (c){ c.classList.remove('in'); void c.offsetWidth; c.textContent=t; c.classList.add('in'); } };
-function dmScene(cells, pawns, extra){ DM=Object.assign(DM||{}, {cells:cells.slice(), pawns:pawns.slice(), tap:null, mine:null, mineVis:false, badge:null}, extra||{}); DMH.clear(); dmDraw(); }
+function dmScene(cells, pawns, extra){ DM=Object.assign(DM||{}, {cells:cells.slice(), pawns:pawns.slice(), tap:null, mine:null, mineVis:false, badge:null, hl:{}}, extra||{}); DMH.clear(); dmDraw(); }
 const row = (vals) => [2,2,2,2,2, ...vals, 2,2,2,2,2];
+const act = () => { DM.tap=null; DM.hl={}; };
 // chaque étape : [délai depuis l'étape précédente (ms), action]
 const DM_SCRIPTS={
   push:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Collé à un adversaire")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {hl:{7:'pushme'}}); dmSay(T("Collé à un adversaire")); }],
     [1300, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
-    [900, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); dmSay(T("Il recule d'une case")); }],
-    [2400, ()=>{ dmScene(row([2,2,2,0,2]), [6,7]); dmSay(T("Un trou derrière ?")); }],
+    [900, ()=>{ act(); DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); dmSay(T("Il recule d'une case")); }],
+    [2400, ()=>{ dmScene(row([2,2,2,0,2]), [6,7], {hl:{7:'pushme'}}); dmSay(T("Un trou derrière ?")); }],
     [1300, ()=>{ DM.tap=7; dmDraw(); }],
-    [700, ()=>{ DM.tap=null; DM.cells[6]--; DM.pawns=[7,-1]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8, dead:1}, DMCTX); dmSay(T("Il tombe !")); }],
+    [700, ()=>{ act(); DM.cells[6]--; DM.pawns=[7,-1]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8, dead:1}, DMCTX); dmSay(T("Il tombe !")); }],
     [2600, null]],
   swap:()=>[
-    [0, ()=>{ dmScene(row([2,1,2,2,2]), [6,7]); dmSay(T("Ta case est à 1")); }],
+    [0, ()=>{ dmScene(row([2,1,2,2,2]), [6,7], {hl:{7:'swapme'}}); dmSay(T("Ta case est à 1")); }],
     [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
-    [800, ()=>{ DM.tap=null; DM.cells[6]=0; DM.pawns=[7,-1]; powAnim({k:'swap', by:0, vic:1, a:6, b:7, dead:1}, DMCTX); dmSay(T("Ta case s'écroule : il tombe !")); }],
-    [3200, ()=>{ dmScene(row([2,2,2,2,2]), [6,7]); dmSay(T("Sinon, simple échange")); }],
-    [1200, ()=>{ DM.cells[6]--; DM.pawns=[7,6]; powAnim({k:'swap', by:0, vic:1, a:6, b:7}, DMCTX); }],
-    [2200, null]],
+    [800, ()=>{ act(); DM.cells[6]=0; DM.pawns=[7,-1]; powAnim({k:'swap', by:0, vic:1, a:6, b:7, dead:1}, DMCTX); dmSay(T("Ta case s'écroule : il tombe !")); }],
+    [3200, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {hl:{7:'swapme'}}); dmSay(T("Sinon, simple échange")); }],
+    [1200, ()=>{ act(); DM.cells[6]--; DM.pawns=[7,6]; powAnim({k:'swap', by:0, vic:1, a:6, b:7}, DMCTX); }],
+    [2400, null]],
   heavy:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {badge:'🏋️'}); dmSay(T("Il a le Poids lourd")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,7], {badge:'🏋️', hl:{7:'pushme'}}); dmSay(T("Il a le Poids lourd")); }],
     [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
-    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'heavy', by:0, vic:1, a:6, at:7, kind:'push'}, DMCTX); dmSay(T("Bloqué : pouvoir perdu")); }],
-    [2400, ()=>{ DM.badge=null; dmDraw(); dmSay(T("2e attaque : ça passe")); }],
-    [1500, ()=>{ DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); }],
+    [800, ()=>{ act(); dmDraw(); powAnim({k:'heavy', by:0, vic:1, a:6, at:7, kind:'push'}, DMCTX); dmSay(T("Bloqué : pouvoir perdu")); }],
+    [2400, ()=>{ DM.badge=null; DM.hl={7:'pushme'}; dmDraw(); dmSay(T("2e attaque : ça passe")); }],
+    [1500, ()=>{ act(); DM.cells[6]--; DM.pawns=[7,8]; powAnim({k:'push', by:0, vic:1, a:6, b:7, c:8}, DMCTX); }],
     [2200, null]],
   wall:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [5,6], {badge:'🧱'}); dmSay(T("Il a le Mur")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [5,6], {badge:'🧱', hl:{7:'jtarget', 8:'jtarget', 0:'target', 10:'target'}}); dmSay(T("Il a le Mur")); }],
     [1400, ()=>{ DM.tap=7; dmDraw(); dmSay(""); }],
-    [800, ()=>{ DM.tap=null; dmDraw(); powAnim({k:'wall', by:0, from:5, at:6, to:7}, DMCTX); dmSay(T("Saut refusé, tour perdu")); }],
+    [800, ()=>{ act(); dmDraw(); powAnim({k:'wall', by:0, from:5, at:6, to:7}, DMCTX); dmSay(T("Saut refusé, tour perdu")); }],
     [2600, ()=>{ DM.badge=null; dmDraw(); dmSay(T("1 fois par manche")); }],
     [2000, null]],
   jump:()=>[
-    [0, ()=>{ dmScene(row([2,2,0,2,2]), [5,6]); dmSay(T("Par-dessus un pion ou un trou")); }],
+    [0, ()=>{ dmScene(row([2,2,0,2,2]), [5,6], {hl:{8:'jtarget', 9:'jtarget', 0:'target', 10:'target'}}); dmSay(T("Par-dessus un pion ou un trou")); }],
     [1400, ()=>{ DM.tap=8; dmDraw(); }],
-    [700, ()=>{ DM.tap=null; DM.cells[5]--; DM.pawns=[8,6]; powAnim({k:'hop', by:0, from:5, to:8}, DMCTX); dmSay(T("1 fois par manche · gratuit")); }],
+    [700, ()=>{ act(); DM.cells[5]--; DM.pawns=[8,6]; powAnim({k:'hop', by:0, from:5, to:8}, DMCTX); dmSay(T("1 fois par manche · gratuit")); }],
     [2600, null]],
   mine:()=>[
-    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,9]); dmSay(T("Pose-la à côté de toi")); }],
+    [0, ()=>{ dmScene(row([2,2,2,2,2]), [6,9], {hl:{1:'dyntarget', 5:'dyntarget', 7:'dyntarget', 11:'dyntarget'}}); dmSay(T("Pose-la à côté de toi")); }],
     [1500, ()=>{ DM.tap=7; dmDraw(); }],
-    [700, ()=>{ DM.tap=null; DM.mine=7; DM.mineVis=true; dmDraw(); powAnim({k:'minep', by:0, at:7}, DMCTX); dmSay(T("Visible 5 secondes…")); }],
+    [700, ()=>{ act(); DM.mine=7; DM.mineVis=true; dmDraw(); powAnim({k:'minep', by:0, at:7}, DMCTX); dmSay(T("Visible 5 secondes…")); }],
     [2000, ()=>{ DM.mineVis=false; dmDraw(); dmSay(T("…puis invisible pour tous")); }],
     [1800, ()=>{ DM.cells[9]--; DM.pawns=[6,7]; powAnim({k:'slide', by:1, from:9, to:7}, DMCTX); }],
     [650, ()=>{ DM.pawns=[6,-1]; dmDraw(); powAnim({k:'mine', vic:1, at:7}, DMCTX); dmSay(T("Boum ! Elle part à ton 2e tour")); }],
@@ -3088,7 +3091,7 @@ function sheetHTML(){
     <div class="ldg"><div class="ldr">${PW_SLOT.map(chip).join('')}</div></div>
     <button class="primary big2" type="button" data-act="ld-ok">${sl.length?T("Prêt !"):T("Prêt (Saut + Saut)")}</button>`; }
   if (s.type==='powdemo'){ const w=PW[s.k];
-    return `<div class="dmswipe"><div class="dmhead"><button type="button" class="dmar" data-act="dm-go" data-v="-1" aria-label="${T("Précédent")}">‹</button><h2>${w.e} ${T(w.n)}</h2><button type="button" class="dmar" data-act="dm-go" data-v="1" aria-label="${T("Suivant")}">›</button></div>
+    return `<div class="dmswipe"><div class="dmhead"><button type="button" class="dmar" data-act="dm-go" data-v="-1" aria-label="${T("Précédent")}">${CHEV(-1)}</button><h2>${w.e} ${T(w.n)}</h2><button type="button" class="dmar" data-act="dm-go" data-v="1" aria-label="${T("Suivant")}">${CHEV(1)}</button></div>
     <div class="dmb" data-k="${s.k}"></div><p id="dmc"></p>
     <div class="dmdots">${PW_SLOT.map(k=>`<button type="button" class="${k===s.k?'on':''}" data-act="pw-demo" data-v="${k}" aria-label="${T(PW[k].n)}">${PW[k].e}</button>`).join('')}</div></div>
     <button class="primary" type="button" data-act="sheet-close">${T("Compris !")}</button>`; }
@@ -5287,7 +5290,7 @@ function renderShop(){
     ${prev?`<button type="button" class="side l" data-act="shop-prev" aria-label="${T("Précédent")}">${view(SHOP.k,prev)}</button>`:''}
     ${next?`<button type="button" class="side r" data-act="shop-next" aria-label="${T("Suivant")}">${view(SHOP.k,next)}</button>`:''}
     <div class="center ${SHOP.dir>0?'inR':SHOP.dir<0?'inL':''}" ${SHOP.k==='win'&&id?`data-act="shop-preview"`:''}>${it?view(SHOP.k,id,true):`<div class="empty">${mode==='shop'?'✓<small>'+T("Tu as déjà tout dans cette catégorie !")+'</small>':'<small>'+T("Rien ici pour l'instant")+'</small>'}</div>`}</div>
-    ${n>1?`<button type="button" class="arw l" data-act="shop-prev" aria-label="${T("Précédent")}">‹</button><button type="button" class="arw r" data-act="shop-next" aria-label="${T("Suivant")}">›</button>`:''}
+    ${n>1?`<button type="button" class="arw l" data-act="shop-prev" aria-label="${T("Précédent")}">${CHEV(-1)}</button><button type="button" class="arw r" data-act="shop-next" aria-label="${T("Suivant")}">${CHEV(1)}</button>`:''}
     <div class="pedestal"></div>
   </div>
   ${sp&&it?`<div class="iinfo">${info}${btn}</div>`:''}
